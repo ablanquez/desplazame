@@ -3909,8 +3909,39 @@ const agrupar = (lista, clave) => {
   return g;
 };
 
+/**
+ * ⭐ **¿HAY TESELA DEBAJO?** — la premisa del pin y del hito, comprobada antes de
+ *    medir (22/09, la tanda del arnés).
+ *
+ * El pin y el hito se juzgaban SIEMPRE: si bajo su dibujo no quedaba muestra de
+ * tesela, la jueza no sabía decir «no puedo» y daba rojo con un «—» por cifra.
+ * Así salieron los rojos sueltos de la familia píxel-sobre-tesela —«aro/tesela
+ * —» en la P26 de 1920 el 20/09, y el aro del hito rojo 1 de 3 el 19/09—, que
+ * no decían si el hito fallaba el contraste o si simplemente no había nada que
+ * medir debajo.
+ *
+ * Su hermana ya declaraba: la traza y el borde dicen «no se mide» cuando la
+ * muestra no llega, y el pin fuera de la vista también. Se calca. La premisa es
+ * del DOM y no se adivina: que en el centro del dibujo haya una tesela CARGADA
+ * —la clase de Leaflet, la imagen completa y con tamaño—. Si está, se mide como
+ * siempre; si falta, se DICE —«NO SE PUEDE MEDIR»— y no se juzga, que no es
+ * ni verde ni rojo. Y si la tesela está y aun así no sale muestra, eso sigue
+ * siendo rojo: esa ausencia no se esconde detrás de la otra.
+ */
+const HAY_TESELA_JS = `
+  const hayTesela = (c) => {
+    const cx = c.x + c.w / 2, cy = c.y + c.h / 2;
+    return [...document.querySelectorAll('.leaflet-tile-container img.leaflet-tile')].some((t) => {
+      if (!t.classList.contains('leaflet-tile-loaded') || !t.complete || t.naturalWidth === 0) return false;
+      const r = t.getBoundingClientRect();
+      return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
+    });
+  };
+`;
+
 /** Lo que pisa la tesela, en el DOM: pares línea/ribete, bordes de polígono, pins e hitos. */
 const LO_QUE_PISA = `
+  ${HAY_TESELA_JS}
   const lienzo = document.querySelector('.leaflet-container').getBoundingClientRect();
   const caja = (e) => { const r = e.getBoundingClientRect(); const x = Math.max(r.x - 3, lienzo.x), y = Math.max(r.y - 3, lienzo.y); return { x, y, w: Math.min(r.right + 3, lienzo.right) - x, h: Math.min(r.bottom + 3, lienzo.bottom) - y }; };
   const hex = (s) => { if (!s) return null; if (s[0] === '#') return s.length === 4 ? '#' + [...s.slice(1)].map((c) => c + c).join('') : s.toLowerCase(); const m = s.match(/\\d+/g); return '#' + m.slice(0, 3).map((v) => Number(v).toString(16).padStart(2, '0')).join(''); };
@@ -3931,8 +3962,8 @@ const LO_QUE_PISA = `
     bordes.push({ borde: hex(p.getAttribute('stroke')), ribete: ribetePendiente, raya: p.getAttribute('stroke-dasharray'), caja: caja(p) });
     ribetePendiente = null;
   }
-  const pins = [...document.querySelectorAll('.leaflet-marker-icon svg[data-icono]')].map((s) => { const p = s.querySelector('path'); return { icono: s.getAttribute('data-icono'), papel: s.getAttribute('data-papel'), relleno: hex(p.getAttribute('fill')), halo: hex(p.getAttribute('stroke')), caja: caja(s) }; });
-  const hitos = [...document.querySelectorAll('.leaflet-marker-icon .hito')].map((h) => { const s = getComputedStyle(h); return { aro: hex(s.borderTopColor), fondo: hex(s.backgroundColor), dibujo: hex(s.color), caja: caja(h) }; });
+  const pins = [...document.querySelectorAll('.leaflet-marker-icon svg[data-icono]')].map((s) => { const p = s.querySelector('path'); const c = caja(s); return { icono: s.getAttribute('data-icono'), papel: s.getAttribute('data-papel'), relleno: hex(p.getAttribute('fill')), halo: hex(p.getAttribute('stroke')), caja: c, hayTesela: hayTesela(c) }; });
+  const hitos = [...document.querySelectorAll('.leaflet-marker-icon .hito')].map((h) => { const s = getComputedStyle(h); const c = caja(h); return { aro: hex(s.borderTopColor), fondo: hex(s.backgroundColor), dibujo: hex(s.color), caja: c, hayTesela: hayTesela(c) }; });
   return { pares, bordes, pins, hitos, dpr: devicePixelRatio, lienzo: { x: lienzo.x, y: lienzo.y, w: lienzo.width, h: lienzo.height } };
 `;
 
@@ -3965,7 +3996,7 @@ async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
   const oscuro = tema === 'dark';
   const lo = await leer(m, LO_QUE_PISA);
   const clones = await leer(m, CLONAR_PINS(oscuro ? RELLENOS_DE_PIN : RELLENOS_DE_PIN_EN_CLARO));
-  const deLosClones = await leer(m, `return [...document.querySelectorAll('svg.p26-clon')].map((s) => { const r = s.getBoundingClientRect(); const p = s.querySelector('path'); return { icono: 'clon', papel: p.getAttribute('fill'), relleno: p.getAttribute('fill').toLowerCase(), halo: p.getAttribute('stroke').toLowerCase(), caja: { x: r.x - 3, y: r.y - 3, w: r.width + 6, h: r.height + 6 } }; });`);
+  const deLosClones = await leer(m, `${HAY_TESELA_JS} return [...document.querySelectorAll('svg.p26-clon')].map((s) => { const r = s.getBoundingClientRect(); const p = s.querySelector('path'); const c = { x: r.x - 3, y: r.y - 3, w: r.width + 6, h: r.height + 6 }; return { icono: 'clon', papel: p.getAttribute('fill'), relleno: p.getAttribute('fill').toLowerCase(), halo: p.getAttribute('stroke').toLowerCase(), caja: c, hayTesela: hayTesela(c) }; });`);
   await m.evaluar(OCULTAR_CONTROLES);
   await m.dormir(150);
   const con = await m.captura();
@@ -4051,6 +4082,11 @@ async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
       console.log(`  ··  ${dicho} · el pin ${p.icono}/${p.papel} no se mide: queda fuera de la vista`);
       continue;
     }
+    // ⭐ Y SIN TESELA DEBAJO, TAMPOCO: se dice y no se juzga. Ver HAY_TESELA_JS.
+    if (!p.hayTesela) {
+      console.log(`  ⊘  ${dicho} · el pin ${p.icono}/${p.papel} NO SE PUEDE MEDIR: falta la tesela bajo él (ninguna cargada en su sitio) — no se juzga, y no cuenta como verde`);
+      continue;
+    }
     const relleno = deHex6(p.relleno), halo = deHex6(p.halo);
     const bajo = teselaBajo(con, sin, [p.caja], [halo], lo.dpr);
     const entreSi = contrasteRgb(relleno, halo);
@@ -4062,6 +4098,11 @@ async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
     );
   }
   for (const h of oscuro ? lo.hitos : []) {
+    // ⭐ La premisa primero: sin tesela debajo, se dice y no se juzga.
+    if (!h.hayTesela) {
+      console.log(`  ⊘  ${dicho} · el hito ${h.aro} NO SE PUEDE MEDIR: falta la tesela bajo él (ninguna cargada en su sitio) — no se juzga, y no cuenta como verde`);
+      continue;
+    }
     const aro = deHex6(h.aro);
     const bajo = teselaBajo(con, sin, [h.caja], [aro], lo.dpr);
     const { min, cual } = conPeorTesela(aro, null, bajo.tesela);
