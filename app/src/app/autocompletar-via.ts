@@ -290,10 +290,9 @@ export class AutocompletarVia {
     () => this.abierto() && this.consulta().trim().length >= MINIMO,
   );
 
-  /** Lo mismo que usa el padre, para que el campo se lea igual siempre. */
-  protected comoSeVe(via: Via): string {
-    return comoSeVeLaVia(via);
-  }
+  // ⚠️ Aquí había un `comoSeVe(via)` que solo llamaba a `comoSeVeLaVia`, y era
+  //    código muerto que viajaba en el inicial: la plantilla dejó de usarlo el
+  //    23/08 (a13b6eb) y, siendo `protected`, nadie más podía. Podado el 22/09.
 
   protected alEscribir(valor: string): void {
     this.texto.set(valor);
