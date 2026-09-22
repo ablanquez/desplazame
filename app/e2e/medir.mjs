@@ -669,6 +669,51 @@ const ACTA = [
 const ACTA_TOTAL = 115;
 
 /**
+ * ⭐ LA CUARENTENA — lo intocable que NO es del arnés (22/09, plan B de Antonio).
+ *
+ * El acta de arriba guarda lo que dejó el propio arnés. Esto es otra cosa: un
+ * perfil que dejó un guion de DIAGNÓSTICO (la carrera del mapa, 22/09) en un
+ * puerto fuera del censo, y que ya no se deja borrar. Se DECLARA —como el `⊘`
+ * de la P26 o el NO-APLICA— en vez de fingir que no está: la jueza sigue
+ * verde, lo canta en voz alta («N en cuarentena»), y sigue ROJA ante cualquier
+ * otro perfil fuera del censo.
+ *
+ * La evidencia del 9790: `rm -rf` como usuario, dentro y fuera del sandbox de
+ * Claude Code, y `rmdir /s /q` → «Permission denied» / «Acceso denegado». Sin
+ * ningún chrome.exe vivo y con control total (F) del usuario en la ACL, que
+ * lleva además entradas `CodexSandboxUsers` y dos SID sin nombre. Antonio, a
+ * mano: `takeown` como administrador DENEGADO en 951 ficheros y el renombrado
+ * DENEGADO, con cero identificadores sobre la carpeta (resmon), tras
+ * reinstalar Chrome y reiniciar. Su lectura: el aislamiento de un sandbox.
+ *
+ * ⚠️ DEUDA DECLARADA: son ~78 MB de `%TEMP%`. Se intentará borrar tras futuros
+ *    reinicios —Windows puede soltarlo—; si desaparece, la jueza lo anuncia y
+ *    la fila se retira.
+ * ⚠️ Y LA LECCIÓN: un perfil de diagnóstico nace DENTRO del scratchpad de quien
+ *    diagnostica, nunca suelto en `%TEMP%`. `perfilDe` lee `process.env.TEMP`
+ *    AL LLAMAR y `DIR_TESELAS` AL IMPORTAR: un guion que importa este módulo y
+ *    después pone `process.env.TEMP` en su carpeta antes de `abrirChrome` deja
+ *    ahí su perfil y sigue usando la caché de teselas de siempre.
+ *
+ * Misma guarda que el acta: cada entrada con autorización fechada y su porqué,
+ * y el total exacto en `CUARENTENA_TOTAL`.
+ */
+const CUARENTENA = [
+  {
+    perfil: 'perfil-medir-fijo-9790',
+    origen: 'diagnóstico de la carrera del mapa (22/09): diag.mjs y cascada.mjs, puerto 9790 fuera del censo',
+    autorizacion: {
+      fecha: '2026-09-22',
+      porque:
+        'borrado imposible por cualquier mano: rm y rmdir denegados (dentro y fuera del sandbox), takeown de ' +
+        'administrador denegado en 951 ficheros y renombrado denegado, sin procesos ni identificadores vivos; ' +
+        'plan B de Antonio: cuarentena declarada, ~78 MB de deuda, se reintenta tras reinicios',
+    },
+  },
+];
+const CUARENTENA_TOTAL = 1;
+
+/**
  * ⭐ LA JUEZA DEL ARNÉS (letra del 17/09, con el acta unificada).
  *
  * Se llama al final de cada suite, **detrás de `cerrar()`**, y **cuenta el
@@ -699,7 +744,7 @@ const ACTA_TOTAL = 115;
 export function perfilesResiduales() {
   const titulo =
     `⭐ el conjunto de perfiles de %TEMP% no crece (${ACTA_TOTAL} del acta + ` +
-    `nombres fijos de ${PUERTOS_DEL_ARNES.size} puertos)`;
+    `nombres fijos de ${PUERTOS_DEL_ARNES.size} puertos + ${CUARENTENA_TOTAL} en cuarentena)`;
   let presentes = [];
   try {
     presentes = readdirSync(process.env.TEMP).filter((f) => f.startsWith('perfil-medir-'));
@@ -713,8 +758,12 @@ export function perfilesResiduales() {
     return m !== null && PUERTOS_DEL_ARNES.has(m[1]);
   };
   const fijos = presentes.filter(esFijo);
-  const nuevos = presentes.filter((f) => !acta.has(f) && !esFijo(f));
+  // La cuarentena: declarada, no escondida (ver `CUARENTENA`).
+  const enCuarentena = new Set(CUARENTENA.map((c) => c.perfil));
+  const nuevos = presentes.filter((f) => !acta.has(f) && !esFijo(f) && !enCuarentena.has(f));
   const idos = nombres.filter((f) => !presentes.includes(f));
+  const cuarentenaPresente = CUARENTENA.filter((c) => presentes.includes(c.perfil));
+  const cuarentenaIda = CUARENTENA.filter((c) => !presentes.includes(c.perfil));
   const sinAutorizar = ACTA.filter(
     (b) => !/^\d{4}-\d{2}-\d{2}$/.test(b.autorizacion?.fecha ?? '') || !(b.autorizacion?.porque ?? '').trim(),
   );
@@ -722,6 +771,13 @@ export function perfilesResiduales() {
   if (nombres.length !== ACTA_TOTAL) guarda.push(`el acta tiene ${nombres.length} filas y declara ${ACTA_TOTAL}`);
   if (acta.size !== nombres.length) guarda.push(`${nombres.length - acta.size} nombres repetidos`);
   if (sinAutorizar.length) guarda.push(`bloques sin autorización fechada: ${sinAutorizar.map((b) => b.bloque).join(', ')}`);
+  const cuarentenaSinAutorizar = CUARENTENA.filter(
+    (c) => !/^\d{4}-\d{2}-\d{2}$/.test(c.autorizacion?.fecha ?? '') || !(c.autorizacion?.porque ?? '').trim(),
+  );
+  if (CUARENTENA.length !== CUARENTENA_TOTAL) guarda.push(`la cuarentena tiene ${CUARENTENA.length} filas y declara ${CUARENTENA_TOTAL}`);
+  if (enCuarentena.size !== CUARENTENA.length) guarda.push('nombres repetidos en la cuarentena');
+  if ([...enCuarentena].some((c) => acta.has(c))) guarda.push('un perfil está a la vez en el acta y en la cuarentena');
+  if (cuarentenaSinAutorizar.length) guarda.push(`cuarentena sin autorización fechada: ${cuarentenaSinAutorizar.map((c) => c.perfil).join(', ')}`);
   const trozos = [
     nuevos.length === 0
       ? '0 perfiles fuera del conjunto'
@@ -732,6 +788,12 @@ export function perfilesResiduales() {
     trozos.push(`⭐ ${idos.length} del acta ya NO están (se pueden retirar): ${idos.slice(0, 4).join(', ')}`);
   }
   trozos.push(`${fijos.length} con nombre fijo, que se reutilizan`);
+  trozos.push(
+    `${cuarentenaPresente.length} en cuarentena${cuarentenaPresente.length ? ': ' + cuarentenaPresente.map((c) => c.perfil).join(', ') : ''}`,
+  );
+  if (cuarentenaIda.length) {
+    trozos.push(`⭐ ${cuarentenaIda.length} de la cuarentena ya NO está (se puede retirar): ${cuarentenaIda.map((c) => c.perfil).join(', ')}`);
+  }
   if (PUERTOS_FUERA_DEL_CENSO.size) {
     guarda.push(`puertos abiertos fuera del censo: ${[...PUERTOS_FUERA_DEL_CENSO].join(', ')}`);
   }
