@@ -4034,6 +4034,21 @@ async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
     return { min, cual };
   };
 
+  // ⭐ SIN TRAZA QUE MEDIR, SE DICE (22/09, la carrera del mapa). El bucle de
+  //    abajo recorre las trazas que hay: si no hay NINGUNA a la vista, no
+  //    escribía nada —ni OK, ni «no se mide», ni «⊘»— y la P26 daba verde
+  //    callada con el mapa en franja (bitácora del 22/09). Cada escenario de la
+  //    P26 genera una ruta, así que una traza a la vista es lo esperado; si
+  //    falta, se declara como el pin sin tesela: ni verde ni rojo.
+  //
+  // ⚠️ Y `yego` la declara SIEMPRE, por diseño y no por avería: su destino cae
+  //    fuera del área de servicio, el viaje se rechaza con las palabras del
+  //    contrato y no hay ruta que pintar. Lo que sí se mide ahí es el polígono
+  //    del área. Son 3 declaraciones fijas —una por pantalla— y así están
+  //    dichas en vez de calladas.
+  if (oscuro && lo.pares.length === 0) {
+    console.log(`  ⊘  ${dicho} · la traza NO SE PUEDE MEDIR: no hay ninguna traza pintada a la vista — no se juzga, y no cuenta como verde`);
+  }
   for (const [clave, grupo] of oscuro ? agrupar(lo.pares, (p) => p.linea + '|' + p.ribete) : []) {
     const [hl, hr] = clave.split('|');
     const linea = deHex6(hl), ribete = deHex6(hr);
@@ -6372,6 +6387,142 @@ for (const [tema, puerto] of [
     for (const modo of ['andando', 'coche', 'bici', 'patin', 'moto', 'bus']) {
       await elModoSeñala(m, modo, dicho);
     }
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ══════ P35 · LA CARRERA DEL MAPA: LA HOJA LLEGA DESPUÉS QUE EL JS (22/09) ══════
+//
+// ⭐ La bitácora del 22/09: el `index.html` trae el CSS crítico en línea y la
+//    hoja completa ASÍNCRONA (`media="print" onload=…`). Si el JS gana, el mapa
+//    se crea sobre un contenedor que aún no tiene su tamaño —medido: 1438×579
+//    al montar, 881×951 después— y se queda así: una franja de teselas arriba y
+//    el resto gris. [Leaflet] es su fallo con nombre propio, «map container
+//    size not valid at map initialization»: el mapa lee el tamaño al crearse y
+//    no vuelve a mirarlo si nadie le llama a `invalidateSize()`.
+//
+// La repro, sin proxy ni sleep: la hoja se BLOQUEA al cargar
+// (`Network.setBlockedURLs`) y, con el mapa ya montado, se desbloquea y se
+// añade la misma hoja. Es exactamente el orden de la carrera, forzado. Lo que
+// se compra es lo que ve la persona: que al final las teselas cubran el mapa
+// ENTERO. Y la premisa se juzga aparte: si el mapa se montó CON la hoja, esta
+// casilla no está probando nada, y eso también es rojo.
+//
+// ⭐ Y LA CASCADA, que es lo que el arreglo canónico trajo consigo: sin
+//    `leaflet.css` las teselas van en el flujo y estiran el contenedor, y un
+//    `ResizeObserver` que invalida sin mirar pide teselas sin fin (medido el
+//    22/09: 579 → 23.199 px en 160 ms, miles pedidas a OpenStreetMap). Se
+//    cuentan las teselas CREADAS mientras la hoja no ha llegado, contra las de
+//    UNA vista del tamaño que el mapa tenía al montar. La hoja se retiene 1,5 s
+//    —es la carrera reproducida, no una espera a ojo—.
+//
+// ⚠️ Usa el puerto 9600, de la P26 (`pc · andando`): los Chrome del arnés van
+//    en serie y ése ya está cerrado aquí. Un puerto nuevo tendría que entrar en
+//    el censo de `medir.mjs`.
+{
+  const dicho = 'P35 · pc · la hoja llega tarde';
+  console.log(`\n═══ ${dicho} ═══`);
+  const m = await abrirChrome({ ancho: 1440, alto: 975, puerto: 9600 });
+  try {
+    // El tamaño que el mapa tenía AL MONTARSE: `L.map()` le pone la clase
+    // `leaflet-container`, en el mismo tramo síncrono en el que lee su tamaño.
+    await m.cdp('Page.addScriptToEvaluateOnNewDocument', {
+      source: `(() => {
+        window.__p35AlMontar = null;
+        window.__p35HojaLlega = false;
+        window.__p35TeselasSinHoja = 0;
+        new MutationObserver((cambios) => {
+          if (window.__p35HojaLlega) return;
+          for (const c of cambios) for (const n of c.addedNodes) {
+            if (n.nodeType === 1 && n.matches('img.leaflet-tile')) window.__p35TeselasSinHoja++;
+          }
+        }).observe(document, { subtree: true, childList: true });
+        new MutationObserver((cambios, obs) => {
+          for (const c of cambios) {
+            const e = c.target;
+            if (e.classList && e.classList.contains('leaflet-container') && !window.__p35AlMontar) {
+              window.__p35AlMontar = {
+                ancho: e.clientWidth, alto: e.clientHeight,
+                // Una hoja BLOQUEADA sigue en document.styleSheets, vacía: lo que
+                // cuenta es que traiga reglas, no que el <link> exista.
+                hoja: [...document.styleSheets].some((s) => {
+                  if (!/\\/styles-[A-Za-z0-9]+\\.css/.test(s.href || '')) return false;
+                  try { return s.cssRules.length > 0; } catch { return false; }
+                }),
+              };
+              obs.disconnect();
+            }
+          }
+        }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
+      })()`,
+    });
+    await m.cdp('Network.setBlockedURLs', { urls: ['*/styles-*.css'] });
+    await m.ir(APP, 0);
+    await m.esperar('el mapa montado con la hoja bloqueada', `!!window.__p35AlMontar`, { topeMs: 15000 });
+    const alMontar = await m.evaluar(`window.__p35AlMontar`);
+    juzgar(
+      alMontar.hoja === false,
+      `${dicho} · la premisa: el mapa se montó SIN la hoja completa`,
+      `al montar ${alMontar.ancho}×${alMontar.alto} px · hoja externa presente: ${alMontar.hoja}`,
+    );
+
+    // La carrera, reproducida: la hoja sigue sin llegar 1,5 s con el mapa vivo.
+    await m.dormir(1500);
+    const sinHoja = await m.evaluar(`(window.__p35HojaLlega = true, window.__p35TeselasSinHoja)`);
+    const unaVista = (Math.ceil(alMontar.ancho / 256) + 1) * (Math.ceil(alMontar.alto / 256) + 1);
+    juzgar(
+      sinHoja <= unaVista,
+      `${dicho} · ⭐ sin cascada: mientras falta la hoja, el mapa no pide más teselas que UNA vista de su tamaño al montar`,
+      `${sinHoja} teselas creadas sin la hoja · una vista de ${alMontar.ancho}×${alMontar.alto} son ${unaVista}`,
+    );
+
+    // Y ahora llega la hoja, tarde: la misma URL, ya desbloqueada.
+    await m.cdp('Network.setBlockedURLs', { urls: [] });
+    const href = await m.evaluar(`document.querySelector('link[rel=stylesheet][href*="styles-"]').getAttribute('href')`);
+    await m.evaluar(`new Promise((ok, mal) => {
+      const l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = ${JSON.stringify(href)};
+      l.onload = () => ok(true);
+      l.onerror = () => mal(new Error('la hoja no ha cargado'));
+      document.head.appendChild(l);
+    })`);
+    await m.esperar(
+      'la hoja aplicada: el contenedor del mapa con otro tamaño que al montar',
+      `(() => { const c = document.querySelector('.leaflet-container');
+        return c.clientWidth !== ${alMontar.ancho} || c.clientHeight !== ${alMontar.alto}; })()`,
+      { topeMs: 5000 },
+    );
+
+    // ⭐ Lo que se compra: las teselas CARGADAS cubren el contenedor entero.
+    //    Se espera a ese hecho con tope; si no llega, el rojo dice cuánto cubren.
+    const COBERTURA = `(() => {
+      const c = document.querySelector('.leaflet-container').getBoundingClientRect();
+      const t = [...document.querySelectorAll('.leaflet-tile-container img.leaflet-tile-loaded')].map((x) => x.getBoundingClientRect());
+      if (!t.length) return { ancho: Math.round(c.width), alto: Math.round(c.height), cubreAncho: 0, cubreAlto: 0, teselas: 0 };
+      const izq = Math.max(Math.min(...t.map((r) => r.left)), c.left), der = Math.min(Math.max(...t.map((r) => r.right)), c.right);
+      const arr = Math.max(Math.min(...t.map((r) => r.top)), c.top), aba = Math.min(Math.max(...t.map((r) => r.bottom)), c.bottom);
+      return { ancho: Math.round(c.width), alto: Math.round(c.height), cubreAncho: Math.round(der - izq), cubreAlto: Math.round(aba - arr), teselas: t.length };
+    })()`;
+    let entero = true;
+    try {
+      await m.esperar(
+        'las teselas cubriendo el mapa entero',
+        `(() => { const r = ${COBERTURA}; return r.cubreAncho >= r.ancho - 2 && r.cubreAlto >= r.alto - 2; })()`,
+        { topeMs: 8000 },
+      );
+    } catch {
+      entero = false;
+    }
+    const cob = await m.evaluar(COBERTURA);
+    await m.pintado();
+    await m.guardar(`${CAPTURAS}/p35-hoja-tarde.png`);
+    juzgar(
+      entero,
+      `${dicho} · ⭐ el mapa acaba ENTERO, no en franja: las teselas cubren el contenedor cuando la hoja llega después`,
+      `contenedor ${cob.ancho}×${cob.alto} · teselas cargadas ${cob.teselas} cubren ${cob.cubreAncho}×${cob.cubreAlto} · al montar ${alMontar.ancho}×${alMontar.alto}`,
+    );
   } finally {
     m.cerrar();
   }
