@@ -9,7 +9,9 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import * as L from 'leaflet';
+// El ESM de Leaflet, como `mapa.ts` (ver allí el porqué): dos formas distintas
+// del mismo paquete serían dos Leaflet en la construcción local.
+import * as L from 'leaflet/dist/leaflet-src.esm.js';
 import type { Vertice } from '@desplazame/tipos';
 import { Capas } from './capas';
 import { CENTRO, TESELA_CLARA, TESELA_OSCURA, ZOOM } from './mapa';

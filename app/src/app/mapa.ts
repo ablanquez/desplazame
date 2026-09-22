@@ -8,7 +8,22 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import * as L from 'leaflet';
+/* ⭐ LEAFLET POR SU ESM, no por su UMD (22/09, la poda del presupuesto).
+   Leaflet 1.9.4 no publica `module` en su `package.json`: su `main` es
+   `dist/leaflet-src.js`, el UMD, y eso es lo que `from 'leaflet'` traía —como
+   CommonJS, envuelto en `__commonJS`—. El aviso del CLI lo decía («Module
+   'leaflet' used by 'src/app/mapa.ts' is not ESM — CommonJS or AMD
+   dependencies can cause optimization bailouts») y `angular.json` lo tenía
+   silenciado desde el 16/08. [angular.dev, «Configuring CommonJS
+   dependencies»] «Always prefer native ECMAScript modules (ESM) throughout
+   your application and its dependencies»; el silencio es para cuando «the
+   best option is to use a CommonJS dependency», y aquí no lo era: el mismo
+   paquete trae `dist/leaflet-src.esm.js`, el mismo código 1.9.4 sin el
+   envoltorio. Medido con sonda: el inicial baja 4,14 kB en crudo y 1,80
+   transferidos. Lo único que se pierde es `window.L` —el UMD lo escribía, el
+   ESM no—, y no lo lee nadie: ni la app, ni las suites, ni el motor. Los tipos
+   siguen siendo los de `@types/leaflet`: ver `src/leaflet-esm.d.ts`. */
+import * as L from 'leaflet/dist/leaflet-src.esm.js';
 import { REJILLA, SIMBOLOS, type NombreDeSimbolo } from './simbolos';
 import {
   contraste,
