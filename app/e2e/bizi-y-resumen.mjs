@@ -169,17 +169,23 @@ try {
     );
   } else {
     const t0 = Date.now();
-    const linea = await esperarLineaDelLog(
-      MOTOR_LOG,
-      /^motor: (ruta operativa de hoy|no se ha podido leer la ruta operativa) — /,
-      'el pase de desvíos del motor terminado',
-      { topeMs: 120000 },
-    );
-    juez(
-      '⭐ el motor ha terminado su pase de arranque (desvíos)',
-      true,
-      `«${linea.trim().slice(0, 90)}» · esperado ${Math.round((Date.now() - t0) / 1000)} s`,
-    );
+    // El tope no mata la suite: si el pase no llega, se dice y se sigue
+    // contando lo demás (la ley de fallar DICIENDO, 22/09, el peaje).
+    try {
+      const linea = await esperarLineaDelLog(
+        MOTOR_LOG,
+        /^motor: (ruta operativa de hoy|no se ha podido leer la ruta operativa) — /,
+        'el pase de desvíos del motor terminado',
+        { topeMs: 120000 },
+      );
+      juez(
+        '⭐ el motor ha terminado su pase de arranque (desvíos)',
+        true,
+        `«${linea.trim().slice(0, 90)}» · esperado ${Math.round((Date.now() - t0) / 1000)} s`,
+      );
+    } catch (fallo) {
+      juez('⭐ el motor ha terminado su pase de arranque (desvíos)', false, String(fallo.message ?? fallo));
+    }
   }
 
   // Antes: 5000 ms a ciegas. Ahora: que estén los dos campos de calle.
@@ -241,16 +247,36 @@ try {
   // ── Se pulsan los dos, y se mira lo que contestan ─────────────────────────
   // Antes: 4000 ms tras cada botón. Ahora: que SU región haya contestado —ya no
   // está `aria-busy` y dice algo—, que es exactamente lo que se lee después.
+  // ⚠️ Y SE MIRA QUE EL BOTÓN ESTÉ ANTES DE PULSARLO (22/09, el peaje). Aquí
+  //    se pulsaba a ciegas, y el día que el viaje salió SIN botones vivos la
+  //    suite MURIÓ con «Cannot read properties of undefined (reading 'click')»:
+  //    se perdieron las 16 juezas que venían detrás y el recuento de escapadas.
+  //    La ley de la casa es fallar DICIENDO —el «⏱ TIEMPO AGOTADO» de
+  //    `m.esperar` es eso mismo—, así que esto se pone rojo con su motivo y
+  //    deja seguir a las demás.
   const contesta = async (i) => {
+    const hay = await m.evaluar(`document.querySelectorAll('.vivo__boton').length`);
+    if (hay <= i) {
+      juez(`el botón vivo ${i} está para poder pulsarlo`, false, `hay ${hay} botones vivos en la página`);
+      return false;
+    }
     await m.evaluar(`document.querySelectorAll('.vivo__boton')[${i}].click()`);
-    await m.esperar(
-      `la respuesta del botón vivo ${i} en su región`,
-      `(() => {
-        const r = document.querySelectorAll('.vivo__estado')[${i}];
-        return !!r && r.getAttribute('aria-busy') !== 'true' && r.textContent.trim().length > 0;
-      })()`,
-      { topeMs: 4000 },
-    );
+    // Y el tope tampoco puede matar la suite: si la región no contesta, se dice
+    // con el mensaje del «⏱ TIEMPO AGOTADO» y se sigue contando.
+    try {
+      await m.esperar(
+        `la respuesta del botón vivo ${i} en su región`,
+        `(() => {
+          const r = document.querySelectorAll('.vivo__estado')[${i}];
+          return !!r && r.getAttribute('aria-busy') !== 'true' && r.textContent.trim().length > 0;
+        })()`,
+        { topeMs: 4000 },
+      );
+    } catch (fallo) {
+      juez(`el botón vivo ${i} contesta dentro de su tope`, false, String(fallo.message ?? fallo));
+      return false;
+    }
+    return true;
   };
   await contesta(0);
   await contesta(1);
@@ -277,7 +303,9 @@ try {
     `${contadas} peticiones a /api/estacion-viva`,
   );
 
-  await m.evaluar(`document.querySelectorAll('.paso')[0].scrollIntoView({block:'start'})`);
+  // Y la foto tampoco mata la suite si no hay pasos que enseñar: se encuadra lo
+  // que haya (22/09, el peaje — aquí murió con «undefined.scrollIntoView»).
+  await m.evaluar(`document.querySelectorAll('.paso')[0]?.scrollIntoView({block:'start'})`);
   // Antes: 300 ms. Ahora: el desplazamiento pintado antes de la foto.
   await m.pintado();
   await m.guardar(`${FOTOS}/bizi-botones.png`);
