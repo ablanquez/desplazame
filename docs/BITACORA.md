@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-22] 🔴 ABIERTA — pintura salió en verde con el mapa de pc · coche roto: una franja de teselas arriba, zoom máximo y el resto gris
+## [2026-09-22] ✅ CERRADA — pintura salió en verde con el mapa de pc · coche roto: una franja de teselas arriba, zoom máximo y el resto gris
 
 **Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
 **Síntoma:** en la batería final de la poda del presupuesto (dist
@@ -34,10 +34,49 @@ y de las dos trazas (`#2563eb`, `#b45309`) NO ESCRIBIÓ NINGUNA LÍNEA: ni OK,
 ni `··`, ni `⊘`. Lo mismo en claro.
 **Cómo se cazó:** instrumento — el recuento de OK de la batería (1204 frente a
 1225) y el diff de las letras contra el base; luego la captura.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** dos, una del producto y otra de la jueza.
+· **El producto:** el fallo de Leaflet con nombre propio, «map container size
+not valid at map initialization». `L.map()` LEE el tamaño del contenedor al
+crearse y no vuelve a mirarlo si nadie llama a `invalidateSize()`. El
+`index.html` carga la hoja completa ASÍNCRONA (`media="print"` + `onload`, con
+el crítico en línea), y cuando el JS gana, el mapa se monta sobre un
+contenedor sin su tamaño. Medido con la hoja bloqueada, 3 de 3: **1438×579 al
+montar** (sin la hoja externa en `document.styleSheets`), **881×951 después**,
+y 6 teselas que cubren **881×64**: la franja. `mapa.ts` solo volvía a medir
+con el plegado de la columna o con el resize de VENTANA (`trackResize`).
+· **La jueza:** el bucle de las trazas de la P26 recorre las que hay; con cero
+trazas a la vista no escribía ninguna línea —ni OK, ni «no se mide», ni «⊘»—,
+así que la suite salía verde sin haber medido nada de lo que se rompió.
+**Arreglo aplicado:** `app/src/app/mapa.ts`: un `ResizeObserver` sobre el
+lienzo llama a `revisarTamano()` (el `invalidateSize` de siempre), y se
+desconecta en el `onDestroy` antes de `mapa.remove()`. El `transitionend` del
+Buscador, que hacía lo mismo para el plegado, se quita (`buscador.ts` y su
+plantilla). **Con guarda**, y esto es la lección gorda: el arreglo canónico a
+secas entra en CASCADA, porque la hoja que llega tarde trae también
+`leaflet.css` y sin ella las teselas van en el flujo y ESTIRAN el contenedor
+—el observador lo ve crecer, `invalidateSize` pide teselas para el tamaño
+nuevo, y vuelta a empezar—. Medido: **579 → 23.199 px en 160 ms**, 45 disparos
+y miles de teselas pedidas a OpenStreetMap. **`debounceMoveend` NO bastaba**, y
+el porqué está en el código de Leaflet 1.9.4: `invalidateSize` lanza `move`
+SIEMPRE y solo retrasa 200 ms el `moveend`; la capa de teselas se actualiza
+también con `move`, limitada por `updateInterval` (200 ms) porque en escritorio
+`updateWhenIdle` es falso. Con él, la cascada solo se frenaba: un escalón cada
+~210 ms, 1.032 teselas con la hoja 3 s tarde. La guarda es el patrón «baliza»
+(beacon) de detección de hojas —se comprueba EL EFECTO de la hoja, no el
+`onload` del `<link>`— en variante de la casa: la baliza es una regla que YA
+EXISTE, `.leaflet-container { overflow: hidden }` (`leaflet.css` 1.9.4, línea
+18; ninguna otra hoja de la casa pone `overflow` en el lienzo), así que no se
+añade CSS. Con ella y la hoja 3 s tarde: 2 disparos, 18 teselas, 0 escapadas.
+Y en `app/e2e/pintura.mjs`: la P35 compra el caso (premisa · sin cascada · el
+mapa entero) y la traza DECLARA cuando no hay ninguna que medir.
+**Commit:** `76ba5f0` (producto) · `340c109` (la P35 y la traza que declara)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+**Ley, al cerrar:**
+- Un bucle que mide lo que encuentra tiene que decir también cuando no
+  encuentra NADA: «cero» no es un verde, es una declaración.
+- Una librería que lee el tamaño del contenedor al nacer solo aguanta si el
+  contenedor le avisa cuando cambia; y el aviso se guarda hasta que la hoja
+  que da ese tamaño esté aplicada, o el arreglo se come al arreglado.
 **Traza:** `app/e2e/pintura.mjs` — P26, `juzgarLoQuePisa` (el bucle
 `for (… of agrupar(lo.pares, …))` de las trazas) y `generarCon` (no comprueba
 que el mapa encuadre la ruta) · captura `mapa-oscuro-pc-coche.png` de la
