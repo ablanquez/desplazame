@@ -5403,6 +5403,57 @@ pública de la app y se reconstruye al final como herramienta interna.
       rangos+pin]. OFRECIDA sin construir: la jueza que fije el
       blanco/negro exacto del pin [decisión de Antonio, en cola].
       Unidad 662+775 · batería 10/10 en cada asalto.
+- [x] ⚰️ **LA TANDA DEL ARNÉS (21/09; 3 commits `2b92811` ·
+      `3d49ce2` · `f268110`, un push con estos papeles): jueces,
+      no producto [git diff contra 2d8a3d1: dist, motor y app
+      intactos — presupuesto sin movimiento].** A · LOS RELOJES
+      [doctrina: el README del propio Puppeteer — «no hay
+      necesidad de llamadas malignas a sleep»; waitForTimeout
+      ELIMINADO de la herramienta en v22; se espera A LA COSA]:
+      nace m.esperar(hecho, condición, {topeMs}) en medir.mjs —
+      cada sleep de moto/yego/bizi reescrito a SU HECHO con
+      nombre [el radio marcado, las sugerencias, /api/ruta
+      contestada y el botón libre, la app montada…], el sleep
+      viejo degradado a TOPE de rescate que falla DICIENDO qué
+      esperaba [⏱ TIEMPO AGOTADO esperando «…»]. ⭐ HALLAZGO: el
+      sleep de 400 ms de yego tapaba POR SUERTE la petición
+      /api/area-yego — al quitarlo, tres juezas rojas con «0
+      manchas»; ahora esperan el área PINTADA. El motor caliente
+      con señal de verdad: la línea «ruta operativa de hoy» en el
+      log [MOTOR_LOG obligatorio para bizi-y-resumen: RUTINA
+      NUEVA — quien lance el motor guarda su log; hoy el pase
+      tardó 69 s y la suite lo esperó, no lo adivinó]. Tres
+      contrapruebas con la señal cortada: fallan por tiempo
+      NOMBRANDO el hecho. B · LA P26 DECLARA [el patrón de su
+      hermana de los pins]: antes de medir comprueba la tesela
+      debajo — si falta, «⊘ NO SE PUEDE MEDIR» [ni verde ni
+      rojo]; las dos caras probadas en laboratorio [con tesela:
+      la cifra de siempre; sin marca de cargadas: 69 ⊘ y ni un
+      verde]. Los 13 ⊘ de la primera tirada en pc·bici: causa NO
+      CONSTA [no reprodujo con testigo]. OFRECIDA sin construir:
+      la jueza que CUENTE las declaraciones [una vista sin
+      teselas saldría verde-con-todo-declarado — decisión de
+      Antonio]. C · LA CARRERA DEL data-theme, CLAVADA CON LA
+      LETRA DEL RUNNER [no con la sospecha]: @angular/build:
+      unit-test fija isolate:false [«to align with the Karma/
+      Jasmine experience»]; Vitest documenta que sin aislar, los
+      ficheros del mismo worker COMPARTEN document y localStorage
+      uno tras otro — no carrera simultánea: FUGA dependiente del
+      orden. Repro determinista ANTES [un worker + orden fijado:
+      los 7 rojos a voluntad; bisección 24→12→6→1] que DESMINTIÓ
+      la sospecha del papel: era pintura.spec [la prueba
+      «nombre estable» pulsaba el interruptor sin restaurar], no
+      tema.spec ni mapa-de-capas. El arreglo por la doctrina
+      unánime [quien cambia un global RESTAURA el valor ANTERIOR
+      en el teardown]: los tres ficheros que escriben en el
+      <html> real devuelven atributo Y llave en afterEach. Repro
+      DESPUÉS: 63/63 ×3 y 775/775 ×3 con el orden malo. Sin
+      bitácora CON CRITERIO [ningún verde dependía de la fuga —
+      eran rojos intermitentes, lo contrario de verde mentiroso].
+      DECLARADO A LA COLA: las otras SIETE suites siguen con
+      relojes dormidos + m.ir(url, ms) — no entraban en el
+      encargo. Batería 10/10 [bizi 18: +1 la del motor caliente]
+      · unidad 775 ×3 tiradas · tipos limpios.
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la

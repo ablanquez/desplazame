@@ -225,12 +225,13 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 21/09, lo en-local son DOCE commits: EL 5b ENTERO — los
-rangos de vértices por paso [el canon Valhalla/OSRM], el pin
-del logo elegido por Antonio [tinta A tras el PARO de color],
-el rojo de los cuatro modos cazado por su ojo [capa z620] —
-+ estos papeles, UN push. Los flecos ya se publicaron en
-4567bcc.)*
+*(Al 21/09 tarde, lo en-local son TRES commits: LA TANDA DEL
+ARNÉS — los relojes esperan su hecho [m.esperar; el hallazgo
+de yego], la P26 declara «⊘ no se puede medir», y la carrera
+del data-theme CLAVADA con la letra del runner [era
+pintura.spec, no la sospecha; teardown restaurador; repro
+antes/después ×3] — + estos papeles, UN push. El 5b entero ya
+se publicó en 2d8a3d1.)*
 *(Histórico del 20/09 noche: OCHO commits: LA TANDA DE
 FLECOS — el salto [G1] y el asa [deuda saldada, costura quieta]
 QUEDAN; el tercer estado construido y DESHECHO por orden de
@@ -1747,28 +1748,28 @@ DESHECHO por orden de Antonio — crónica y leyes en su bloque];
 ⭐ el 21/09 cayó EL 5b ENTERO
 [rangos por paso + el pin del logo, crónica en su bloque]; LA
 LISTA FINAL para acabar según su papel:
-la tanda del arnés [«las juezas esperan HECHOS»
-moto+yego+bizi · la P26 aprende «no se puede medir» — familia
-píxel-sobre-tesela · la carrera del data-theme entre ficheros
-de unidad [mapa.spec: 7 rojos intermitentes, causa probable
-dicha y sin clavar]] · la poda del presupuesto · la mesa chica
+⭐ el 21/09 tarde cayó también LA
+TANDA DEL ARNÉS [relojes+P26+carrera, crónica en su bloque];
+la poda del presupuesto · la mesa chica
 · los opcionales de Antonio [manifest · tope perfiles · 3 de
 F: · gradN25 · modo seguro] · y la prosa del panel a su gusto
-[estética, del remate del visor] · dos decisiones suyas en
+[estética, del remate del visor] · tres decisiones suyas en
 cola [el tabindex de los giros para señalar con teclado · la
-jueza del blanco/negro exacto del pin, ofrecida]; (b-bis) la cola gana:
-el asa [deuda 2.5.5-casa: cumple el suelo AA 24; ensanchar
-mueve la costura] + el ENLACE DE SALTO al buscador [2.4.1] —
-irán juntos · las juezas de píxel-sobre-tesela de la P26
+jueza del blanco/negro exacto del pin, ofrecida · la jueza
+que cuente las declaraciones ⊘ de la P26, ofrecida]; (b-bis) [el asa y el ENLACE DE SALTO: HECHOS el 20/09,
+crónica en su bloque del PLAN] · la cola gana: las juezas de píxel-sobre-tesela de la P26
 [rojas 1 de 3, familia de las del reloj] · la huella de
-grafo-visor roja-una-vez [NO CONSTA]; (c) EN COLA CON NOMBRE: EL TERCER
-ESTADO «Sistema» [grupo de tres, enmienda §35] · el manifest
+grafo-visor roja-una-vez [NO CONSTA]; (c) EN COLA CON NOMBRE: [el tercer
+estado «Sistema»: MUERTO el 20/09 por orden de Antonio,
+crónica y leyes en su bloque] · el manifest
 del app-icon [con su jueza de estado] · el TOPE de tamaño de
 los perfiles fijos [78 MB hoy, sin vigilar a largo] · los 3
-perfiles de F: fuera de la vista de la jueza [275 MB] · las
-juezas del RELOJ de moto y yego [esperan milisegundos, no la
-condición] · bizi-y-resumen y el motor caliente [3 verdes
-observados] · el gradN25 pendiente-con-precio [§39] · el
+perfiles de F: fuera de la vista de la jueza [275 MB] · [los
+relojes de moto/yego/bizi: HECHOS el 21/09, esperan su hecho
+— crónica en su bloque; las otras SIETE suites y m.ir siguen
+dormidas, declaradas] · RUTINA NUEVA: toda batería exige
+MOTOR_LOG [bizi-y-resumen espera el pase de desvíos en el
+log] · el gradN25 pendiente-con-precio [§39] · el
 modo seguro declinado-documentado [para recuperar los 8,8 GB
 cuando Antonio quiera];
 PENDIENTE DEL TELÉFONO de Antonio: el pin con su prompt real ·
@@ -1778,7 +1779,7 @@ levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
 initial al cierre del 5b: 552,91 kB [+1,79 del 5b entero:
-rangos+pin], transferido 144,25 [superado el aviso de 520 por 33,47]; la
+rangos+pin], transferido 144,25 [superado el aviso de 520 por 32,91]; la
 poda como palanca] · [guardián: HECHO 19/09] · el
 refactor del resultado como componente propio [4 topes] · los
 e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
