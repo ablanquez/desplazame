@@ -176,7 +176,10 @@ try {
         MOTOR_LOG,
         /^motor: (ruta operativa de hoy|no se ha podido leer la ruta operativa) — /,
         'el pase de desvíos del motor terminado',
-        { topeMs: 120000 },
+        // ⚠️ Solo cuenta lo que este motor haya escrito DESDE SU ARRANQUE. Si
+        //    `MOTOR_LOG` apunta al log diario —que apila arranques—, la línea
+        //    de uno anterior daría el listo con este motor todavía frío.
+        { topeMs: 120000, desdeLaMarca: /^motor: cargando el grafo/ },
       );
       juez(
         '⭐ el motor ha terminado su pase de arranque (desvíos)',

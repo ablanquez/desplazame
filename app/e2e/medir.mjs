@@ -1007,12 +1007,34 @@ const desdeClave = (k) => ({ r: (k >> 16) & 255, g: (k >> 8) & 255, b: k & 255 }
  *
  * Devuelve la línea que casó. Pasado el tope, lanza con el nombre del hecho.
  */
-export async function esperarLineaDelLog(ruta, patron, nombre, { topeMs = 120000, cadaMs = 500 } = {}) {
+export async function esperarLineaDelLog(ruta, patron, nombre, { topeMs = 120000, cadaMs = 500, desdeLaMarca = null } = {}) {
   const { readFileSync, existsSync } = await import('node:fs');
   const desde = Date.now();
   for (;;) {
     if (existsSync(ruta)) {
-      const casada = readFileSync(ruta, 'utf8').split(/\r?\n/).find((l) => patron.test(l));
+      let lineas = readFileSync(ruta, 'utf8').split(/\r?\n/);
+      // ⭐ SOLO LO DE ESTE ARRANQUE (22/09, el peaje del push).
+      //
+      // Un log puede traer VARIOS arranques: el del motor escribe además en
+      // `motor/logs/<fecha>.log`, que se APILA —el 22/09 llevaba 7 arranques en
+      // el mismo fichero—. Con ese log, la línea de un arranque anterior
+      // satisface la espera al instante y la jueza del motor caliente daría el
+      // listo con el motor de ahora todavía frío: un reloj viciado, que es lo
+      // que esta función venía a quitar. Con `desdeLaMarca` se mira solo lo
+      // escrito DESPUÉS de la última marca de arranque, que es lo que ata la
+      // línea a ESTE proceso. Sin marca a la vista no se inventa nada: no hay
+      // arranque que contar todavía, y se sigue esperando.
+      //
+      // ⚠️ El peaje del 22/09 NO fue un caso de esto, aunque yo lo declaré así:
+      //    aquel log tenía UN arranque y su línea era de ese motor, escrita a
+      //    los 48 s. El «esperado 0 s» era legítimo. Queda dicho para que nadie
+      //    lea aquí una causa que no fue.
+      if (desdeLaMarca) {
+        let ultima = -1;
+        for (let i = 0; i < lineas.length; i++) if (desdeLaMarca.test(lineas[i])) ultima = i;
+        lineas = ultima < 0 ? [] : lineas.slice(ultima + 1);
+      }
+      const casada = lineas.find((l) => patron.test(l));
       if (casada) {
         return casada;
       }
