@@ -27,6 +27,100 @@ const juzgar = (bien, titulo, detalle = '') => {
   if (!bien) fallos++;
   console.log(`  ${bien ? 'OK ' : '✗✗ '} ${titulo}${detalle ? '  ·  ' + detalle : ''}`);
 };
+
+/**
+ * ⭐ EL CENSO DE MOTIVOS DE DECLARACIÓN (23/09, decisión de Antonio).
+ *
+ * Una casilla que no se juzga se DECLARA con un `⊘` en vez de callarse — esa
+ * es la letra de la P26 desde el 22/09. Pero un `⊘` que nadie vigila es la
+ * otra cara del mismo vicio: los saltados que se acumulan «crean la ilusión de
+ * un sistema bien probado — falsa fiabilidad, comprobaciones silenciosamente
+ * omitidas» (el smell *Ignored Test*). Hoy son 3 y se sabe por qué; dentro de
+ * un mes podrían ser 30 y nadie se habría enterado, porque el número no sale
+ * en ninguna parte y la suite seguiría cantando VERDE.
+ *
+ * ⚠️ Y EL MATIZ, que es lo que evita la regla tonta: **un salto con buena
+ *    razón no enrojece nada**. La documentación de pytest lo dice de frente al
+ *    separar el salto declarado del fallo. Así que no se prohíbe declarar: se
+ *    exige que el motivo esté CENSADO. Motivo en el censo → verde, y cantado;
+ *    motivo fuera del censo → ROJO, diciendo cuál y dónde.
+ *
+ * ⚠️ SE CENSA EL MOTIVO, NO LA CANTIDAD — calcado del patrón de la cuarentena
+ *    de perfiles (`perfilesResiduales`, 22/09). Que el de YeGo aparezca 3 veces
+ *    o 6 porque mañana haya otra pantalla da igual: lo que no puede aparecer es
+ *    un motivo que nadie firmó. Contar cantidades obligaría a tocar la jueza
+ *    cada vez que se añade una pantalla, y eso es una jueza que se afloja sola.
+ *
+ * Misma guarda que el acta y que la cuarentena: cada entrada con autorización
+ * fechada y su porqué, sin motivos repetidos, y el total exacto en `CENSO_TOTAL`.
+ */
+const CENSO_DE_MOTIVOS = [
+  {
+    motivo: 'sin-traza-en-yego',
+    dice: 'la traza NO SE PUEDE MEDIR: no hay ninguna traza pintada a la vista',
+    porque:
+      'el destino del viaje de YeGo cae FUERA de su área de servicio: el viaje se rechaza con las ' +
+      'palabras del contrato y no hay ruta que pintar. No es una avería ni una casilla pendiente — ' +
+      'lo que se mide en ese escenario es el polígono del área, y eso sí se juzga.',
+    autorizacion: {
+      fecha: '2026-09-23',
+      porque:
+        'decisión de Antonio al abrir el censo: es el único motivo de declaración que hoy existe por ' +
+        'diseño en esta suite, una vez por pantalla (3), y así estaba ya escrito en la P26 desde el 22/09',
+    },
+  },
+];
+const CENSO_TOTAL = 1;
+
+/** Cada `⊘` emitido, con su motivo y su sitio, para que la jueza del final los cuente. */
+const DECLARADOS = [];
+/**
+ * Declara una casilla que no se juzga. `motivo` es la CLAVE del censo: si no
+ * está censada, la jueza del final se pone roja nombrándola.
+ */
+const declarar = (motivo, dicho, texto) => {
+  DECLARADOS.push({ motivo, dicho });
+  const censado = CENSO_DE_MOTIVOS.some((c) => c.motivo === motivo);
+  console.log(`  ⊘  ${dicho} · ${texto} — no se juzga, y no cuenta como verde${censado ? '' : ' · ⚠️ MOTIVO NO CENSADO'}`);
+};
+
+/**
+ * La jueza del censo, al final de la suite y con el mismo cuerpo que
+ * `perfilesResiduales`: cuenta lo que HA PASADO —no lo que creemos haber
+ * declarado—, canta los motivos censados con su recuento, y se pone roja si
+ * aparece uno sin firmar, diciendo cuál y en qué escenarios.
+ */
+function censoDeLosDeclarados() {
+  const titulo = `⭐ ningún ⊘ se declara con un motivo sin firmar (${CENSO_TOTAL} motivo(s) en el censo)`;
+  const claves = CENSO_DE_MOTIVOS.map((c) => c.motivo);
+  const censados = new Set(claves);
+  const porMotivo = new Map();
+  for (const d of DECLARADOS) {
+    if (!porMotivo.has(d.motivo)) porMotivo.set(d.motivo, []);
+    porMotivo.get(d.motivo).push(d.dicho);
+  }
+  const fuera = [...porMotivo].filter(([m]) => !censados.has(m));
+  const sinAutorizar = CENSO_DE_MOTIVOS.filter(
+    (c) => !/^\d{4}-\d{2}-\d{2}$/.test(c.autorizacion?.fecha ?? '') || !(c.autorizacion?.porque ?? '').trim() || !(c.porque ?? '').trim(),
+  );
+  const guarda = [];
+  if (claves.length !== CENSO_TOTAL) guarda.push(`el censo tiene ${claves.length} filas y declara ${CENSO_TOTAL}`);
+  if (censados.size !== claves.length) guarda.push(`${claves.length - censados.size} motivos repetidos`);
+  if (sinAutorizar.length) guarda.push(`motivos sin autorización fechada o sin porqué: ${sinAutorizar.map((c) => c.motivo).join(', ')}`);
+  const trozos = [
+    `${DECLARADOS.length} declarados`,
+    fuera.length === 0
+      ? '0 con motivo fuera del censo'
+      : `${fuera.reduce((n, [, d]) => n + d.length, 0)} CON MOTIVO FUERA DEL CENSO: ` +
+        fuera.map(([m, d]) => `«${m}» ×${d.length} en [${d.slice(0, 3).join('] [')}]${d.length > 3 ? '…' : ''}`).join(' · '),
+  ];
+  for (const c of CENSO_DE_MOTIVOS) {
+    const cuantos = porMotivo.get(c.motivo)?.length ?? 0;
+    trozos.push(`«${c.motivo}» ×${cuantos}${cuantos ? ' (' + porMotivo.get(c.motivo).join(' | ') + ')' : ' ⭐ censado y hoy sin usar: se puede retirar'}`);
+  }
+  if (guarda.length) trozos.push('✗ LA GUARDA DEL CENSO: ' + guarda.join(' · '));
+  return { bien: fuera.length === 0 && guarda.length === 0, titulo, detalle: trozos.join(' · ') };
+}
 /**
  * ⭐ EL SUELO DE LA BANDA — FIJADO (11/09), y la jueza pasó a verde sin tocarle
  * la vara: lo que cambió fue el color, que es como tenía que ser.
@@ -4047,7 +4141,7 @@ async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
   //    del área. Son 3 declaraciones fijas —una por pantalla— y así están
   //    dichas en vez de calladas.
   if (oscuro && lo.pares.length === 0) {
-    console.log(`  ⊘  ${dicho} · la traza NO SE PUEDE MEDIR: no hay ninguna traza pintada a la vista — no se juzga, y no cuenta como verde`);
+    declarar('sin-traza-en-yego', dicho, 'la traza NO SE PUEDE MEDIR: no hay ninguna traza pintada a la vista');
   }
   for (const [clave, grupo] of oscuro ? agrupar(lo.pares, (p) => p.linea + '|' + p.ribete) : []) {
     const [hl, hr] = clave.split('|');
@@ -4098,8 +4192,12 @@ async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
       continue;
     }
     // ⭐ Y SIN TESELA DEBAJO, TAMPOCO: se dice y no se juzga. Ver HAY_TESELA_JS.
+    // ⚠️ Este motivo NO está censado a propósito: una tesela que no ha cargado
+    //    es una avería del entorno, no un caso previsto. Hoy no se emite nunca
+    //    —0 en la batería del 23/09—; si empezara a emitirse, la jueza del
+    //    censo lo saca a la luz en vez de dejarlo pasar como un `⊘` más.
     if (!p.hayTesela) {
-      console.log(`  ⊘  ${dicho} · el pin ${p.icono}/${p.papel} NO SE PUEDE MEDIR: falta la tesela bajo él (ninguna cargada en su sitio) — no se juzga, y no cuenta como verde`);
+      declarar('pin-sin-tesela-debajo', dicho, `el pin ${p.icono}/${p.papel} NO SE PUEDE MEDIR: falta la tesela bajo él (ninguna cargada en su sitio)`);
       continue;
     }
     const relleno = deHex6(p.relleno), halo = deHex6(p.halo);
@@ -4113,9 +4211,10 @@ async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
     );
   }
   for (const h of oscuro ? lo.hitos : []) {
-    // ⭐ La premisa primero: sin tesela debajo, se dice y no se juzga.
+    // ⭐ La premisa primero: sin tesela debajo, se dice y no se juzga. Y tampoco
+    //    censado, por lo mismo que el pin: es avería, no diseño.
     if (!h.hayTesela) {
-      console.log(`  ⊘  ${dicho} · el hito ${h.aro} NO SE PUEDE MEDIR: falta la tesela bajo él (ninguna cargada en su sitio) — no se juzga, y no cuenta como verde`);
+      declarar('hito-sin-tesela-debajo', dicho, `el hito ${h.aro} NO SE PUEDE MEDIR: falta la tesela bajo él (ninguna cargada en su sitio)`);
       continue;
     }
     const aro = deHex6(h.aro);
@@ -6538,6 +6637,10 @@ for (const [tema, puerto] of [
   //    cree haber abierto.
   const perf = perfilesResiduales();
   juzgar(perf.bien, perf.titulo, perf.detalle);
+
+  // ⭐ Y NINGÚN `⊘` SE CUELA SIN FIRMA (23/09). Ver `CENSO_DE_MOTIVOS`.
+  const censo = censoDeLosDeclarados();
+  juzgar(censo.bien, censo.titulo, censo.detalle);
 }
 
 console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
