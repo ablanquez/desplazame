@@ -23,7 +23,8 @@
  * 2. **Las cifras suman el total declarado**, exactamente. Se redondea por
  *    fronteras acumuladas y no tramo a tramo, que es lo que lo hace posible.
  * 3. **El empujado es `andando`**, no un tercer estado: quien lleva el vehículo
- *    en la mano va a pie [RGC art. 121.2], y así quien pinta no necesita saber
+ *    en la mano va a pie [LEY anexo I.4 del texto refundido, RDLeg 6/2015], y
+ *    así quien pinta no necesita saber
  *    que el empuje existe.
  *
  * ⚠️ **Los dos primeros invariantes nacieron rojos y no por casualidad**: al

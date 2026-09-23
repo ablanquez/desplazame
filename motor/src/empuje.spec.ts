@@ -8,9 +8,11 @@
  *
  * [DOC OSM, tabla canónica de acceso] *«el acceso se concede en toda situación
  * a quien va andando empujando su bicicleta; en consecuencia los ruteadores
- * pueden considerar…»*. [LEY RGC art. 121.2] mete a quien empuja en el
- * capítulo del peatón — ⚠️ **caduca el 01/10/2026**, que el RD 518/2026 lo
- * lleva al art. 122.2.a.
+ * pueden considerar…»*. [LEY RGC art. 122.2.a, reformado por RD 518/2026, en
+ * vigor 01-10-2026] mete a quien empuja en el capítulo del peatón, y [LEY anexo
+ * I.4 del texto refundido, RDLeg 6/2015] es quien le da la **consideración de
+ * peatón** — ese concepto la reforma no lo toca. Migrada el 23/09; ver
+ * `docs/MIGRACION-CITAS-RGC-2026.md`.
  *
  * ── El mecanismo: el coste decide, no un umbral ─────────────────────────────
  *

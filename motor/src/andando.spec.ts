@@ -12,13 +12,23 @@ describe('⭐ LA TABLA DE ACCESO DEL PEATÓN', () => {
   });
 
   test('lo peatonal está permitido — es donde el peatón va POR LEY', () => {
-    // [LEY RGC art. 121.1] «Los peatones transitarán por la zona peatonal».
+    // [LEY RGC art. 122.1, reformado por RD 518/2026, en vigor 01-10-2026] la
+    // zona peatonal practicable es el sitio del peatón; la calzada es el «en su
+    // defecto».
     for (const h of ['footway', 'pedestrian', 'path', 'steps', 'corridor', 'living_street']) {
       assert.equal(puedeAndar(h), true, `${h} tenía que estar permitido`);
     }
   });
 
-  test('toda la CALZADA está permitida: el «salvo» del 121.1 no se resuelve aquí', () => {
+  // ⚠️ ACTA — ESTA JUEZA LLEVABA LA CITA EN EL NOMBRE, y la cita se movió
+  //    (23/09/2026). Se llamaba «el "salvo" del 121.1 no se resuelve aquí»: el
+  //    122.1 reformado ya no dice «salvo», dice «En los supuestos en los que no
+  //    exista zona peatonal practicable […] o, en su defecto, por la calzada».
+  //    **Compra exactamente lo mismo que compraba** —los quince tipos de
+  //    calzada abiertos, ni uno más ni uno menos—: no se ha tocado una sola
+  //    aserción, solo el nombre y el comentario, para que lo que promete y lo
+  //    que la ley dice vuelvan a ser la misma frase.
+  test('toda la CALZADA está permitida: el «en su defecto» del 122.1 no se resuelve aquí', () => {
     // El acceso dice quién PUEDE entrar; que sea el último recurso lo dice el
     // coste, no la puerta. Cerrar la calzada aquí dejaría sin ruta a media
     // ciudad, y el RGC no la cierra: la pone detrás de la acera.
