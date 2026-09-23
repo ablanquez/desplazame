@@ -84,7 +84,7 @@ enseña en pantalla**. Ya no es una declaración por adelantado: es una obligaci
 | **Qué es** | Los **46.150 portales** del término municipal: código de vía, número, y coordenada (lat/lon). Es la base sobre la que el buscador resolverá «calle + número» |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS Urbanismo · `https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs` · capa `urbanismo:Portales` |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
 | **Dónde está cumplida** | En el control de atribución del mapa, junto a la de OpenStreetMap, **mientras la capa de portales está encendida** — que es cuando el dato se enseña |
 | **Fecha del dato** | Generado el **2026-05-13T07:11:41.075Z** (conjunto `callejero-zaragoza` v1.0). CRS **EPSG:4326** |
@@ -222,7 +222,7 @@ prefijo en memoria. En el repositorio no se toca, y el navegador nunca lo ejecut
 | **Qué es** | La red ciclable de la ciudad: **733 rasgos** (`MultiLineString`) que suman **2.120 tramos** y **333,5 km** medidos. Es la capa que hará distinto al modo BICI |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU2_carriles_bici`** · petición registrada el **04/08/2026 11:52:40 GMT** (`timeStamp` del propio WFS: `2026-08-04T11:52:40.217Z`). CRS **EPSG:4326** |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**, la misma que los portales de § 1.2 |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)**, la misma que los portales de § 1.2 |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
 | **Dónde está cumplida** | Colgada **de esta capa también**, no solo de la de portales: si se apagan los portales y se dejan los carriles, sigue habiendo dato municipal en pantalla y la atribución tiene que seguir ahí |
 | **Fecha del dato** | Es la **capa viva** de movilidad, no una instantánea. El campo `fecha` viene poblado en **424 de los 733** rasgos; en los otros 309, **NO CONSTA** |
@@ -1105,7 +1105,7 @@ Gállego—, coherente con que el bbox del grafo sea más ancho que el término 
 | **Qué es** | La **geometría con nombre** de las 3.359 vías del término: una multilínea por vía, con su `codigo` y su `nombre_publico`. Es la capa que permite que una acera muda **herede el nombre de la calle que tiene al lado** — el 60 % de la red peatonal no lo lleva en OSM, y no es que falte: es que allí no existe |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS Urbanismo · `https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs` · capa `urbanismo:Vias`. **Es la misma capa de § 1.3**, pedida con geometría en vez de como tabla: § 1.3 entró copiada de otro proyecto de la casa y sin geometría, y esto se pide al WFS directamente |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**, la misma que § 1.2, § 1.3, § 1.5 y § 1.13 · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)**, la misma que § 1.2, § 1.3, § 1.5 y § 1.13 · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
 | **Dónde está cumplida** | Esta pieza **no se pinta**: se consume al arrancar y muere. Su atribución es la de esta ficha — y la que ya cuelga del mapa mientras hay capas municipales encendidas |
 | **Fecha de descarga** | **2026-08-20**. El fichero declara dentro `timeStamp` **`2026-08-20T14:35:52.919Z`**, que es cuándo el servidor compuso la respuesta y **no la fecha del dato**: el WFS no publica la fecha del dato |
@@ -1262,7 +1262,7 @@ se cree que se está casando.
 | **Qué es** | Las **313 farmacias** del término municipal, con su dirección, su teléfono y —310 de ellas— su coordenada. Es el **primer destino con nombre** del buscador: el punto 8 empieza aquí porque es la categoría más pequeña que sirve para estrenar el tubo entero |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | **API REST de equipamientos**, no el WFS: `https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json` · categoría **740 «Farmacias»**, del tema *Comercio Menor*. El WFS de IDEZar **no publica equipamientos** —sus capas son cartografía, urbanismo y movilidad—, así que esta es la única puerta |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**, la misma que el resto del dato municipal · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)**, la misma que el resto del dato municipal · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
 | **Dónde está cumplida** | En el control de atribución del mapa, junto a la de OpenStreetMap, y en esta ficha |
 | **Descarga** | **23/08/2026 15:33:54 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-23_zgzapi_equipamiento-farmacias_cabeceras.txt), con el `Set-Cookie` filtrado por norma. Pedida **dos veces con 29 segundos de diferencia**: byte a byte idéntica las dos |
@@ -1368,7 +1368,7 @@ patrón de los corchetes de § 1.3 — el dato entra como vino, y quien lo prese
 | **Qué es** | Los **56 equipamientos** de la categoría municipal *Centros de Salud*: centros de salud propiamente dichos, **centros de especialidades**, **consultorios médicos** de los barrios rurales y algún centro de día. Los **56 traen coordenada** |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | **API REST de equipamientos**: `https://www.zaragoza.es/sede/servicio/equipamiento/category/781.json` · categoría **781 «Centros de Salud»**, del tema **4 «Salud Pública y Consumo»**. La misma puerta que las farmacias (§ 1.16) y por el mismo motivo: el WFS de IDEZar no publica equipamientos |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
 | **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
 | **Descarga** | **24/08/2026 09:30:23 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-24_zgzapi_equipamiento-centros-salud_cabeceras.txt), con los **dos** `Set-Cookie` filtrados por norma. Pedida **dos veces**: byte a byte idéntica las dos |
@@ -1467,7 +1467,7 @@ clasificación del Ayuntamiento: reagrupar por nuestra cuenta sería editar el d
 | **Qué es** | Los **17 hospitales y clínicas** de la categoría municipal. **15 traen coordenada**; 2 no |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | **API REST de equipamientos**: `https://www.zaragoza.es/sede/servicio/equipamiento/category/780.json` · categoría **780 «Hospitales»**, tema **4 «Salud Pública y Consumo»** |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
 | **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
 | **Descarga** | **24/08/2026 09:30:24 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-24_zgzapi_equipamiento-hospitales_cabeceras.txt), con los dos `Set-Cookie` filtrados por norma. Pedida **dos veces**: byte a byte idéntica las dos |
@@ -1561,7 +1561,7 @@ titular de un negocio. La presentación es **título + dirección**.
 | **Qué es** | Las **77 bibliotecas** del término municipal, **75 con coordenada**. Es la cuarta categoría de sitios y la primera de fuera de la sanidad: bibliotecas públicas de barrio, universitarias, de fundaciones, de hospitales y de institutos de investigación |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | **API REST de equipamientos**, **dos categorías**: `category/35.json` — **35 «Bibliotecas»**, tema 9 *Cultura y Ocio* (75 registros) — y `category/223.json` — **223 «Bibliotecas Especializadas»**, tema 13 *Información y Comunicación* (2 registros). La misma puerta que farmacias y sanidad (§ 1.16, § 1.17, § 1.18) |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
 | **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
 | **Descarga** | **25/08/2026 15:50:17 GMT** (la 35) y **15:50:22 GMT** (la 223), estado 200 las dos. Cabeceras en [`…-bibliotecas_cabeceras.txt`](app/data/2026-08-25_zgzapi_equipamiento-bibliotecas_cabeceras.txt) y [`…-bibliotecas-especializadas_cabeceras.txt`](app/data/2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas_cabeceras.txt), con el `Set-Cookie` filtrado por norma. **Cada una pedida dos veces**: byte a byte idéntica las dos veces |
@@ -1723,7 +1723,7 @@ negocio. La presentación es **título + dirección**.
 | **Qué es** | **357 centros de enseñanza** del término municipal, **346 con coordenada**, repartidos en tres categorías del buscador: **Colegios e Institutos** (264, 254 con coordenada), **Guarderías** (64, las 64) y **Universidades** (29, 28) |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | **API REST de equipamientos**, **once categorías** de la familia 11 «Educación». La misma puerta que farmacias, sanidad y bibliotecas (§ 1.16 a § 1.19) |
-| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/eli/es/l/2007/11/16/37/con)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
 | **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
 | **Descarga** | **27/08/2026, de 06:31:39 a 06:31:43 GMT**, estado 200 las once. Cabeceras en los once `…_cabeceras.txt` de [`app/data/`](app/data/), con el `Set-Cookie` filtrado por norma |
