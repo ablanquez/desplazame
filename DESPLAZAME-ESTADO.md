@@ -225,7 +225,13 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 23/09, lo en-local son CINCO commits: LAS CINCO
+*(Al 23/09 tarde, lo en-local son CINCO commits: LA MIGRACIÓN
+DEL RGC — 14 citas al texto reformado [XML oficial], la rueda
+ELI en toda URL al BOE, el dictamen del 50 [queda], los dos
+PAROs declarados sin tocar regla, el dist reconstruido [servía
+act.php] — + estos papeles, UN push con peaje 10/10. Las cinco
+decisiones se publicaron en a24800e.)*
+*(Histórico del 23/09 mediodía: CINCO commits: LAS CINCO
 DECISIONES resueltas por doctrina [raya any 6/12 y build
 LIMPIO DEL TODO · el panel alineado por letra UX · tabindex y
 jueza-del-color DECLINADOS con acta · la jueza-censo de ⊘] +
@@ -1459,8 +1465,9 @@ rebote: jamás acera (Ordenanza + 121.5 RGC), y el que empuja es peatón
 «no existe acera» tiene dos implementaciones documentadas (cierre por
 tag [sin nuestro dato] · prioridad por tipo [OSMAnd, solo con `h`]) y
 se elige en la casilla 3 con las rutas juez delante. ⚠️ Dos
-caducidades vivas: el **RGC reformado (RD 518/2026) entra en vigor el
-01-10-2026** — mismo principio, las citas migran al texto nuevo — y la
+caducidades vivas [la del RGC: ⚰️ MIGRADA el 23/09 con la rueda
+ELI — crónica en el PLAN]: el **RGC reformado (RD 518/2026) entra en
+vigor el 01-10-2026** — mismo principio, las citas migran — y la
 versión exacta de la ordenanza municipal que rige hoy es NO CONSTA
 (TSJA + Nueva Ordenanza de Movilidad; se verifica en el punto 9).
 Tabla completa con fuente por fila: en el plan, casilla 2.
@@ -2034,7 +2041,11 @@ montículo minimiza tiempo×factor y el reloj reportado va sin factor
 casilla 5: LOS CARRILES SIN NOMBRE (ojo de Antonio en ruta viva —
 la herencia §1.15 apuntada a la red de la rueda) + velocidad por
 modo en el rótulo + el «en la mano» fino ·
-el RGC nuevo el 01/10 (las citas del 121/122 migran: las tablas y el
+⚰️ el RGC: MIGRADO el 23/09 [crónica en el PLAN; quedan a
+VIGILANCIA los dos PAROs declarados en código: el arcén-izquierdo
+como hueco de modelo · la discrepancia Título VI 153.2 ↔ Ordenanza
+— parlamento de Antonio si se ejerce] (la letra vieja: las citas
+del 121/122 migran: las tablas y el
 paso-empujando) · los carriles bici narran «el carril bici» sin
 nombre municipal (herencia cruzada sobre la red del peatón — a la
 casilla 5 con los combines) · /api/salud no publica la red de la
@@ -2137,9 +2148,9 @@ cuadros como salida documentada [#2787 de osm.org, cycle.travel] —
 anotado el 23/08, ABIERTO.
 
 **Las normas de circulación (contexto vivo):** el RGC reformado por
-RD 518/2026 entra en vigor el **01-10-2026** (arts. 121 y 122
-reescritos) — desde octubre las citas del proyecto apuntan al texto
-nuevo · ⚰️ la duda de la ordenanza: RESUELTA el 28/08 en la casilla
+RD 518/2026 entra en vigor el **01-10-2026** — ⚰️ las citas del
+proyecto YA apuntan al texto reformado desde el 23/09 [XML oficial +
+permalinks ELI /con auto-actualizables; crónica en el PLAN] · ⚰️ la duda de la ordenanza: RESUELTA el 28/08 en la casilla
 0 del punto 9 (rige la Nueva Ordenanza de Movilidad desde el
 11/09/2024, BOP 21/08/2024 — el NO CONSTA del 21/08 murió).
 

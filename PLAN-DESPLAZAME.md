@@ -784,7 +784,8 @@ issue #4657, ABIERTO). Tres pasos que no se saltan:
       coste = distancia/(velocidad×prioridad) — funciona solo con `h`,
       que tenemos]. La elección de mecanismo se hace en la casilla 3
       CON las rutas juez como contraste, no antes.
-      ⚠️ CADUCIDADES declaradas: el RGC reformado (RD 518/2026,
+      ⚠️ CADUCIDADES declaradas [la del RGC: MIGRADA el 23/09,
+      crónica en su bloque]: el RGC reformado (RD 518/2026,
       usuarios vulnerables) ENTRA EN VIGOR EL 01-10-2026 — mismo
       principio (122.1: sin zona peatonal practicable → arcén
       izquierdo o calzada), las citas apuntan al texto reformado desde
@@ -5645,6 +5646,43 @@ pública de la app y se reconstruye al final como herramienta interna.
       tropiezos del ejecutor confesados y a su memoria [editar
       con la local sirviendo; leer avance en líneas]; el proxy
       /api→3000 apuntado [entorno, no código].
+- [x] ⚰️ **LA MIGRACIÓN DEL RGC — la caducidad de agosto, muerta con
+      una semana de margen (23/09; 5 commits, un push con estos
+      papeles y peaje 10/10): 36 citas censadas, 14 migradas al
+      texto reformado VERIFICADO EN SU XML OFICIAL, y la rueda
+      ELI debajo en vez de fórmula casera.** LA TABLA: los 121.1
+      → 122.1 [el literal nuevo verbatim: «arcén izquierdo en el
+      sentido de su marcha… o, en su defecto, por la calzada»] ·
+      los 121.2 → 122.2.a [quien empuja] y ANEXO I.4 de la Ley
+      [«es peatón» — ⭐ HALLAZGO: esas seis citas NUNCA apuntaron
+      bien, la regla jamás vivió en el 121.2; y el texto nuevo
+      nos viene mejor: el viejo decía «que no sea de motor» y un
+      VMP lleva motor — el 122.2.a lo nombra expresamente] · ⭐
+      EL DICTAMEN DEL 50: el RD 518 enumera sus 26 puntos UNO A
+      UNO y el 50 NO ESTÁ [sigue el RD 970/2020] — las 17 citas
+      quedan SIN nota de reforma [«ponérsela diría algo falso»];
+      el 48 igual [solo reescribe el 48.1.b, el techo sale del
+      a]. ⭐ HALLAZGO 2: nuestro «[literal]» del 121.1 era
+      paráfrasis fiel — ahora ES el XML oficial. LA RUEDA [ELI,
+      del propio BOE: permalink permanente; /con = consolidado
+      auto-actualizable]: toda URL al BOE migrada [creditos.html
+      + las 9 de la Ley 37/2007 en README/NOTICES — eran 9, no
+      8: el censo corregido y dicho], cada permalink COMPROBADO
+      EN VIVO [200 y el título servido]; el formato de cita de
+      la casa CONSERVADO [solo número + nota de reforma donde es
+      verdad]. LOS DOS PAROs, declarados EN EL CÓDIGO sin tocar
+      una regla [a vigilancia]: el ARCÉN IZQUIERDO [el 122.1
+      manda lado y espacio que el grafo no modela — una arista
+      por calzada; la puerta ejercida no cambió; cabecera de
+      andando.ts] · TÍTULO VI 153.2 ↔ ORDENANZA [los ciclistas
+      «sí por el resto de las zonas peatonales» y el 151.3 veta
+      ordenanzas contrarias; nuestras filas cierran ambas
+      siguiendo a la Ordenanza — declarado junto a las filas de
+      rueda.ts; PARLAMENTO DE ANTONIO si algún día se ejerce].
+      El dist RECONSTRUIDO [el bundle publicado aún servía
+      act.php — cazado; 0 restos; creditos 6,25→6,24; inicial
+      quieto en 548,68]. Peaje 10/10 [L9 verde — 13 tiradas sin
+      caer; los 3 ⊘ censados], unidad 775+662, tipos, no-viaja.
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la
