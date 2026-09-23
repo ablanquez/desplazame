@@ -1977,6 +1977,20 @@ export class Buscador {
    *    corriente no se puede resaltar solo con el teclado hoy**, y el texto del
    *    paso está completo sin el resaltado —igual que en táctil, donde no hay
    *    hover [MDN] y el realce es mejora, no requisito—.
+   *
+   * ⛔ **ACTA — DECLINADO POR ANTONIO, CON SU DOCTRINA (23/09).** El
+   *    `tabindex="0"` en los giros **no se pone**, y no por pereza: por letra.
+   *    [The A11y Project, *sobre hacer enfocable lo no interactivo*] volver
+   *    enfocables elementos que no se operan *«no crea una buena experiencia:
+   *    es trabajo extra para quien navega con teclado —en especial con
+   *    discapacidad motora— y puede no anunciar ni nombre ni rol»*. El coste
+   *    aquí está medido y es el de esa cita: **unas catorce paradas nuevas** en
+   *    una lista que solo se lee, por un realce que es mejora y no requisito.
+   *    Lo que se compra a cambio ya lo dan los dos caminos de arriba.
+   *
+   *    **Reversible**: si un usuario de teclado pide poder recorrer los giros,
+   *    esto se deshace —y entonces con su nombre y su rol, no con un
+   *    `tabindex` suelto—. La decisión es de hoy y con lo que hoy se sabe.
    */
   protected resaltar(i: number | null): void {
     this.pasoResaltado.set(i);

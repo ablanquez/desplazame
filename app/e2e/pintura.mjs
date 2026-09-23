@@ -6042,6 +6042,21 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
 //    línea** —la orden 1— y nada más sobre su tinta: por eso la elección no le
 //    movió una sola jueza.
 //
+// ⛔ **ACTA — LA JUEZA DEL COLOR EXACTO, DECLINADA POR ANTONIO CON SU DOCTRINA
+//    (23/09).** Se propuso una casilla que clavara la tinta elegida —la gota
+//    blanca y su halo negro— comparándola con la constante. NO se construye.
+//    [Google Testing Blog, *Change-Detector Tests Considered Harmful*] una
+//    prueba que solo falla cuando alguien cambia a propósito la constante que
+//    ella misma copia *«no añade claridad y no permite refactorizar con
+//    seguridad»*: el día que Antonio elija otro color, el rojo no avisaría de
+//    ningún defecto — avisaría de que obedeció.
+//
+//    Y el comportamiento **ya está vigilado**: lo de arriba compra que el pin
+//    no sea ninguno de los colores de línea, que es la orden que se firmó y lo
+//    único que puede romperse sin querer. Si algún día la tinta tuviera que ser
+//    una y no otra por una razón medible —contraste sobre la tesela, por
+//    ejemplo—, se juzga ESA razón, no el literal.
+//
 // ⚠️ EL DISCRIMINADOR ES `data-puntero`, que `svgDelPuntero` escribe en el
 //    propio SVG. Antes se reconocía por descarte —los `path` sin
 //    `leaflet-interactive`—; ahora el puntero es un `divIcon` con el pin de la
