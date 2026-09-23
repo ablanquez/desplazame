@@ -319,7 +319,7 @@ contexto limpio de verdad].
 
 | Pieza | Informe | Commit auditado | Fecha | Estado |
 |---|---|---|---|---|
-| Bloque A · código | `docs/auditoriafinal/A-CODIGO.md` | — | — | PENDIENTE |
+| Bloque A · código | `docs/auditoriafinal/A-CODIGO.md` | `78821ff` | 2026-09-23 | **ENTREGADO** |
 | Bloque C · tests | `docs/auditoriafinal/C-TESTS.md` | — | — | PENDIENTE |
 | Bloque B · interfaz | `docs/auditoriafinal/B-INTERFAZ.md` | — | — | PENDIENTE |
 | Bloque E · operación | `docs/auditoriafinal/E-OPERACION.md` | — | — | PENDIENTE |
