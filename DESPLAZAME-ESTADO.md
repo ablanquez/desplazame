@@ -225,13 +225,15 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 22/09 noche, lo en-local son NUEVE commits: LA CARRERA
-DEL MAPA CERRADA [guarda-beacon, P35, cuarentena] + EL PEAJE
-QUE MORDIÓ [dos rojos cazados: BiZi era la jueza mirando
-pronto — arreglada al patrón ⊘; la L9 intermitente a
-vigilancia con su rojo armado; la pasada limpia 10/10 CIERRA
-EL PEAJE] — + estos papeles, UN push. La poda ya se publicó
-en 1673e2f.)*
+*(Al 23/09, lo en-local son CINCO commits: LAS CINCO
+DECISIONES resueltas por doctrina [raya any 6/12 y build
+LIMPIO DEL TODO · el panel alineado por letra UX · tabindex y
+jueza-del-color DECLINADOS con acta · la jueza-censo de ⊘] +
+el NO-APLICA de la P35 [primera local entera en verde:
+1.346] — + estos papeles, UN push SIN batería [dist
+byte-idéntico al peajeado]. El peaje se publicó en 9a59129.)*
+*(Histórico del 22/09 noche: NUEVE commits: LA CARRERA DEL
+MAPA + EL PEAJE QUE MORDIÓ — publicados en 9a59129.)*
 *(Histórico del 22/09 mediodía: SIETE commits: LA PODA — la
 foto del inicial, Leaflet a su ESM, la raya a 560/1077, la
 nevera con precio, y EL HALLAZGO de la carrera — publicados
@@ -1772,16 +1774,12 @@ llega a producción sin ella. ⭐ el 22/09 cayó LA PODA
 [foto+podas+raya+nevera, crónica en su bloque]; ⭐ el 22/09
 tarde cayó LA CARRERA DEL MAPA [la guarda-beacon, la
 cuarentena, bitácora CERRADA con ley — crónica en su bloque:
-LO ÚNICO ROTO, ARREGLADO] · pendiente de su
-firma: los dos avisos de anyComponentStyle [resultado.css
-5,61 · buscador.css 4,20 sobre raya 4 — ¿subir con el mismo
-criterio o dejar sonando?] · la mesa chica
+LO ÚNICO ROTO, ARREGLADO] · ⭐ el 23/09 cayeron LAS
+CINCO DECISIONES por doctrina [raya any 6/12 · panel alineado
+· dos declinados con acta · jueza-censo ⊘ · P35 NO-APLICA —
+crónica en su bloque] · la mesa chica
 · los opcionales de Antonio [manifest · tope perfiles · 3 de
-F: · gradN25 · modo seguro] · y la prosa del panel a su gusto
-[estética, del remate del visor] · tres decisiones suyas en
-cola [el tabindex de los giros para señalar con teclado · la
-jueza del blanco/negro exacto del pin, ofrecida · la jueza
-que cuente las declaraciones ⊘ de la P26, ofrecida]; (b-bis) [el asa y el ENLACE DE SALTO: HECHOS el 20/09,
+F: · gradN25 · modo seguro]; (b-bis) [el asa y el ENLACE DE SALTO: HECHOS el 20/09,
 crónica en su bloque del PLAN] · la cola gana: las juezas de píxel-sobre-tesela de la P26
 [rojas 1 de 3, familia de las del reloj] · la huella de
 grafo-visor roja-una-vez [NO CONSTA]; (c) EN COLA CON NOMBRE: [el tercer

@@ -5598,6 +5598,53 @@ pública de la app y se reconstruye al final como herramienta interna.
       [main-6D72O7KI, sha da1115db…] sin rastro de intranet.
       RÉGIMEN VALIDADO: dos rojos cazados ANTES de producción y
       diagnóstico barato por suites — el peaje pagó su precio.
+- [x] ⚰️ **LAS CINCO DECISIONES, RESUELTAS POR DOCTRINA (23/09; 5
+      commits `c4edd2f`…`61d5cc6`, un push SIN batería nueva — el
+      dist queda BYTE-IDÉNTICO al ya peajeado): tres síes, dos
+      declinados con acta, y el apaño de la P35 de regalo.**
+      1· LA RAYA anyComponentStyle [«límites que TÚ defines», el
+      criterio del initial calcado]: 4/8 → 6/12 kB [0,39 de
+      holgura sobre el peor real, proporción 2 exacta]; EL BUILD
+      SALE LIMPIO DEL TODO por primera vez; contraprueba en las
+      dos direcciones [a 5 suena, a 6 calla]; dist idéntico
+      [diff -r vacío sobre los 22]. 2· LA PROSA DEL PANEL
+      alineada POR LETRA UX, no por gusto [«nunca centres un
+      título sobre contenido alineado a la izquierda — parecerá
+      que se ha perdido»; Nielsen: el punto de partida estable]:
+      desfase h1↔tabla 360,5/120,5 px → 0 en las dos pantallas,
+      móvil SIN mover un píxel, anchos de lectura idénticos [el
+      carril de la rejilla a --aire, la medida del tope del
+      marco]; panel.css no viaja [dist idéntico reconstruido].
+      3· EL TABINDEX DE LOS GIROS: DECLINADO con doctrina [The
+      A11y Project: enfocar no-interactivos «no crea buena
+      experiencia — trabajo extra al teclado, en especial
+      discapacidad motora»; el coste: ~14 paradas de Tab] — el
+      acta VIVE EN buscador.ts, donde alguien volvería a
+      proponerlo; reversible si un usuario de teclado lo pide.
+      4· LA JUEZA DEL COLOR EXACTO DEL PIN: DECLINADA con el
+      canon [Google Testing Blog, «Change-Detector Tests
+      Considered Harmful»: solo fallaría al cambiar la constante
+      a propósito — «no añade claridad»]; el acta en la cabecera
+      de la P34, que ya vigila el comportamiento. 5· LA
+      JUEZA-CENSO DE LOS ⊘ [el smell «Ignored Test»: los
+      saltados acumulados «crean la ilusión de sistema bien
+      probado»; y el matiz pytest: los saltos con razón NO
+      enrojecen]: censo DE MOTIVOS con autorización fechada y
+      guarda [calcado de cuarentena/perfiles: el motivo, no la
+      cantidad] — hoy uno censado [sin-traza-en-yego]; los dos
+      de falta-tesela FUERA a propósito [avería, no diseño];
+      dos caras contraprobadas [sembrado sin firma → ROJO
+      nombrando; la guarda muerde con total descuadrado y fecha
+      vacía]; la tirada real: «3 declarados · 0 fuera del
+      censo». Y EL APAÑO DE LA P35 [hallazgo del ejecutor]: dos
+      verdes de premisa-siempre-cierta contra la local [buscaba
+      el link con hash del dist] → el NO-APLICA de sus hermanas
+      P28/P31, sonda sobre el index.html servido sin abrir
+      Chrome; ⭐ PRIMERA TIRADA LOCAL ENTERA EN VERDE de la
+      historia de pintura [1.346 — antes moría ahí]. Dos
+      tropiezos del ejecutor confesados y a su memoria [editar
+      con la local sirviendo; leer avance en líneas]; el proxy
+      /api→3000 apuntado [entorno, no código].
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la
