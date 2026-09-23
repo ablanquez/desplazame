@@ -31,14 +31,42 @@
    La rejilla tiene tres carriles —aire, columna, aire—, y las líneas llevan
    nombre para poder decir «esto va en la columna» y «esto va de lado a lado».
    [DOC MDN, *grid-template-columns*] los nombres de línea van entre corchetes
-   y se usan tal cual en `grid-column`. El aire es `minmax(1rem, 1fr)`: nunca
-   menos de 1 rem, y lo que sobre se reparte. */
+   y se usan tal cual en `grid-column`.
+
+   ⭐ EL AIRE DE LA IZQUIERDA ES FIJO, Y ESO ES LO QUE ALINEA LA PROSA CON LA
+      TABLA (23/09, decisión de Antonio por doctrina).
+
+      Antes los dos aires eran `minmax(1rem, 1fr)`: la columna de prosa quedaba
+      CENTRADA y la tabla no, porque la tabla llega a su tope y arranca pegada
+      a su rem de aire. Medido en la local, `/panel`, antes de esto:
+
+          antonio 1905 · h1 376,5 · MARCO 16  →  360,5 px de desfase
+          pc      1425 · h1 136,5 · MARCO 16  →  120,5
+          móvil    375 · h1  16   · MARCO 16  →    0
+
+      Y un título centrado sobre contenido alineado a la izquierda «parecerá
+      que se ha perdido» [Nielsen Norman Group; y la misma letra en las guías
+      de paneles]: casi todo el texto va a la izquierda, que es el punto de
+      partida estable. Así que el carril de la izquierda deja de repartir y se
+      queda en el aire de la tabla.
+
+   ⚠️ **NO se toca el ancho de lectura ni se mueve la tabla.** La columna sigue
+      siendo `minmax(0, 72rem)` y la entradilla y el pie siguen con sus 62 rem:
+      solo cambia DÓNDE empieza. La tabla conserva su `justify-self: center`.
+
+   ⚠️ Y el aire es UNA medida, no dos que se parecen: `--aire` la escribe una
+      vez y la usan la rejilla y el tope del marco. Con dos constantes gemelas,
+      tocar una dejaría la prosa desalineada sin que nadie lo dijera. Que el
+      borde del marco sea exactamente ese rem se cumple porque el marco llega a
+      su tope —`calc(100% - 2 × aire)`— en las tres pantallas: medido, arriba,
+      los tres MARCO empiezan en 16. */
 .frescura {
+  --aire: 1rem;
   display: grid;
   grid-template-columns:
-    [todo-i] minmax(1rem, 1fr)
+    [todo-i] var(--aire)
     [texto-i] minmax(0, 72rem) [texto-f]
-    minmax(1rem, 1fr) [todo-f];
+    minmax(var(--aire), 1fr) [todo-f];
   align-content: start;
   padding: 1.5rem 0 3rem;
   font-family: system-ui, sans-serif;
@@ -112,12 +140,16 @@
    ⚠️ El tope es `calc(100% - 2rem)` y no `100vw`: `100vw` incluye el ancho de
       la barra de desplazamiento del documento, así que con ella puesta la
       tabla desbordaría la página por dos píxeles y el reflow lo cantaría. El
-      100 % es el de la rejilla, que ya descuenta lo que haya. */
+      100 % es el de la rejilla, que ya descuenta lo que haya.
+
+   ⚠️ El tope va en `var(--aire)`, la misma medida que el carril izquierdo de
+      la rejilla (23/09): de ahí sale que el borde de la tabla y el del título
+      caigan en el mismo sitio. */
 .frescura > .frescura__marco {
   grid-column: todo-i / todo-f;
   justify-self: center;
   width: max-content;
-  max-width: calc(100% - 2rem);
+  max-width: calc(100% - 2 * var(--aire));
   overflow-x: auto;
 }
 
