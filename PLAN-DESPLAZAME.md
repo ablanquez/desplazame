@@ -3796,7 +3796,10 @@ plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
       Precedente vivo de la casa: el cron de ZetaBus (02:00);
       Hostinger: mínimo 15 min
 
-## 15 — Estética *(ABIERTO el 8/09/2026; el documento rector es
+## 15 — Estética — **⭐ CERRADO el 18/09/2026** [la verificación AA
+de la casilla 5 con acta; los remates posteriores — flecos, 5b,
+decisiones — cronicados en sus bloques] *(ABIERTO el 8/09/2026; el
+documento rector es
 DISEÑO-DESPLAZAME.md v1.0 — la investigación con doctrina, 8 bloques
 y 37 puntos; LAS 10 DECISIONES DEL RESUMEN EJECUTIVO, VALADAS POR
 ANTONIO el 8/09 — incluida la tesela oscura CARTO por doctrina de
@@ -5225,9 +5228,11 @@ Code lo traduce al Angular existente.)*
       colisiona con YeGo; los badges del README se actualizan
       cuando los tokens existan].
 
-## 16 — Intranet *(reservado para el final — nace el 22/08)*
+## 16 — Intranet — **⭐ CERRADO el 20/09/2026** [el visor entero,
+crónica abajo; el remate de su ojo, el 21/09] *(reservado para el
+final — nace el 22/08)*
 
-Punto grande, sin desarrollar. Decisión de Antonio (22/08, al retirar
+La letra original: Punto grande, sin desarrollar. Decisión de Antonio (22/08, al retirar
 los andamios): **el visor de capas se muda aquí** — deja de ser página
 pública de la app y se reconstruye al final como herramienta interna.
 

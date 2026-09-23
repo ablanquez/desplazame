@@ -1846,8 +1846,8 @@ viajeEnBus obligatorio para desvíos · el gemelo de continuando
 binarios solo-Windows (netstat/findstr) · el ajax de alteraciones
 al gacetero · el KML (nevera); (3) de fondo: el feed del Pilar
 (el cron lo coge solo cuando Avanza lo suba), el cron en el panel de
-Hostinger al desplegar (punto 14), el RGC nuevo el 1/10 (migrar
-citas). EN LA NEVERA: LA FASE 2 DE SENTIDOS (mantenimiento del dato
+Hostinger al desplegar (punto 14) [⚰️ el RGC: MIGRADO el 23/09,
+crónica en el PLAN]. EN LA NEVERA: LA FASE 2 DE SENTIDOS (mantenimiento del dato
 a goteo — la lista de 434 candidatas y el atajo de las shapes del bus;
 fuera del punto 9 por orden de Antonio el 1/09) ·
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
