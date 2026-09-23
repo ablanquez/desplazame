@@ -63,6 +63,15 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
       };
     `;
 
+    /** Qué sobra y qué falta entre dos censos de teselas, para el acta del rojo. */
+    const diferenciaDeTeselas = (antes, ahora) => {
+      const falta = antes.filter((x) => !ahora.includes(x));
+      const sobra = ahora.filter((x) => !antes.includes(x));
+      return falta.length || sobra.length
+        ? ` · falta ${falta.join(' ') || '—'} · sobra ${sobra.join(' ') || '—'}`
+        : '';
+    };
+
     const estadoDeLosBloquesSimple =
       `return [...document.querySelectorAll('.bloque')].map((b) => b.classList.contains('bloque--abierto'));`;
     await m.ir(APP, 6000);
@@ -712,7 +721,17 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
           'L9 · ⭐ y el ENCUADRE vuelve al del arranque, tesela a tesela',
           `zoom ${tras.zoom} (arranque ${mapaInicial.zoom}) · ` +
             `${tras.teselas.length} teselas y las mismas: ` +
-            `${tras.teselas.join(',') === mapaInicial.teselas.join(',')}`,
+            `${tras.teselas.join(',') === mapaInicial.teselas.join(',')}` +
+            // ⭐ Y SI NO SON LAS MISMAS, CUÁLES (23/09). Esta jueza salió roja
+            //    dos veces dentro de la batería —«16 teselas y las mismas:
+            //    false»— y verde 10 veces fuera de ella, sueltas y por el mismo
+            //    envoltorio; qué difiere entre un sitio y otro NO CONSTA. Con
+            //    solo un «false» no hay nada que mirar después, así que el rojo
+            //    se lleva ahora su diferencia puesta: qué tesela sobra y cuál
+            //    falta. La VARA no cambia —sigue exigiendo el mismo conjunto—:
+            //    lo que cambia es que la próxima vez se pueda leer si la
+            //    cobertura estaba completa y solo bailó una pieza.
+            diferenciaDeTeselas(mapaInicial.teselas, tras.teselas),
         );
         juzgar(
           pantalla.pasos === 0 && pantalla.resumen === 0 &&
@@ -821,7 +840,17 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
           'L9 · ⭐ y el ENCUADRE vuelve al del arranque, tesela a tesela',
           `zoom ${tras.zoom} (arranque ${mapaInicial.zoom}) · ` +
             `${tras.teselas.length} teselas y las mismas: ` +
-            `${tras.teselas.join(',') === mapaInicial.teselas.join(',')}`,
+            `${tras.teselas.join(',') === mapaInicial.teselas.join(',')}` +
+            // ⭐ Y SI NO SON LAS MISMAS, CUÁLES (23/09). Esta jueza salió roja
+            //    dos veces dentro de la batería —«16 teselas y las mismas:
+            //    false»— y verde 10 veces fuera de ella, sueltas y por el mismo
+            //    envoltorio; qué difiere entre un sitio y otro NO CONSTA. Con
+            //    solo un «false» no hay nada que mirar después, así que el rojo
+            //    se lleva ahora su diferencia puesta: qué tesela sobra y cuál
+            //    falta. La VARA no cambia —sigue exigiendo el mismo conjunto—:
+            //    lo que cambia es que la próxima vez se pueda leer si la
+            //    cobertura estaba completa y solo bailó una pieza.
+            diferenciaDeTeselas(mapaInicial.teselas, tras.teselas),
         );
         juzgar(
           pantalla.pasos === 0 && pantalla.resumen === 0 &&
