@@ -375,7 +375,8 @@ console.log(
     `${cuentas.pasosConContinuidad} dan continuidad ciclista y se ruedan (art. 54.4)`,
 );
 // ⭐ EL EMPUJE (30/08). Va aparte de los pasos de cebra a propósito: aquello es
-// una celda del art. 54.4 y esto es la regla general del peatón [RGC 121.2],
+// una celda del art. 54.4 y esto es la regla general del peatón [LEY anexo I.4
+// del texto refundido, RDLeg 6/2015],
 // que abre lo peatonal ENTERO a quien lleva el vehículo en la mano. Se declara
 // por tipo porque el día que la cifra salte habrá que saber de dónde.
 console.log(

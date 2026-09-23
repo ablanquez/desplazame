@@ -16,8 +16,9 @@
  * ⭐ **Ese segundo punto se abrió a medias el 30/08, y la advertencia se
  * cumplió al pie de la letra.** El empuje mete lo peatonal en la red —33.770
  * aristas y 1.016,4 km— porque quien lleva el vehículo en la mano es peatón
- * [RGC 121.2], y al hacerlo **1.371 de 3.000 portales pasaron a enganchar a su
- * propia acera**. La solución no fue volver a cerrarlas: fue separar «por dónde
+ * [LEY anexo I.4 del texto refundido, RDLeg 6/2015], y al hacerlo **1.371 de
+ * 3.000 portales pasaron a enganchar a su propia acera**. La solución no fue
+ * volver a cerrarlas: fue separar «por dónde
  * se puede pasar» de «por dónde puede EMPEZAR una ruta». Ver `admiteComoPuerta`
  * en `rodando.ts`, que lleva la medida entera.
  *
@@ -544,7 +545,8 @@ export function cargarRedDeLaRueda(
     // no está circulando. Así que estas aristas se saltan las cuatro capas
     // enteras y salen del bucle con lo que les corresponde:
     //
-    // - **sentido 0** — se anda en los dos sentidos [RGC 121.2];
+    // - **sentido 0** — se anda en los dos sentidos [LEY anexo I.4 del texto
+    //   refundido, RDLeg 6/2015: quien lo lleva a pie es peatón];
     // - **sin techo** — el que manda es el paso de quien anda, y ese lo pone
     //   `segundosDe` con `VELOCIDAD_EMPUJANDO_KMH`;
     // - **factor 1** — la preferencia al carril bici es de quien pedalea;

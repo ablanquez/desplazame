@@ -25,9 +25,10 @@
  * Lo que queda **es el defecto documentado de los dos motores de referencia**,
  * no un hueco: [DOC Valhalla `pedestriancost.cc`] trae `walkway_factor` a
  * **1,0**, «neutral», y [DOC OSRM `foot.lua`] no pondera por tipo. El
- * `«salvo cuando ésta no exista»` del [LEY RGC art. 121.1] lo resuelve
- * entonces la primera capa y solo ella: la acera se anda porque está y porque
- * es la más corta, y la calzada sigue abierta para cuando no la hay.
+ * `«o, en su defecto, por la calzada»` del [LEY RGC art. 122.1, reformado por
+ * RD 518/2026, en vigor 01-10-2026] lo resuelve entonces la primera capa y
+ * solo ella: la acera se anda porque está y porque es la más corta, y la
+ * calzada sigue abierta para cuando no la hay.
  *
  * **Y no queda tabla neutra ni bandera apagada**: la capa se fue entera, con su
  * `Criterio`, su `shortest` de contraste y el coste precalculado de la red. Una
@@ -47,16 +48,55 @@
  * Y el resto de la calzada NO se cierra, aunque el peatón sea ahí el último en
  * la fila:
  *
- * - [LEY RGC art. 121.1, literal] *«Los peatones transitarán por la zona
- *   peatonal, salvo cuando ésta no exista o no sea practicable, en cuyo caso
- *   podrán hacerlo por el arcén o, en su defecto, por la calzada»*.
+ * - [LEY RGC art. 122.1, reformado por RD 518/2026, en vigor 01-10-2026,
+ *   literal] *«En los supuestos en los que no exista zona peatonal
+ *   practicable, los peatones deberán circular por el arcén izquierdo en el
+ *   sentido de su marcha, si existe y es practicable o, en su defecto, por la
+ *   calzada. En ambos casos, deberán hacerlo lo más alejados posible del
+ *   tránsito de los vehículos»*.
  *
- * Ese **«salvo cuando ésta no exista»** es condicional, y un condicional **no
- * se resuelve cerrando la puerta**: si la calzada se cerrase aquí, media ciudad
- * se quedaría sin ruta el día que le falte un metro de acera dibujada. Así que
- * lo que esta capa hace con él es **dejar la calzada transitable**, que es lo
- * que el artículo permite cuando la zona peatonal no existe o no es
+ * Ese **«o, en su defecto, por la calzada»** es condicional, y un condicional
+ * **no se resuelve cerrando la puerta**: si la calzada se cerrase aquí, media
+ * ciudad se quedaría sin ruta el día que le falte un metro de acera dibujada.
+ * Así que lo que esta capa hace con él es **dejar la calzada transitable**, que
+ * es lo que el artículo contempla cuando la zona peatonal no existe o no es
  * practicable.
+ *
+ * ── ACTA DE LA MIGRACIÓN AL TEXTO REFORMADO (23/09/2026) ────────────────────
+ *
+ * ⭐ **DÓNDE VIVE AHORA LA REGLA.** El [RD 518/2026, de 24 de junio, BOE-A-2026-
+ *    13889] reescribe el capítulo del peatón con efecto **01-10-2026**. El
+ *    **121** pasa a ser el PRINCIPIO —«Normas generales»: prioridad de paso y
+ *    estancia—, y la regla de por dónde se anda cuando no hay zona peatonal es
+ *    ahora el **122.1**, «Circulación por la calzada o el arcén». Todas las
+ *    citas de este fichero se han movido ahí, una a una.
+ *
+ * ⭐ **EL ENLACE ES PERMANENTE Y SE ACTUALIZA SOLO.** La norma se cita por su
+ *    permalink ELI con el sufijo del consolidado —
+ *    `https://www.boe.es/eli/es/rd/2003/11/21/1428/con`—, que es la capa que el
+ *    propio BOE mantiene: desde el 1/10 ese mismo enlace sirve el texto
+ *    reformado sin que haya que tocar nada aquí. Las URLs de búsqueda
+ *    (`buscar/act.php?id=…`) caducan; el ELI no.
+ *
+ * ⚠️ **Y LO QUE AQUÍ PONÍA «LITERAL» NO LO ERA.** La cita anterior abría
+ *    «[LEY RGC art. 121.1, literal]» y seguía con *«Los peatones transitarán
+ *    por la zona peatonal, salvo cuando ésta no exista…»*, que es una
+ *    paráfrasis fiel en el sentido pero **no las palabras del artículo** — el
+ *    121.1 decía «Los peatones **están obligados a** transitar por la zona
+ *    peatonal, salvo cuando ésta no exista o no sea practicable; en tal caso,
+ *    **podrán** hacerlo por el arcén…». La palabra «literal» es una promesa: el
+ *    literal de arriba está copiado del XML oficial del RD 518, punto
+ *    Veintiuno.
+ *
+ * ⛔ **PARO DECLARADO — EL ARCÉN IZQUIERDO NO SE MODELA, Y NO SE DECIDE AQUÍ.**
+ *    Lo que la reforma trae de nuevo no es la puerta —la calzada sigue abierta
+ *    «en su defecto», que es lo único que esta tabla ejerce— sino **el modo**:
+ *    donde el texto viejo decía «podrán», el nuevo dice «**deberán** circular
+ *    por el **arcén izquierdo** en el sentido de su marcha». Aparecen un
+ *    espacio (el arcén) y un lado (el izquierdo) que este grafo no tiene: lleva
+ *    una arista por calzada, sin arcén y sin lado. **No se toca ni una regla
+ *    por esto**: modelarlo, o decidir que no se modela, es decisión de Antonio.
+ *    Ver `docs/MIGRACION-CITAS-RGC-2026.md`, PARO 1.
  *
  * **Y ahí se acaba: no hay una segunda capa que ponga la calzada detrás de la
  * acera.** Entre lo permitido decide el **mínimo de distancia**, y nada más —
@@ -94,7 +134,9 @@
  */
 export const ACCESO_ANDANDO: Readonly<Record<string, boolean>> = {
   // ── Lo peatonal: donde el peatón va por ley ──────────────────────────────
-  // [LEY RGC art. 121.1] «transitarán por la zona peatonal».
+  // [LEY RGC art. 122.1, reformado por RD 518/2026, en vigor 01-10-2026] la
+  // zona peatonal practicable es el sitio del peatón; lo de abajo es el «en su
+  // defecto». Ver el acta de la cabecera.
   // [DOC Valhalla graph.lua] pedestrian_forward = true.
   footway: true,
   pedestrian: true,
@@ -105,8 +147,9 @@ export const ACCESO_ANDANDO: Readonly<Record<string, boolean>> = {
   // entra por la puerta de lo peatonal aunque pasen vehículos.
   living_street: true,
 
-  // ── La calzada: SÍ, y el «salvo» lo resuelve el coste ────────────────────
-  // [LEY RGC art. 121.1] «…o, en su defecto, por la calzada».
+  // ── La calzada: SÍ, y el «en su defecto» lo resuelve el coste ────────────
+  // [LEY RGC art. 122.1, reformado por RD 518/2026, en vigor 01-10-2026]
+  // «…o, en su defecto, por la calzada».
   // [DOC Valhalla graph.lua] toda la jerarquía viaria lleva la columna
   // pedestrian a true; el peatón no queda encerrado por falta de acera.
   motorway: true,

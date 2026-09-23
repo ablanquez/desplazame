@@ -86,10 +86,20 @@ export const VELOCIDAD_KMH: Readonly<Record<ModoDeRueda, number>> = {
  * usa para el modo andando —velocidad de manual, no medida—, y va aquí escrita
  * para que un paso de peatones no se cruce a 18 km/h.
  *
- * [LEY RGC art. 121.2, vigente hoy] *«El que… empuje o arrastre un vehículo de
- * reducidas dimensiones que no sea de motor…»* queda dentro del capítulo del
- * peatón. ⚠️ **Esta cita caduca el 01/10/2026**: el RD 518/2026 reescribe el
- * 121 entero y lleva el caso al art. 122.2.a.
+ * [LEY RGC art. 122.2.a, reformado por RD 518/2026, en vigor 01-10-2026,
+ * literal] *«Quienes empujen o arrastren un ciclo, ciclomotor de dos ruedas,
+ * vehículo de movilidad personal o vehículos de similares características»*
+ * queda dentro del capítulo del peatón. Y que **sea** peatón lo dice la Ley, no
+ * el reglamento: [LEY anexo I.4 del texto refundido, RDLeg 6/2015, literal]
+ * *«los que conducen a pie un ciclo o ciclomotor de dos ruedas»* tienen la
+ * consideración de peatones.
+ *
+ * ⭐ **La migración del 01/10/2026, hecha — y el texto nuevo nos viene mejor.**
+ *    El 121.2 viejo hablaba de «un vehículo de reducidas dimensiones **que no
+ *    sea de motor**», y un VMP lleva motor: la cita cojeaba para el patín. El
+ *    122.2.a nuevo **nombra expresamente** el ciclo, el ciclomotor de dos
+ *    ruedas y el vehículo de movilidad personal, que son los tres casos que
+ *    esta constante empuja. Ver `docs/MIGRACION-CITAS-RGC-2026.md`.
  */
 export const VELOCIDAD_EMPUJANDO_KMH = 5;
 
@@ -136,6 +146,25 @@ export const ACCESO_RODANDO: Readonly<Record<string, boolean>> = {
   // ⚠️ La excepción de los menores de 12 años [art. 50.7] NO se implementa: la
   // petición no dice quién va montado y no se le va a preguntar la edad a
   // nadie. La ruta que se contesta es la del adulto, que es la restrictiva.
+  //
+  // ⛔ PARO DECLARADO (23/09/2026) — EL TÍTULO VI NUEVO Y LA ORDENANZA NO DICEN
+  //    LO MISMO, Y ESTAS DOS FILAS NO SE TOCAN POR ESO.
+  //
+  //    El [RD 518/2026, en vigor 01-10-2026] incorpora al RGC un título VI
+  //    urbano. Su art. 153.2, literal: «Los ciclistas no podrán circular por
+  //    las aceras […] **pero sí por el resto de las zonas peatonales**, con las
+  //    limitaciones o restricciones que pueda establecer la Autoridad
+  //    municipal…». Y su art. 151.3: «Las ordenanzas municipales no podrán
+  //    oponerse, alterar, desvirtuar o inducir a confusión con los preceptos de
+  //    este reglamento». El art. 155.2 manda a los VMP al mismo régimen.
+  //
+  //    O sea: la prohibición general de la Ordenanza que apoya estas dos filas
+  //    y el reglamento nuevo **discrepan** sobre las zonas peatonales que no
+  //    son acera —plazas, bulevares, paseos; el anexo I.59 reformado las nombra
+  //    una a una—. Esta tanda es de CITAS: **no se cambia la regla**. Decidir a
+  //    quién sigue la tabla, y con qué dato se distingue una acera de una
+  //    plaza, es decisión de Antonio. Ver `docs/MIGRACION-CITAS-RGC-2026.md`,
+  //    PARO 2.
   footway: false,
   pedestrian: false,
   steps: false,
@@ -250,11 +279,13 @@ export function puedeRodar(highway: string, perfil: string): boolean {
  * [DOC OSM, tabla canónica de acceso por defecto] lo dice con todas las
  * letras: *«el acceso se concede en toda situación a quien va andando
  * empujando su bicicleta; en consecuencia los ruteadores pueden
- * considerar…»*. Y en la ley de aquí, [LEY RGC art. 121.2, vigente hoy] mete a
- * quien *«empuje o arrastre un vehículo de reducidas dimensiones que no sea de
- * motor»* dentro del capítulo del peatón. ⚠️ **Esa cita caduca el
- * 01/10/2026**: el RD 518/2026 reescribe el 121 y lleva el caso al art.
- * 122.2.a — la misma advertencia que lleva `VELOCIDAD_EMPUJANDO_KMH`.
+ * considerar…»*. Y en la ley de aquí, [LEY RGC art. 122.2.a, reformado por RD
+ * 518/2026, en vigor 01-10-2026] mete a quien *«empuje o arrastre un ciclo,
+ * ciclomotor de dos ruedas, vehículo de movilidad personal o vehículos de
+ * similares características»* dentro del capítulo del peatón, y [LEY anexo I.4
+ * del texto refundido, RDLeg 6/2015] le da la **consideración de peatón** a
+ * quien conduce a pie un ciclo o ciclomotor de dos ruedas — ese concepto 4 la
+ * reforma no lo toca. Misma migración que la de `VELOCIDAD_EMPUJANDO_KMH`.
  *
  * ── Esto no es nuevo: es la celda del 54.4, generalizada ────────────────────
  *
@@ -486,6 +517,14 @@ export function factorDelEmpuje(tipo: TipoDeRuta): number {
  *
  * [LEY RGC art. 50, redacción del RD 970/2020, en vigor desde el 11/05/2021]
  * fija el límite genérico en vías urbanas **sin necesidad de señal**:
+ *
+ * ⭐ **Y LA REFORMA DE 2026 NO LO TOCA — verificado, no supuesto** (23/09). El
+ *    [RD 518/2026] enumera sus modificaciones una a una, de «Uno.» a
+ *    «Veintiséis.», y **el artículo 50 no está en la lista**: sigue con la
+ *    redacción del RD 970/2020 que se cita arriba. Por eso esta cita, y las
+ *    otras dieciséis del art. 50 que hay en el motor y en el producto, se
+ *    quedan **sin nota de reforma**: ponérsela diría algo que no es. Ver
+ *    `docs/MIGRACION-CITAS-RGC-2026.md`, grupo C.
  *
  * - **20 km/h** en vías de **plataforma única** de calzada y acera;
  * - **30 km/h** en vías de **un único carril por sentido** de circulación;

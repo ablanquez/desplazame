@@ -275,7 +275,9 @@ export function etapaRodando(
  * manera de ir.
  *
  * **El empujado sale como `andando`, y no es una licencia**: quien lleva el
- * vehículo en la mano es peatón [RGC art. 121.2] y va a paso de peatón. [DOC
+ * vehículo en la mano es peatón [LEY anexo I.4 del texto refundido, RDLeg
+ * 6/2015 — la reforma del RGC de 2026 no toca ese concepto] y va a paso de
+ * peatón. [DOC
  * OSRM] su respuesta hace lo mismo — el tramo desmontado es un modo propio
  * dentro de la ruta en bici—. La consecuencia buena es que quien pinta no
  * necesita saber que el empuje existe.

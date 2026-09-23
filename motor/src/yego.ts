@@ -109,6 +109,13 @@ export const TIPO_QUE_SE_USA = 'yego_scooter';
  * 45 km/h en cualquier vía—]. Y **YeGo lo declara él mismo**: `vehicle_types`
  * publica `max_permitted_speed: 45` para el `yego_scooter`.
  *
+ * ⚠️ **La reforma de 2026 roza este artículo y NO esta fila** (comprobado el
+ *    23/09): el [RD 518/2026] solo reescribe **el párrafo b) del art. 48.1**
+ *    —transporte escolar y de mercancías peligrosas, y los 80 km/h del autobús
+ *    con pasajeros de pie—. La tabla de velocidades del párrafo a), de donde
+ *    sale este techo, se queda igual, así que la cita no se mueve. Ver
+ *    `docs/MIGRACION-CITAS-RGC-2026.md`, grupo D.
+ *
  * Se usa para **capar la red del coche**, no para sustituirla: ver
  * `viaje-yego.ts`. Una calle de 50 se recorre a 45; una de 30, a 30.
  */

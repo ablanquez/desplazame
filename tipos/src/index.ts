@@ -776,7 +776,8 @@ export interface Trayecto {
  * cambia es que ahora se publica.
  *
  * ⭐ **Y el tramo que se EMPUJA es `andando`**, no un tercer estado. Quien lleva
- * el vehículo en la mano es peatón [RGC art. 121.2] y va a paso de peatón, así
+ * el vehículo en la mano es peatón [LEY anexo I.4 del texto refundido, RDLeg
+ * 6/2015] y va a paso de peatón, así
  * que decir que va rodando sería falso. [DOC OSRM] su respuesta hace lo mismo:
  * el tramo desmontado es **un modo propio** dentro de la ruta en bici, con su
  * suite de pruebas de cambios de modo. La consecuencia buena es que quien pinta
