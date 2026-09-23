@@ -225,12 +225,17 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 22/09, lo en-local son SIETE commits: LA PODA — la foto
-del inicial, Leaflet a su ESM [−4,35 kB en total], la raya a
-560/1077 con contraprueba, la nevera con precio, y EL HALLAZGO
-de la carrera del mapa [bitácora ABIERTA — la siguiente tanda]
-— + estos papeles, UN push. El arnés ya se publicó en
-fb97615.)*
+*(Al 22/09 noche, lo en-local son NUEVE commits: LA CARRERA
+DEL MAPA CERRADA [guarda-beacon, P35, cuarentena] + EL PEAJE
+QUE MORDIÓ [dos rojos cazados: BiZi era la jueza mirando
+pronto — arreglada al patrón ⊘; la L9 intermitente a
+vigilancia con su rojo armado; la pasada limpia 10/10 CIERRA
+EL PEAJE] — + estos papeles, UN push. La poda ya se publicó
+en 1673e2f.)*
+*(Histórico del 22/09 mediodía: SIETE commits: LA PODA — la
+foto del inicial, Leaflet a su ESM, la raya a 560/1077, la
+nevera con precio, y EL HALLAZGO de la carrera — publicados
+en 1673e2f.)*
 *(Histórico del 21/09 tarde: TRES commits: LA TANDA DEL
 ARNÉS — los relojes esperan su hecho [m.esperar; el hallazgo
 de yego], la P26 declara «⊘ no se puede medir», y la carrera
@@ -1756,11 +1761,18 @@ DESHECHO por orden de Antonio — crónica y leyes en su bloque];
 LISTA FINAL para acabar según su papel:
 ⭐ el 21/09 tarde cayó también LA
 TANDA DEL ARNÉS [relojes+P26+carrera, crónica en su bloque];
-⭐ el 22/09 cayó LA PODA
-[foto+podas+raya+nevera, crónica en su bloque] y dejó EL
-ÚNICO ROTO DE LA CASA: ⚠️ LA CARRERA DEL MAPA [bitácora
-ABIERTA: la hoja asíncrona llega tras el JS y el mapa queda en
-franja — LA SIGUIENTE TANDA, producto+jueza] · pendiente de su
+⭐ NORMA DE RÉGIMEN firmada por
+Antonio el 22/09 [el arnés pesaba más que el trabajo — doctrina
+de proceso: pirámide de tests / selección por cambio]: LA
+BATERÍA ENTERA ES PEAJE DEL PUSH, no de cada tanda — por tanda
+corre SOLO lo proporcional [las suites del área tocada + la
+unidad del workspace tocado + tipos si se tocan contratos o
+config]; la entera, UNA vez antes de empujar el lote; nada
+llega a producción sin ella. ⭐ el 22/09 cayó LA PODA
+[foto+podas+raya+nevera, crónica en su bloque]; ⭐ el 22/09
+tarde cayó LA CARRERA DEL MAPA [la guarda-beacon, la
+cuarentena, bitácora CERRADA con ley — crónica en su bloque:
+LO ÚNICO ROTO, ARREGLADO] · pendiente de su
 firma: los dos avisos de anyComponentStyle [resultado.css
 5,61 · buscador.css 4,20 sobre raya 4 — ¿subir con el mismo
 criterio o dejar sonando?] · la mesa chica
@@ -1782,7 +1794,14 @@ relojes de moto/yego/bizi: HECHOS el 21/09, esperan su hecho
 — crónica en su bloque; las otras SIETE suites y m.ir siguen
 dormidas, declaradas] · RUTINA NUEVA: toda batería exige
 MOTOR_LOG [bizi-y-resumen espera el pase de desvíos en el
-log] · el gradN25 pendiente-con-precio [§39] · el
+log] · LA L9 EN VIGILANCIA [intermitente: rojas
+2/2 en las dos primeras baterías del 22/09, verdes 0/11
+después, causa NO CONSTA; su rojo ARMADO dice falta/sobra por
+tesela — la próxima caída se decide en el acto] · CUARENTENA
+declarada: perfil-medir-fijo-9790 en
+%TEMP%, imborrable [sandbox; ~78 MB; la jueza lo canta en
+verde; intentar borrar tras futuros reinicios] — lección: los
+Chrome de diagnóstico nacen EN EL SCRATCHPAD · el gradN25 pendiente-con-precio [§39] · el
 modo seguro declinado-documentado [para recuperar los 8,8 GB
 cuando Antonio quiera];
 PENDIENTE DEL TELÉFONO de Antonio: el pin con su prompt real ·
@@ -1791,7 +1810,9 @@ fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [LA PODA: HECHA el 22/09,
-crónica en su bloque — initial 548,56 kB / 142,40 transferido;
+crónica en su bloque — initial al cierre de la carrera: 548,68
+kB / 142,33 transferido [+120 B de la guarda; el transferido
+BAJA];
 la raya: aviso 560 · error 1077, proporción conservada, con
 contraprueba; los precios de la nevera en la crónica; el build
 sin aviso del initial] · [guardián: HECHO 19/09] · el

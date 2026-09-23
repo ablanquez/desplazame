@@ -5511,6 +5511,93 @@ pública de la app y se reconstruye al final como herramienta interna.
       305/382 · avisos restantes DECLARADOS: los dos de
       anyComponentStyle [resultado.css 5,61 · buscador.css 4,20
       sobre raya 4 — decisión de Antonio pendiente].
+- [x] ⚰️ **LA CARRERA DEL MAPA — el único roto, cerrado (22/09; 5
+      commits `76ba5f0`…`b03474f`, un push con estos papeles y el
+      PEAJE del régimen): la bitácora abierta se cierra con su
+      ley, y por el camino la mina del perfil quedó en
+      CUARENTENA declarada.** EL DIAGNÓSTICO, medido contra el
+      nombre propio del fallo [«map container size not valid at
+      map initialization», la letra de la comunidad Leaflet]: con
+      la hoja 3 s tarde, L.map() lee 1438×579 y al llegar la hoja
+      el contenedor es 881×951 — Leaflet se queda con 6 teselas
+      que cubren hasta y=64: LA FRANJA, 3/3. ⭐ EL ARREGLO
+      CANÓNICO SOLO NO VALÍA — la cascada medida: sin leaflet.css
+      las teselas estiran el contenedor, el ResizeObserver ve el
+      crecimiento, invalidateSize pide más → 579→23.199 px en
+      160 ms, miles de peticiones; y debounceMoveend NO corta
+      [leído en el código 1.9.4: invalidateSize siempre lanza
+      move y la capa de teselas actualiza con move cada 200 ms].
+      ⭐ LA GUARDA-BEACON [el patrón documentado de detección de
+      hojas: ante el onload poco fiable de los <link>, se
+      comprueba EL EFECTO — un estilo computado que solo existe
+      con la hoja aplicada; VARIANTE de casa: la baliza es regla
+      EXISTENTE de leaflet.css — overflow:hidden del contenedor,
+      verificado letra del 1.9.4 línea 18, ninguna hoja nuestra
+      lo toca]: solo se invalida con la hoja puesta — 2 disparos,
+      18 teselas, 0 escapadas. P35 nacida ROJA 3/3 contra el dist
+      [6 teselas cubren 881×64] → verde 3/3 [18 cubren 881×951];
+      la contraprueba [guarda quitada] TUMBA ADEMÁS la jueza de
+      terceros [23.436 teselas creadas — las 7.052 descargas de
+      la contraprueba, deliberadas y declaradas, no se repiten].
+      Los 13 ⊘ intermitentes MURIERON; los 3 que quedan son
+      DISEÑO dicho [yego: destino fuera del área → el viaje se
+      rechaza con las palabras del contrato, no hay ruta que
+      pintar — antes era silencio, ahora está en el comentario].
+      La traza que daba verde-y-callada DECLARA. LA CUARENTENA
+      [el perfil perfil-medir-fijo-9790 de %TEMP%, imborrable
+      incluso a mano: takeown admin denegado en 951 ficheros,
+      rename denegado sin ningún proceso vivo — el aislamiento
+      del sandbox]: la jueza de perfiles lo CANTA en verde [«1 en
+      cuarentena»] con acta fechada, contraprueba de intruso
+      sembrado → roja; deuda ~78 MB y LA LECCIÓN en el acta y en
+      la memoria del ejecutor: los Chrome de diagnóstico NACEN
+      EN EL SCRATCHPAD, nunca sueltos en %TEMP%. Régimen
+      estrenado: la tanda corrió SOLO pintura [1228, +3 de P35] +
+      unidad [775]; la L3 del plegado y las nueve restantes van
+      en el PEAJE del push. Dist 548,68 crudo [+120 B] / 142,33
+      transferido [BAJA]. Capturas antes/después con la franja.
+- [x] ⚰️ **EL PEAJE QUE MORDIÓ (22/09; 4 commits `0bcbe6c` ·
+      `542a94f` · `b74a411` · `ca62588` — el lote de 9 va en un
+      push): la primera aplicación entera del régimen cazó DOS
+      ROJOS antes de producción, y el peaje solo se cerró con la
+      pasada limpia 10/10.** PRIMERA PASADA 8/10: la L9 del
+      esqueleto y BiZi caído. BIZI, diagnosticado con tabla de 12
+      tiradas alternando lote/base [firmado el contexto de
+      Antonio: la disponibilidad BiZi es dato EXTERNO cuyo estado
+      natural incluye el «ahora no hay»]: el dato contestó las
+      doce, el viaje llegaba CON sus 2 hitos y la interfaz los
+      pintaba — la sonda ampliada lo clavó [0 botones… y 1,5 s
+      después, 28 pasos y 2 botones]: LA JUEZA MIRABA PRONTO
+      [generar() compraba «respuesta llegada + botón libre», que
+      ocurre antes de la lista pintada; 3/6 lote y 1/6 base = azar
+      de carrera, no lote]. Arreglo de juez [b74a411]: generar()
+      espera A LO QUE SE VA A LEER [la doctrina de m.esperar] y
+      la jueza al patrón ⊘ [con hitos exige; sin hitos POR DATO
+      declara con la cifra]; contraprueba de las dos caras, 10
+      tiradas verdes. DOS ARREGLOS DE JUEZ MÁS: la suite FALLA
+      DICIENDO en vez de morir [undefined.click tumbaba el resto:
+      ahora comprueba y cuenta lo que venga — contraprueba con
+      selector inexistente: 20 juezas contadas] · el reloj del
+      log con desdeLaMarca [el log diario apila arranques: la
+      espera mira solo tras la última marca; contraprueba de las
+      dos caras — y la corrección honesta del ejecutor: el «0 s»
+      del peaje ERA legítimo, se equivocó al declararlo vicio].
+      LA L9: intermitente SIN EXPLICACIÓN [rojas 2/2 en las dos
+      primeras baterías, verdes 0/11 después — motor frío/
+      caliente, envoltorio, entorno y directorio probados y
+      descartados; la hipótesis del pan medida y FALSA: el
+      invalidate del montaje no panea, pan:false habría sido
+      arreglar a ciegas] → su rojo queda ARMADO [ca62588: la
+      línea dice «falta X · sobra Y» por tesela — la próxima
+      caída se decide en un minuto: jueza o producto] y el caso
+      A VIGILANCIA. Hallazgo de paso: en el dist base la L9 de
+      escritorio comparaba 6 teselas «igual de malas» [la carrera
+      en pequeño]; con el arreglo compara 16 reales. LA PASADA
+      LIMPIA: 10/10 en una tirada [BiZi verde en su condición],
+      unidad 775, tipos 305/382, no-viaja 6/6, comprobar-dist
+      [main-6D72O7KI, sha da1115db…] sin rastro de intranet.
+      RÉGIMEN VALIDADO: dos rojos cazados ANTES de producción y
+      diagnóstico barato por suites — el peaje pagó su precio.
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la
