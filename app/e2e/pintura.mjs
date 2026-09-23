@@ -6534,7 +6534,50 @@ for (const [tema, puerto] of [
 // ⚠️ Usa el puerto 9600, de la P26 (`pc · andando`): los Chrome del arnés van
 //    en serie y ése ya está cerrado aquí. Un puerto nuevo tendría que entrar en
 //    el censo de `medir.mjs`.
-{
+
+/**
+ * ⚠️ ¿ES EL DIST LO QUE SE ESTÁ MIRANDO? (23/09, el patrón de la P28 calcado.)
+ *
+ * Esta casilla reproduce la carrera bloqueando la hoja completa y volviéndola a
+ * añadir, y la hoja que busca es `styles-<hash>.css`: el nombre que le pone el
+ * build de producción. Contra `npm run local` ese fichero NO EXISTE —el
+ * servidor de desarrollo sirve la suya sin hash—, y entonces esta casilla no
+ * tiene carrera que reproducir. Lo que hacía allí era peor que no medir:
+ *
+ *   · sus dos primeras juezas daban VERDE sobre una premisa que en la local es
+ *     cierta siempre —«el mapa se montó SIN la hoja completa»: es que no hay
+ *     ninguna hoja con hash que bloquear—, y
+ *   · la tercera moría con `Cannot read properties of null (reading
+ *     'getAttribute')` al ir a releer el `href` para re-añadirla, llevándose la
+ *     suite entera por delante.
+ *
+ * Un verde de premisa y una muerte no son un veredicto. Así que se DECLARA,
+ * igual que la P28 hace con el panel y la P31 con la intranet: si no es el
+ * dist, esta casilla NO APLICA y lo dice. Contra el dist, todo igual que antes.
+ *
+ * La sonda es el `index.html` servido, que es donde el build escribe el enlace:
+ * no hace falta abrir Chrome para saber qué se está sirviendo.
+ */
+const ES_EL_DIST = await (async () => {
+  try {
+    return /<link[^>]+styles-[A-Za-z0-9]+\.css/.test(await (await fetch(APP)).text());
+  } catch {
+    return false;
+  }
+})();
+
+if (!ES_EL_DIST) {
+  console.log(
+    `\n═══ P35 · LA HOJA LLEGA TARDE — NO APLICA AQUÍ ═══\n` +
+      `   En ${APP} no se sirve ninguna hoja «styles-<hash>.css»: esto no es el dist.\n` +
+      `   La carrera que esta casilla reproduce es la del build de producción —CSS\n` +
+      `   crítico en línea y la hoja completa asíncrona—, y sin esa hoja no hay nada\n` +
+      `   que bloquear ni, por tanto, nada que medir.\n` +
+      `   Se corre contra el dist:  node app/e2e/pintura.mjs http://localhost:4300`,
+  );
+}
+
+if (ES_EL_DIST) {
   const dicho = 'P35 · pc · la hoja llega tarde';
   console.log(`\n═══ ${dicho} ═══`);
   const m = await abrirChrome({ ancho: 1440, alto: 975, puerto: 9600 });
