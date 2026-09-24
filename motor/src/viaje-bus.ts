@@ -66,6 +66,7 @@ import type { Motor } from './trayecto.ts';
 import type { AndarEntre } from './red-bus.ts';
 import { operaEl, type ModoDeRed, type PatronBus, type RedDeBus } from './red-bus.ts';
 import { avisoDelFestivo, cuadroServido, ventanaDelCuadro, type CuadroDelDia } from './festivo.ts';
+import { relojDeZaragoza } from './reloj.ts';
 
 /**
  * ⭐ HASTA DÓNDE SE BUSCA UN POSTE. **Un tope de RENDIMIENTO, no un veto.**
@@ -304,11 +305,18 @@ export function elDiaAntes(fecha: string): string {
 }
 
 /**
- * Los segundos transcurridos del día, en hora **LOCAL** —igual que `hoyEnGtfs`,
- * y por lo mismo: el día de servicio es el del reloj de la calle—.
+ * Los segundos transcurridos del día **en Zaragoza** —igual que `hoyEnGtfs`, y
+ * por lo mismo: el día de servicio es el del reloj de la calle—.
+ *
+ * ⚠️ Aquí ponía «en hora **LOCAL**», y era la misma media verdad que en
+ *    `hoyEnGtfs`: `getHours()` da la hora **del proceso**. Con el motor en UTC
+ *    la búsqueda arrancaba dos horas antes del minuto real todo el día, y a las
+ *    00:30 de la calle arrancaba 22 h tarde, en el día anterior. T1 del 24/09,
+ *    sobre [A-CODIGO.md § A-1]; lo juzga `huso.spec.ts`, juez 6.
  */
 export function segundosDelDia(cuando: Date): number {
-  return cuando.getHours() * 3600 + cuando.getMinutes() * 60 + cuando.getSeconds();
+  const r = relojDeZaragoza(cuando);
+  return r.hora * 3600 + r.minuto * 60 + r.segundo;
 }
 
 /**

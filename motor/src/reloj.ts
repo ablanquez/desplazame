@@ -108,3 +108,86 @@ export function cuandoDeLaSede(crudo: string | undefined): Date {
   const aproximado = comoSiFueraUTC - desfaseEn(new Date(comoSiFueraUTC));
   return new Date(comoSiFueraUTC - desfaseEn(new Date(aproximado)));
 }
+
+/**
+ * ⭐ EL RELOJ DE PARED DE ZARAGOZA, DESCOMPUESTO — tanda T1 (24/09).
+ *
+ * ── ⚠️ Por qué hizo falta ampliar este módulo ───────────────────────────────
+ *
+ * El 8/09 este fichero nació para **lo que se pinta**. La auditoría de cierre
+ * [A-CODIGO.md § A-1] encontró el piso de abajo: **cuatro funciones que
+ * DECIDEN** —el día de servicio del bus, el minuto desde el que se busca, la
+ * franja de la ZBE y la ventana del festivo— leían el reloj **del proceso**
+ * con `getDate`, `getHours` y `getDay`. En esta máquina acertaban por la misma
+ * casualidad de siempre; en producción, que va en UTC, no.
+ *
+ * `getFullYear()` y compañía no dan «el año»: dan el año **en el huso del
+ * proceso**. Quien quiera el día civil de Zaragoza tiene que pedirlo, y esto
+ * es el sitio donde se pide.
+ *
+ * ── El día de la semana, y por qué sale de `Date.UTC` ───────────────────────
+ *
+ * Una vez se tiene la fecha civil —15 de septiembre de 2026— su día de la
+ * semana ya no depende de ningún huso: es aritmética de calendario. Montarla
+ * sobre `Date.UTC` la deja **exacta y sin horario de verano**, porque UTC no
+ * tiene cambios de hora que se traguen una medianoche. Pedírselo otra vez a
+ * `Intl` costaría un segundo formateo para la misma respuesta.
+ */
+export interface RelojDePared {
+  readonly anno: number;
+  /** 1-12, como se escribe, no 0-11 como lo cuenta `Date`. */
+  readonly mes: number;
+  readonly dia: number;
+  readonly hora: number;
+  readonly minuto: number;
+  readonly segundo: number;
+  /** 0 domingo … 6 sábado, igual que `getDay()` — pero el de Zaragoza. */
+  readonly diaDeLaSemana: number;
+}
+
+/**
+ * ⭐ QUÉ HORA Y QUÉ DÍA ES EN ZARAGOZA en un instante dado.
+ *
+ * ⚠️ **El instante entra por parámetro y no se lee aquí dentro.** Es la ley de
+ *    `operaEl` y la de `laZbeEstaEnVigor`: una función que consulta el reloj
+ *    por su cuenta no se puede juzgar sin esperar al martes que toque.
+ */
+export function relojDeZaragoza(instante: Date): RelojDePared {
+  const p: Record<string, string> = {};
+  for (const x of RELOJ.formatToParts(instante)) {
+    p[x.type] = x.value;
+  }
+  const anno = Number(p['year']);
+  const mes = Number(p['month']);
+  const dia = Number(p['day']);
+  return {
+    anno,
+    mes,
+    dia,
+    hora: Number(p['hour']),
+    minuto: Number(p['minute']),
+    segundo: Number(p['second']),
+    diaDeLaSemana: new Date(Date.UTC(anno, mes - 1, dia)).getUTCDay(),
+  };
+}
+
+/** Dos cifras con su cero delante. Lo pedían las cuatro por separado. */
+const dos = (n: number): string => String(n).padStart(2, '0');
+
+/**
+ * ⭐ UNA FECHA CIVIL DE ZARAGOZA EN EL FORMATO DEL CALENDARIO DE GTFS: `AAAAMMDD`.
+ *
+ * Con `cuantosDias` se camina por el calendario **civil**, que es lo que la
+ * ventana del festivo necesita: «hoy + 9» son nueve días del calendario, no
+ * nueve veces 86.400 s —y el último domingo de octubre uno de esos días dura
+ * 25 horas—. Por eso el paseo va por `Date.UTC`, donde un día son siempre 24 h
+ * y la aritmética de fechas no se tropieza con ningún cambio de hora.
+ */
+export function fechaGtfsEnZaragoza(instante: Date, cuantosDias = 0): string {
+  const r = relojDeZaragoza(instante);
+  if (cuantosDias === 0) {
+    return `${r.anno}${dos(r.mes)}${dos(r.dia)}`;
+  }
+  const d = new Date(Date.UTC(r.anno, r.mes - 1, r.dia + cuantosDias));
+  return `${d.getUTCFullYear()}${dos(d.getUTCMonth() + 1)}${dos(d.getUTCDate())}`;
+}

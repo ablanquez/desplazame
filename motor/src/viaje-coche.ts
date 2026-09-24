@@ -80,6 +80,7 @@ import {
   type DondeAparcar,
 } from './aparcamiento.ts';
 import { losParkingsDeLaFase1, type ParkingCocinado } from './parkings-zbe.ts';
+import { relojDeZaragoza } from './reloj.ts';
 
 /** Un punto en `[lon, lat]`, como el grafo. */
 type Punto = readonly [number, number];
@@ -945,17 +946,24 @@ function pasoDelPrimerTrozoEnLaZbe(
  *    todavía es el día anterior, y el mismo cuidado tiene `hoyEnGtfs` para el
  *    día de servicio del bus. Es el patrón de `operaEl`: la fecha entra como
  *    parámetro para que una juez pueda mentirle al reloj sin esperar al martes.
+ *
+ * ⚠️ **Y hasta el 24/09 esta advertencia era un deseo, no una descripción.**
+ *    Decía «no por UTC» mientras preguntaba `getDay()` y `getHours()`, que son
+ *    el día y la hora **del proceso** — o sea, exactamente UTC en producción.
+ *    La franja corría dos horas atrasada todo el día: a las 08:30 de la calle
+ *    no vetaba y a las 20:30 vetaba. Tanda T1 sobre [A-CODIGO.md § A-1], con
+ *    la franja juzgada por sus dos bordes en `huso.spec.ts`, juez 8.
  */
 export const ZBE_DESDE_H = 8;
 export const ZBE_HASTA_H = 20;
 
 export function laZbeEstaEnVigor(cuando: Date): boolean {
-  const dia = cuando.getDay();
+  const r = relojDeZaragoza(cuando);
   // 0 es domingo y 6 sábado: la franja es de lunes a viernes.
-  if (dia === 0 || dia === 6) {
+  if (r.diaDeLaSemana === 0 || r.diaDeLaSemana === 6) {
     return false;
   }
-  const hora = cuando.getHours() + cuando.getMinutes() / 60;
+  const hora = r.hora + r.minuto / 60;
   return hora >= ZBE_DESDE_H && hora < ZBE_HASTA_H;
 }
 
@@ -1046,13 +1054,20 @@ export const AVISO_ZBE_SIN_RUTA =
  *
  * Dice la hora que se ha mirado. Sin ella, quien lo lea no sabe si el motor ha
  * mirado el reloj o se lo ha saltado.
+ *
+ * ⚠️ **Y la dice en la hora de Zaragoza** (T1, 24/09). Es el fallo contándose a
+ *    sí mismo: con el proceso en UTC, este aviso escribía «22:30 del lunes»
+ *    para un instante que en la calle era **el martes a las 00:30** — la hora
+ *    equivocada, el día equivocado y el día de la semana equivocado, en la
+ *    misma frase que existe para demostrar que se ha mirado el reloj.
  */
 export function avisoDelRelojDeLaZbe(cuando: Date): string {
   const dos = (n: number): string => String(n).padStart(2, '0');
+  const r = relojDeZaragoza(cuando);
   return (
     'La ruta atraviesa la Zona de Bajas Emisiones, pero ahora no está en vigor: se aplica de ' +
     `lunes a viernes de ${ZBE_DESDE_H}:00 a ${ZBE_HASTA_H}:00, y son las ` +
-    `${dos(cuando.getHours())}:${dos(cuando.getMinutes())} del ${DIAS[cuando.getDay()]!}`
+    `${dos(r.hora)}:${dos(r.minuto)} del ${DIAS[r.diaDeLaSemana]!}`
   );
 }
 

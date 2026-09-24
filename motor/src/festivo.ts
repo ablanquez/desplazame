@@ -50,7 +50,7 @@
  * contrario, y una línea inventada mandaría a alguien a una parada vacía.
  */
 import type { PatronBus, RedDeBus } from './red-bus.ts';
-import { ZONA_DE_ZARAGOZA } from './reloj.ts';
+import { fechaGtfsEnZaragoza, ZONA_DE_ZARAGOZA } from './reloj.ts';
 import { SENTIDO_DE } from './recorrido.ts';
 
 /** La página del cuadro. La misma que ya da el nonce a `recorrido.ts`. */
@@ -437,14 +437,20 @@ export function huecosDelCalendario(
   return fuera;
 }
 
-/** Las fechas de la ventana: hoy y los `VENTANA_DIAS` siguientes, en `AAAAMMDD`. */
+/**
+ * Las fechas de la ventana: hoy y los `VENTANA_DIAS` siguientes, en `AAAAMMDD`.
+ *
+ * ⚠️ **«Hoy» es el de Zaragoza** (T1, 24/09). Esto se montaba sobre
+ *    `hoy.getFullYear()/getMonth()/getDate()`, que son el día **del proceso**:
+ *    con el motor en UTC, de 00:00 a 02:00 la ventana entera salía corrida un
+ *    día — metía el de ayer, que la web contesta con la página vacía de 150.503
+ *    bytes, y dejaba fuera el `+9` real, que sí tenía cuadro—. Censado en
+ *    [A-CODIGO.md § A-1] y juzgado en `huso.spec.ts`, juez 7.
+ */
 export function laVentana(hoy: Date): readonly string[] {
   const fechas: string[] = [];
   for (let k = 0; k <= VENTANA_DIAS; k++) {
-    const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + k);
-    fechas.push(
-      `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`,
-    );
+    fechas.push(fechaGtfsEnZaragoza(hoy, k));
   }
   return fechas;
 }

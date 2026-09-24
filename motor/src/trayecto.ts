@@ -49,6 +49,7 @@ import {
 } from './rodando.ts';
 import { esDeLaRueda, type ModoDeRueda } from './rueda.ts';
 import { escribirPasos, type Empuje } from './pasos.ts';
+import { fechaGtfsEnZaragoza } from './reloj.ts';
 import {
   VELOCIDAD_MS,
   aQueDistanciaElAparcabicis,
@@ -244,12 +245,18 @@ const esAvisoExtremo = (x: Extremo | Aviso): x is Aviso =>
 /**
  * La fecha de hoy en el formato del calendario de GTFS: `AAAAMMDD`.
  *
- * ⚠️ En hora LOCAL, no UTC: el día de servicio es el del reloj de la calle, y a
- * las 00:30 de Zaragoza en UTC todavía es ayer.
+ * ⚠️ **En el día civil de ZARAGOZA, no en el del proceso** (T1, 24/09). El día
+ * de servicio es el del reloj de la calle, y a las 00:30 de Zaragoza en UTC
+ * todavía es ayer.
+ *
+ * ⚠️ Aquí ponía *«en hora LOCAL, no UTC»*, y **«local» no era Zaragoza: era el
+ *    huso del proceso**. `getFullYear()` y `getDate()` devuelven el año y el
+ *    día de donde corra Node, así que en Fráncfort esta frase decía la verdad
+ *    sobre lo que quería y mentía sobre lo que hacía. Lo censó la auditoría de
+ *    cierre [A-CODIGO.md § A-1] y lo juzga `motor/src/huso.spec.ts`, juez 5.
  */
 export function hoyEnGtfs(cuando: Date): string {
-  const dos = (n: number): string => String(n).padStart(2, '0');
-  return `${cuando.getFullYear()}${dos(cuando.getMonth() + 1)}${dos(cuando.getDate())}`;
+  return fechaGtfsEnZaragoza(cuando);
 }
 
 /**
