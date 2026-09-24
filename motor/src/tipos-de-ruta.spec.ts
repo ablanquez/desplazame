@@ -34,7 +34,7 @@ import { test, before, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed, type RedEnMemoria } from './red.ts';
-import { cargarRedDeLaRueda, type RedDeLaRueda } from './red-rueda.ts';
+import { cargarRedDeLaRueda, TIPOS_CON_FACTOR, type RedDeLaRueda } from './red-rueda.ts';
 import { cargarRejilla, enganchar, type Rejilla } from './proyeccion.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarCallejero } from './callejero.ts';
@@ -104,7 +104,14 @@ function rodar(modo: ModoDeRueda, a: Punto, b: Punto, ruta?: TipoDeRuta): Ruta |
 function hostilidad(r: Ruta): number {
   return r.trozos.reduce((s, t) => {
     const via = rueda.tipoDeWay.get(rueda.aristas[t.arista]!.way) ?? '';
-    return s + t.metros * (FACTOR_DE_TRAFICO[via] ?? 0);
+    // ⛔ ACTA (A-5, 24/09): aquí ponía `FACTOR_DE_TRAFICO[via] ?? 0`, que es
+    //    copiar el acceso a mano. `TIPOS_CON_FACTOR` existía **para que las
+    //    pruebas pudieran nombrarlos sin copiarlos** y ninguna lo nombraba: una
+    //    promesa de guardián que no existía. Ahora se nombra, y el `?? 0` de
+    //    antes pasa a ser explícito: **lo que no está en la lista no se
+    //    penaliza**, que es la doctrina de `FACTOR_DE_TRAFICO` [OSRM nombra solo
+    //    las vías con tráfico]. Mismo número, dicho por su nombre.
+    return s + t.metros * (TIPOS_CON_FACTOR.includes(via) ? FACTOR_DE_TRAFICO[via]! : 0);
   }, 0);
 }
 
@@ -212,6 +219,38 @@ describe('⭐ EL SELECTOR DE RUTA (30/08)', () => {
    * pesado le sale a cuenta y en esta suma no. Se dice aquí para que nadie lo
    * descubra dentro de un mes y lo tome por un error.
    */
+  /**
+   * ⭐ JUEZ 0 — LA TABLA SIGUE NOMBRANDO LAS VÍAS SOBRE LAS QUE RAZONA ESTA SUITE.
+   *
+   * ── Qué agujero cierra, exactamente (A-5, 24/09) ───────────────────────────
+   *
+   * `hostilidad` vale **metros × factor**, y un tipo de vía que no esté en la
+   * tabla suma **cero**. Una tabla vaciada ya la cazaban las juezas de abajo,
+   * porque comparan con `<` estricto y `0 < 0` es falso. Lo que **no** cazaba
+   * nadie es una clave **renombrada**: si `primary` pasara a llamarse otra
+   * cosa, los metros de avenida dejarían de pesar en silencio, la suma seguiría
+   * dando números distintos y estas juezas podrían seguir en verde **midiendo
+   * otra cosa** — la hostilidad de las tres rutas sin la clase de vía que es el
+   * motivo entero de la casilla.
+   *
+   * Por eso se nombran las tres clases sobre las que esta suite argumenta, y no
+   * se cuenta cuántas hay: el número de `_link` puede crecer sin que nada de lo
+   * de abajo cambie de sentido; que falte `primary` sí lo cambia todo.
+   */
+  test('⭐ 0 · la tabla de factores nombra las vías de las que habla esta suite', () => {
+    assert.ok(
+      TIPOS_CON_FACTOR.length > 0,
+      'sin ni un tipo con factor, `hostilidad` valdría 0 para todas las rutas',
+    );
+    for (const clase of ['primary', 'secondary', 'tertiary']) {
+      assert.ok(
+        TIPOS_CON_FACTOR.includes(clase),
+        `«${clase}» ya no está en FACTOR_DE_TRAFICO, así que sus metros no pesan: ` +
+          `esta suite mediría otra cosa. Los tipos con factor son ${TIPOS_CON_FACTOR.join(', ')}`,
+      );
+    }
+  });
+
   test('⭐ 1 · las tres rutas del mismo par se ordenan como la doctrina', () => {
     const a = donde(A);
     const b = donde(B);
