@@ -345,21 +345,21 @@ pieza: TANDA · SE DECLARA (no se toca, con acta) · NEVERA. Nada se toca sin di
 
 | Grupo | Piezas | Dictado de Antonio |
 |---|---|---|
-| G1 · EL HUSO [🔴 A-1+C-1, confirmado] | el arreglo [4 opciones del A] + la red [3 opciones del C] | PENDIENTE |
-| G2 · fuente única y poda | A-2 [frase disponibilidad ×3 + includes] · A-3 [tipos sin declarar] · A-4 [muerta ×4] · A-5 [TIPOS_CON_FACTOR] · los 🔵 del A [2 muertas · 74 exports · dos «día» · aserción floja · ⚖️ buscador.ts 3.771 líneas: reportado PARA QUE NO SE PARTA — pide un «se declara» explícito] · D-2 [enlace roto] | PENDIENTE |
-| G3 · tests y guardianes | C-2 [«TODO VERDE» prematuro ×4] · C-3 [jueces del empuje] · C-4 [m.esperar mata la suite] · ⚖️ C-5 [suites sin script — DECISIÓN] · 🔵 los cinco grep-de-fuente [«forma, no comportamiento» — candidatos a se-declara] · 🔵 la lección de la M1a | PENDIENTE |
-| G4 · interfaz y textos | B-1 [title/description] · B-2 [main/footer] · ⚖️ B-3 [noscript mudo — DECISIÓN, 4 opciones] · B-4 [errores en jerga] · B-5 [letra del panel] · 🔵 [táctiles fuera de censo · reduced-motion 2/11] | PENDIENTE |
-| G5 · experiencia [casi todo producto] | ⚖️ F-1 [/identidad isla: el «no se llega» está documentado deliberado (D); el «no se sale» no] · ⚖️ F-2 [sin puente al código/autor — esto es portfolio] · ⚖️ F-3 [/creditos→/panel sirve la portada; la frase cumple la Ley 37/2007 — 4 opciones] · F-4 [YeGo sin salida] · F-5 [una letra no sugiere] | PENDIENTE |
-| G6 · operación y papeles | E-1 [PORT='' → puerto aleatorio mudo] · E-2 [fail-safe no nombra lo apagado] · ⚖️ E-3 [auto-deploy sin documentar] · E-4 [22 _cabeceras.txt fuera del manifiesto] · ⚖️ D-1 [2 rojas en clon + cómo-correr-las-pruebas sin sitio — 4 opciones] · 🔵 D-3 [README sin captura] · D-4 [aviso npm install] · D-5 [licencia en package.json] | PENDIENTE |
+| G1 · EL HUSO [🔴 A-1+C-1, confirmado] | el arreglo [4 opciones del A] + la red [3 opciones del C] | TANDA [T1] — pendiente solo la firma del canónico: arreglo op.3 [TZ en lanzador + las cuatro por reloj.ts] + red op.1 [jueza con hijo UTC] |
+| G2 · fuente única y poda | A-2 [frase disponibilidad ×3 + includes] · A-3 [tipos sin declarar] · A-4 [muerta ×4] · A-5 [TIPOS_CON_FACTOR] · los 🔵 del A [2 muertas · 74 exports · dos «día» · aserción floja · ⚖️ buscador.ts 3.771 líneas: reportado PARA QUE NO SE PARTA — pide un «se declara» explícito] · D-2 [enlace roto] | TANDA [T2] — y ⚖️ buscador.ts FIRMADO por Antonio 24/09: NO SE PARTE [se declara] |
+| G3 · tests y guardianes | C-2 [«TODO VERDE» prematuro ×4] · C-3 [jueces del empuje] · C-4 [m.esperar mata la suite] · ⚖️ C-5 [suites sin script — DECISIÓN] · 🔵 los cinco grep-de-fuente [«forma, no comportamiento» — candidatos a se-declara] · 🔵 la lección de la M1a | TANDA [T3] los arreglables; ⚖️ C-5 DICTADO SÍ [ley de la casa: «un arreglo que hay que acordarse de usar no es un arreglo del todo» → script en el repo]; los grep y la M1a: SE DECLARAN |
+| G4 · interfaz y textos | B-1 [title/description] · B-2 [main/footer] · ⚖️ B-3 [noscript mudo — DECISIÓN, 4 opciones] · B-4 [errores en jerga] · B-5 [letra del panel] · 🔵 [táctiles fuera de censo · reduced-motion 2/11] | TANDA [T3]; ⚖️ B-3 DICTADO POR DOCTRINA: opciones 1+2 [el noscript digno + el ErrorHandler — el §4·B exige que la pantalla de último recurso pueda abrirse, y «estados honestos diseñados» del DISEÑO] |
+| G5 · experiencia [casi todo producto] | ⚖️ F-1 [/identidad isla: el «no se llega» está documentado deliberado (D); el «no se sale» no] · ⚖️ F-2 [sin puente al código/autor — esto es portfolio] · ⚖️ F-3 [/creditos→/panel sirve la portada; la frase cumple la Ley 37/2007 — 4 opciones] · F-4 [YeGo sin salida] · F-5 [una letra no sugiere] | ⚖️ DICTADO 24/09: F-1 SÍ [se llega Y se sale de /identidad — el «deliberado» del README se reescribe] · F-2 SÍ [puente al código y al autor] · F-3 OPCIÓN 1 [el enlace no se pinta en producción; la frase sin puntero] · F-4 y F-5 a TANDA [T3] |
+| G6 · operación y papeles | E-1 [PORT='' → puerto aleatorio mudo] · E-2 [fail-safe no nombra lo apagado] · ⚖️ E-3 [auto-deploy sin documentar] · E-4 [22 _cabeceras.txt fuera del manifiesto] · ⚖️ D-1 [2 rojas en clon + cómo-correr-las-pruebas sin sitio — 4 opciones] · 🔵 D-3 [README sin captura] · D-4 [aviso npm install] · D-5 [licencia en package.json] | TANDA [T4]; ⚖️ E-3 DICTADO SÍ [el §4·E lo exige: todo paso del despliegue escrito] · ⚖️ D-1 DICTADO: OPCIÓN 4, las tres |
 
 **LA PROPUESTA DE TANDAS del estratega (a firmar o cambiar por Antonio):**
 
 | Tanda | Contenido propuesto | Estado |
 |---|---|---|
-| T1 · el huso | G1 [lo canónico: arreglo opción 3 (TZ en lanzador + las cuatro por reloj.ts) + red opción 1 (jueza con hijo UTC)] | PENDIENTE DE DICTADO |
-| T2 · fuente única y poda | G2 entero | PENDIENTE DE DICTADO |
-| T3 · tests + textos | de G3: C-2 + C-3 + C-4 [los tres arreglables sin decisión]; de G4: B-1 + B-2 + B-4 + B-5 [ídem]; los ⚖️ de ambos [C-5, B-3] entran solo con dictado | PENDIENTE DE DICTADO |
-| T4 · operación y papeles | de G6: E-1 + E-2 + E-4 + D-2 + los 🔵 documentales [D-3 captura · D-4 nota · D-5 licencia]; los ⚖️ [E-3 auto-deploy, D-1 cómo-correr-las-pruebas] y todo G5 entran solo con dictado | PENDIENTE DE DICTADO |
+| T1 · el huso | arreglo op.3 + red op.1 [el canónico propuesto] | FIRMA PENDIENTE |
+| T2 · fuente única y poda | G2 entero [buscador.ts NO se toca: firmado] | FIRMA PENDIENTE |
+| T3 · tests + interfaz + experiencia | de G3: C-2 + C-3 + C-4 [los tres arreglables sin decisión]; de G4: B-1 + B-2 + B-4 + B-5 [ídem]; MÁS los dictados: C-5 [el script] · B-3 [noscript + ErrorHandler] · F-1 [llegada y salida de /identidad + README] · F-2 [el puente] · F-3 op.1 · F-4 · F-5 | FIRMA PENDIENTE |
+| T4 · operación y papeles | de G6: E-1 + E-2 + E-4 + D-2 + los 🔵 documentales [D-3 captura · D-4 nota · D-5 licencia]; MÁS los dictados: E-3 [documentar el auto-deploy] · D-1 op.4 | FIRMA PENDIENTE |
 | Sesiones de mano de Antonio | NVDA y teléfono físico [instrucciones en el §7 del F] | PENDIENTE |
 
 *Este cuadro se actualiza con cada dictado y cada tanda cerrada; los informes de bloque no
