@@ -321,7 +321,7 @@ contexto limpio de verdad].
 |---|---|---|---|---|
 | Bloque A · código | `docs/auditoriafinal/A-CODIGO.md` | `78821ff` | 2026-09-23 | **ENTREGADO** |
 | Bloque C · tests | `docs/auditoriafinal/C-TESTS.md` | `2c4ebb5` | 2026-09-23 | **ENTREGADO** |
-| Bloque B · interfaz | `docs/auditoriafinal/B-INTERFAZ.md` | — | — | PENDIENTE |
+| Bloque B · interfaz | `docs/auditoriafinal/B-INTERFAZ.md` | `2c5735d` | 2026-09-24 | **ENTREGADO** |
 | Bloque E · operación | `docs/auditoriafinal/E-OPERACION.md` | — | — | PENDIENTE |
 | Bloque F · experiencia | `docs/auditoriafinal/F-EXPERIENCIA.md` | — | — | PENDIENTE |
 | Bloque D · documentación | `docs/auditoriafinal/D-DOCUMENTACION.md` | — | — | PENDIENTE |
