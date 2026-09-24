@@ -423,14 +423,15 @@ function acumuladoDe(patron: PatronBus): number[] {
   return a;
 }
 
-/** Los segundos típicos entre dos índices de un patrón, sumando sus saltos. */
-export function rodandoEntre(patron: PatronBus, desde: number, hasta: number): number {
-  let s = 0;
-  for (let i = desde; i < hasta; i++) {
-    s += patron.saltos[i]?.tipico ?? 0;
-  }
-  return s;
-}
+/*
+ * ⚠️ AQUÍ VIVÍA `rodandoEntre(patron, desde, hasta)`, y se ha ido (A-6, 24/09).
+ *
+ * Sumaba los saltos uno a uno, en O(n), para dar lo que `acumuladoDe` —justo
+ * arriba— resuelve en O(1) por resta, y **no la llamaba nadie**. Era el
+ * antecesor que sobrevivió a su relevo: el comentario de `acumuladoDe` explica
+ * por qué el relevo existe —«comparar dos subidas distintas sin recorrer los
+ * saltos otra vez»—, y tener las dos invitaba a usar la lenta sin saberlo.
+ */
 
 /** Índices para no recorrer 170 patrones y 10.588 transbordos en cada paso. */
 export interface Indices {

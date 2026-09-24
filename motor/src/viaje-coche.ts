@@ -1035,13 +1035,20 @@ export function avisoDelRemateEnParking(nombre: string): string {
   );
 }
 
-/** Y el hito, con la misma cautela: la norma, nunca la promesa de la plaza. */
-export function textoDeAparcarEnParking(nombre: string): string {
-  return (
-    `Aparca en el aparcamiento público ${nombre} — la ZBE permite el acceso a ` +
-    'aparcamientos públicos conectados, con registro municipal'
-  );
-}
+/*
+ * ⚠️ AQUÍ VIVÍA `textoDeAparcarEnParking`, y se ha ido (A-4, 24/09).
+ *
+ * Armaba en plano la misma frase del hito del aparcamiento público y **no la
+ * llamaba nadie**: 0 usos en todo el repositorio, pruebas incluidas. Quien
+ * construye ese hito de verdad es `hitoDeAparcarEnParking`, más abajo, y lo
+ * hace **por partes** —`accion` + `texto` + `via` + `texto`— porque la pantalla
+ * necesita las partes para destacar el nombre del aparcamiento.
+ *
+ * No era solo un export huérfano: era **una segunda redacción de una frase que
+ * ve el usuario**. Decían lo mismo hoy; el día que se tocara la viva, ésta se
+ * quedaba como versión alternativa plausible esperando a que alguien la usara.
+ * La nota queda aquí para que no se reponga pensando que falta.
+ */
 
 /** Y cuando no hay forma de llegar sin entrar: se dice, y no se entra. */
 export const AVISO_ZBE_SIN_RUTA =

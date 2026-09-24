@@ -368,10 +368,15 @@ export const FACTOR_DE_TRAFICO: Readonly<Record<string, number>> = {
   tertiary_link: 1 / 0.8,
 };
 
-/** El multiplicador de tiempo de una vía. 1 en todo lo que no lleva tráfico. */
-export function factorDe(highway: string): number {
-  return FACTOR_DE_TRAFICO[highway] ?? 1;
-}
+/*
+ * ⚠️ AQUÍ VIVÍA `factorDe(highway)`, y se ha ido (A-6, 24/09).
+ *
+ * Devolvía `FACTOR_DE_TRAFICO[highway] ?? 1` y **no la llamaba nadie**: los
+ * cuatro consumidores reales de la tabla la indexan directamente, cada uno con
+ * el defecto que le toca —`1` donde el factor multiplica tiempo, `0` donde se
+ * suman metros pesados—. Un envoltorio con UN defecto cableado no le servía a
+ * los dos, y por eso nadie lo usó nunca.
+ */
 
 // ── LOS TRES CALIBRADOS (30/08) ─────────────────────────────────────────────
 
