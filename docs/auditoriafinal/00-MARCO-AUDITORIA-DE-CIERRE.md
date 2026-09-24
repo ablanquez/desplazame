@@ -324,7 +324,7 @@ contexto limpio de verdad].
 | Bloque B · interfaz | `docs/auditoriafinal/B-INTERFAZ.md` | `2c5735d` | 2026-09-24 | **ENTREGADO** |
 | Bloque E · operación | `docs/auditoriafinal/E-OPERACION.md` | `4fd65cc` | 2026-09-24 | **ENTREGADO** |
 | Bloque F · experiencia | `docs/auditoriafinal/F-EXPERIENCIA.md` | `037e546` | 2026-09-24 | **ENTREGADO** |
-| Bloque D · documentación | `docs/auditoriafinal/D-DOCUMENTACION.md` | — | — | PENDIENTE |
+| Bloque D · documentación | `docs/auditoriafinal/D-DOCUMENTACION.md` | `53ae338` | 2026-09-24 | **ENTREGADO** |
 | Tandas de arreglo | (las decide Antonio sobre los mapas) | — | — | — |
 | Verificación del auditor | `docs/auditoriafinal/VERIFICACION.md` | — | — | — |
 | Escáneres externos | `docs/auditoriafinal/EXTERNA.md` + capturas | — | — | — |
