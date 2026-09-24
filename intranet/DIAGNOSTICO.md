@@ -15,7 +15,7 @@ esta fase.
 
 | fichero | líneas | por qué casa |
 |---|---:|---|
-| `capas.ts` | 677 | Solo importa `Injectable`/`signal`/`Signal` de Angular y `type Vertice` de `@desplazame/tipos`. **`Vertice` sigue existiendo igual** (`tipos/src/index.ts:196`, `readonly [number, number]`). No toca el mapa, ni el tema, ni el motor. |
+| `capas.ts` | 677 | Solo importa `Injectable`/`signal`/`Signal` de Angular y `type Vertice` de `@desplazame/tipos`. **`Vertice` sigue existiendo igual** (`tipos/src/index.ts:162`, `readonly [number, number]`). No toca el mapa, ni el tema, ni el motor. |
 | `capas.spec.ts` | 221 | Sus diez juezas montan rasgos de mentira, no leen ficheros: el censo re-firmado **no las mueve**. |
 | `visor.ts` · `.html` · `.css` | 85 | `<app-mapa [alto]="alto" />` sigue compilando: el `Mapa` de hoy conserva el selector `app-mapa` y la entrada `alto = input('22rem')`, **mismo nombre y sigue siendo opcional**. |
 | `visor.spec.ts` | 190 | Casa como código; lo que vigila depende de los pinceles. Ver abajo. |
@@ -52,7 +52,7 @@ tesela.
 
 Esto no es una opinión de estilo. Es una cadena de importaciones:
 
-    rutas.ts → Buscador (ruta '', EAGER) → buscador.ts:35 `import { Mapa } from './mapa'`
+    rutas.ts → Buscador (ruta '', EAGER) → buscador.ts:32 `import { Mapa } from './mapa'`
 
 `Mapa` viaja en el paquete de la portada **porque el buscador lo importa**. Y el
 `Mapa` de agosto hacía `private readonly capas = inject(Capas)` en su línea 96.
@@ -138,7 +138,7 @@ El encargo pedía no dar por buena la consecuencia, sino verificarla contra cóm
 sirve el motor. Verificada — y **sale más fuerte de lo que decía la hipótesis**.
 
 El motor lo lleva escrito desde el 8/09, con la letra de Angular delante
-(`motor/src/servidor.ts:1149`):
+(`motor/src/servidor.ts:1139`):
 
 > ⚠️ **«Y aquí no hay Apache que ayude.** En Hostinger el `.htaccess` de
 > `public_html` enruta TODO a la app de Node, así que los estáticos no los sirve
