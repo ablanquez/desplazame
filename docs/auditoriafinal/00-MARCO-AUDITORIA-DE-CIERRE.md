@@ -323,7 +323,7 @@ contexto limpio de verdad].
 | Bloque C · tests | `docs/auditoriafinal/C-TESTS.md` | `2c4ebb5` | 2026-09-23 | **ENTREGADO** |
 | Bloque B · interfaz | `docs/auditoriafinal/B-INTERFAZ.md` | `2c5735d` | 2026-09-24 | **ENTREGADO** |
 | Bloque E · operación | `docs/auditoriafinal/E-OPERACION.md` | `4fd65cc` | 2026-09-24 | **ENTREGADO** |
-| Bloque F · experiencia | `docs/auditoriafinal/F-EXPERIENCIA.md` | — | — | PENDIENTE |
+| Bloque F · experiencia | `docs/auditoriafinal/F-EXPERIENCIA.md` | `037e546` | 2026-09-24 | **ENTREGADO** |
 | Bloque D · documentación | `docs/auditoriafinal/D-DOCUMENTACION.md` | — | — | PENDIENTE |
 | Tandas de arreglo | (las decide Antonio sobre los mapas) | — | — | — |
 | Verificación del auditor | `docs/auditoriafinal/VERIFICACION.md` | — | — | — |
