@@ -19,6 +19,11 @@
  * No se compila: Node 24 ejecuta TypeScript directamente borrando los tipos.
  */
 
+// ⭐ EL PRIMERO DE TODOS, Y EL ORDEN IMPORTA (T1, 24/09): fija el huso del
+//    proceso en hora de Zaragoza antes de que ningún módulo construya una
+//    fecha. Los módulos se evalúan en el orden en que se declaran sus imports,
+//    así que este tiene que quedarse arriba. El porqué entero, en el fichero.
+import { elHusoDelProceso } from './huso-del-proceso.ts';
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
@@ -187,6 +192,11 @@ if (!SIN_ARRANCAR) {
       `(uno por día, se guardan ${DIAS_QUE_SE_GUARDAN}, las horas en UTC)`,
   );
 }
+
+// ⭐ Y en qué huso corre, dicho por Node y no por nosotros. Va DESPUÉS de
+//    enganchar la consola para que la línea entre también en el fichero del
+//    día: es el dato que hay que poder mirar cuando algo llegue a destiempo.
+console.log(elHusoDelProceso());
 
 console.log('motor: cargando el grafo…');
 const memoria = cargarGrafo();
