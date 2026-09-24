@@ -147,7 +147,7 @@
       <p>Cómo ir de un portal a otro en Zaragoza.</p>
     </header>
 
-    <main class="panel__bloques" id="panel-bloques" tabindex="-1">
+    <main class="panel__bloques" id="panel-bloques" tabindex="-1" #panelBloques>
       <div class="bloque bloque--buscador" [class.bloque--abierto]="buscadorAbierto()">
         <h2 class="bloque__titulo">
           <button
@@ -971,6 +971,32 @@
                   }
                 </ul>
               </section>
+
+              <!--
+                ⭐ Y SI NO HAY VIAJE, LA SALIDA (F-4, 24/09).
+
+                ⚠️ El caso que lo destapó es el rechazo de YeGo con el destino
+                   fuera de su área: **el mensaje es bueno** —tranquiliza y
+                   explica— y no se toca ni una palabra. Lo que la pantalla no
+                   hacía era decir **qué se puede hacer ahora**: quedaban avisos
+                   arriba, el 70 % de la pantalla en blanco debajo, y la salida
+                   —la barra inferior— había que deducirla.
+
+                ⚠️ Solo cuando NO hay pasos, a propósito: con ruta en pantalla
+                   los avisos son notas al margen de algo que sí se puede usar, y
+                   ahí un «prueba con otro modo» sobraría.
+
+                ⚠️ Es un `<button>` y no un enlace: no navega a ninguna parte —la
+                   página es la misma— y lo que hace es mover el foco. Un `<a>`
+                   que no lleva a ningún sitio miente al teclado y al lector.
+              -->
+              @if (r.trayecto.pasos.length === 0) {
+                <p class="sin-viaje">
+                  <button type="button" class="sin-viaje__salida" (click)="volverAlFormulario()">
+                    Prueba con otro modo de transporte
+                  </button>
+                </p>
+              }
             }
 
             @if (r.trayecto.pasos.length > 0) {
@@ -1526,6 +1552,22 @@
       class="creditos__enlace"
       href="/creditos"
       >Créditos</a
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
+      class="creditos__enlace"
+      href="/identidad"
+      >Identidad</a
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
+      class="creditos__enlace"
+      href="https://github.com/ablanquez/desplazame"
+      target="_blank"
+      rel="noopener"
+      >Código en GitHub</a
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
+      class="creditos__enlace"
+      href="https://antonioblanquez.es"
+      target="_blank"
+      rel="noopener"
+      >Antonio Blánquez</a
     >
   </p>
   </footer>

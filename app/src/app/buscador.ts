@@ -42,6 +42,7 @@ import { Tema } from './tema';
 import { ConmutadorDeTema } from './conmutador';
 import { Marca } from './marca';
 
+import { rotular } from './rotulo';
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
  *
@@ -3242,6 +3243,32 @@ export class Buscador {
     //    maqueta, `if (isMobile) setMobileTab('buscador')`. «Limpiar» deja la
     //    pantalla como al abrirla, y al abrirla se está en el buscador.
     this.pestana.set('buscador');
+  }
+
+  /**
+   * ⭐ LA SALIDA DE UN VIAJE QUE NO EXISTE (F-4, 24/09).
+   *
+   * Devuelve al formulario **con lo escrito puesto**, que es la mitad que hace
+   * que esto valga: mandar al usuario a rellenarlo todo otra vez para cambiar
+   * de modo sería peor que no ofrecer salida.
+   *
+   * ⚠️ **Y no hay nada que restaurar, porque nada se pierde.** La pestaña es un
+   *    cambio de clase (`panel--plegada`), no un desmontaje: los campos siguen
+   *    en el DOM con sus señales intactas. Lo único que limpia es «Limpiar», y
+   *    esto no es eso. Por eso aquí solo se mueven el foco y la pestaña.
+   *
+   * ⚠️ El foco va al `<main id="panel-bloques">`, que ya existía y ya lleva
+   *    `tabindex="-1"` justo para poder recibirlo por programa: es el mismo
+   *    destino que usa el salto al contenido, no un ancla nueva.
+   */
+  private readonly bloquesDelFormulario = viewChild<ElementRef<HTMLElement>>('panelBloques');
+
+  protected volverAlFormulario(): void {
+    this.pestana.set('buscador');
+    this.buscadorAbierto.set(true);
+    const caja = this.bloquesDelFormulario()?.nativeElement;
+    caja?.focus();
+    caja?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   protected elegirModo(modo: Modo): void {

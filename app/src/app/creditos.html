@@ -124,8 +124,30 @@
          mide. El panel de frescura la calcula dato a dato, así que la
          obligación se cumple llevando hasta él.
     -->
-    <strong>La fecha de actualización de cada dato, medida una a una, está en</strong>
-    <a class="creditos-pagina__enlace" href="/panel">el panel de frescura</a>.
+    <!--
+      ⭐ Y EN PRODUCCIÓN NO SE PINTA EL ENLACE (F-3, 24/09).
+
+      ⚠️ `/panel` **no existe en producción**: la intranet sale del dist por
+         `fileReplacements`, así que quien pulsaba aquí acababa en la portada
+         —el comodín—, sin explicación y con la sensación de que el sitio está
+         roto. Un enlace que no lleva a ninguna parte en la única página que la
+         ley obliga a leer es peor que no tenerlo.
+
+      La obligación de la [Ley 37/2007] se sigue cumpliendo: la frase dice que
+      la verificación existe y cada cuánto pasa. Lo que se deja de hacer es
+      **prometer una puerta invisible**. Texto firmado por Antonio.
+
+      ⚠️ Se pregunta por `RUTAS_DE_INTRANET`, que es el MISMO mecanismo que
+         decide si la intranet existe —no una segunda bandera de entorno—: en
+         producción ese fichero lo reemplaza `rutas-intranet.vacio.ts` y la
+         lista viene vacía. Una copia de la condición podría desincronizarse.
+    -->
+    @if (hayIntranet) {
+      <strong>La fecha de actualización de cada dato, medida una a una, está en</strong>
+      <a class="creditos-pagina__enlace" href="/panel">el panel de frescura</a>.
+    } @else {
+      <strong>Los datos se verifican a diario en un panel interno de frescura.</strong>
+    }
   </p>
 
   <h2>Cartografía</h2>
@@ -171,8 +193,38 @@
     esta aplicación.
   </p>
 
-  <p class="creditos-pagina__pie">
+  </main>
+
+  <footer class="creditos-pagina__pie">
     La ficha completa de cada fuente —licencia medida, fecha, campos y lo que
     trae de roto— vive en <code>THIRD-PARTY-NOTICES.md</code>, en el repositorio.
-  </p>
+
+    <!--
+      ⭐ EL PUENTE AL CÓDIGO Y AL AUTOR (F-2, 24/09).
+
+      ⚠️ No había **ninguna** salida del sitio hacia el repositorio ni hacia
+         quien lo firma: un proyecto que se enseña como portafolio y cuyo código
+         está abierto no daba forma de llegar a ninguno de los dos. Y esta es la
+         página donde alguien que quiere saber de dónde sale todo ya está
+         mirando, así que es donde el puente hace falta. El mismo par va en el
+         pie de la portada.
+    -->
+    <span class="creditos-pagina__puente">
+      <a
+        class="creditos-pagina__enlace"
+        href="https://github.com/ablanquez/desplazame"
+        target="_blank"
+        rel="noopener"
+        >Código en GitHub</a
+      >
+      ·
+      <a
+        class="creditos-pagina__enlace"
+        href="https://antonioblanquez.es"
+        target="_blank"
+        rel="noopener"
+        >Antonio Blánquez</a
+      >
+    </span>
+  </footer>
 </section>

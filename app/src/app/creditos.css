@@ -85,3 +85,11 @@
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+
+/* ⭐ EL PUENTE al código y al autor (F-2, 24/09). En su propia línea dentro del
+   pie: es otra cosa que la nota del THIRD-PARTY-NOTICES, y pegarla al final de
+   ese párrafo la habría dejado leyéndose como parte de la frase. */
+.creditos-pagina__puente {
+  display: block;
+  margin-top: 0.5rem;
+}

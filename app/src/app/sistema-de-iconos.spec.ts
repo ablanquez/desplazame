@@ -250,16 +250,29 @@ describe('⭐ (IV) LOS TAMAÑOS — la deuda del eje óptico, fijada con su cifr
     return salida;
   })();
 
+  /**
+   * ⛔ ACTA (F-1, 24/09): el censo sube de 18 a 19, y de 7 a 8 los de 16 px.
+   *
+   * El icono nuevo es la flecha `arrow_back` del **«Volver al buscador» de
+   * `/identidad`**, que hasta hoy era una isla sin salida. Es a 16 px porque es
+   * **la misma pieza que `/creditos`**, letra por letra: darle otro tamaño para
+   * no tocar esta cifra habría sido inventar una segunda versión del mismo
+   * enlace, que es peor deuda que la que este censo lleva la cuenta.
+   *
+   * Y esta jueza funcionó exactamente como su cabecera prometía: la cifra está
+   * clavada para que quien añada un icono a 16 px **tenga que venir aquí**, y
+   * al venir lea por qué. Vine.
+   */
   it('⭐ el censo de tamaños es el que dice el acta', () => {
     const cuenta: Record<number, number> = {};
     for (const l of LADOS) cuenta[l] = (cuenta[l] ?? 0) + 1;
-    expect(cuenta).toEqual({ 14: 2, 16: 7, 18: 1, 20: 4, 24: 2, 48: 2 });
-    expect(LADOS.length).toBe(18);
+    expect(cuenta).toEqual({ 14: 2, 16: 8, 18: 1, 20: 4, 24: 2, 48: 2 });
+    expect(LADOS.length).toBe(19);
   });
 
-  it('⭐ y exactamente DIEZ usos caen fuera de la retícula, ni uno más', () => {
+  it('⭐ y exactamente ONCE usos caen fuera de la retícula, ni uno más', () => {
     const fuera = LADOS.filter((l) => l !== 20 && l !== 24 && !(l >= 48));
-    expect(fuera.length, `fuera de 20/24: ${fuera.join(', ')}`).toBe(10);
+    expect(fuera.length, `fuera de 20/24: ${fuera.join(', ')}`).toBe(11);
   });
 
   /**

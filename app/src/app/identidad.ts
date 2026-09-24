@@ -1,6 +1,8 @@
 import { Component, ElementRef, inject, signal, afterNextRender } from '@angular/core';
 import { contraste, deCss, AA_GRAFICO, AA_TEXTO, type Rgb } from './contraste';
 
+import { rotular } from './rotulo';
+import { Simbolo } from './simbolos';
 /**
  * ⭐ LA PÁGINA DE IDENTIDAD VISUAL — donde los tokens se miran (9/09, punto 15).
  *
@@ -295,6 +297,9 @@ function ratioDe(texto: Lectura, fondo: Lectura): number | null {
   selector: 'app-identidad',
   templateUrl: './identidad.html',
   styleUrl: './identidad.css',
+  // ⭐ La flecha del «Volver al buscador» (F-1, 24/09): la MISMA pieza que usa
+  //    `/creditos`, no una copia ni un carácter de texto.
+  imports: [Simbolo],
 })
 export class Identidad {
   private readonly host = inject(ElementRef<HTMLElement>);

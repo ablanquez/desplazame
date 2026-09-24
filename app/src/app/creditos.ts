@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { Simbolo } from './simbolos';
 
+import { rotular } from './rotulo';
+import { RUTAS_DE_INTRANET } from './rutas-intranet';
 /**
  * ⭐ LA PÁGINA DE CRÉDITOS (10/09, remate 2 de la tanda 3).
  *
@@ -43,4 +45,26 @@ import { Simbolo } from './simbolos';
   styleUrl: './creditos.css',
   imports: [Simbolo],
 })
-export class Creditos {}
+export class Creditos {
+  /**
+   * ⭐ ¿EXISTE LA INTRANET EN ESTA CONSTRUCCIÓN? (F-3, 24/09)
+   *
+   * Se lo pregunta **al mismo sitio que lo decide**: `rutas-intranet.ts`, que en
+   * producción reemplaza `angular.json` por uno que devuelve la lista vacía. Una
+   * bandera de entorno propia sería una segunda copia de la condición, y las
+   * copias se desincronizan — que es la lección que esta sesión lleva repitiendo.
+   *
+   * ⚠️ Importarlo NO arrastra el visor ni el panel al paquete de esta página:
+   *    sus rutas los cargan con `loadComponent`, o sea con `import()` diferido.
+   *    Lo vigila `no-viaja.spec.ts` sobre el dist construido.
+   */
+  protected readonly hayIntranet = RUTAS_DE_INTRANET.length > 0;
+
+  constructor() {
+    // ⭐ El rótulo de esta página (B-1, 24/09). Ver `rotulo.ts`.
+    rotular(
+      'Créditos y fuentes de datos — Desplázame',
+      'Las fuentes de datos abiertos, licencias y atribuciones de Desplázame.',
+    );
+  }
+}

@@ -41,7 +41,44 @@
     <button type="button" class="identidad__conmutador" (click)="alternar()">
       {{ tema() === 'light' ? '🌙 Ver en oscuro' : '☀️ Ver en claro' }}
     </button>
+
+    <!--
+      ⭐ LA SALIDA DE LA ISLA (F-1, 24/09).
+
+      ⚠️ Esta página **no se llegaba ni se salía**: sin enlace que trajera y sin
+         enlace que devolviera, la única forma de irse era el botón de atrás del
+         navegador o escribir otra URL. Que no se LLEGUE está declarado como
+         deliberado en el README; que no se SALGA no lo cubría ningún papel, y
+         ésa es la mitad que se arregla aquí.
+
+      Es **la misma pieza de `/creditos`**, letra por letra —el mismo texto, el
+      mismo símbolo, la misma flecha dibujada por el juego de la casa—: un
+      patrón que ya existe no se reinventa en la segunda página que lo necesita.
+    -->
+    <p class="identidad__volver">
+      <a class="identidad__enlace" href="/">
+        <app-simbolo nombre="arrow_back" [lado]="16" />
+        Volver al buscador
+      </a>
+    </p>
   </header>
+
+  <!--
+    ⭐ EL `<main>` DE ESTA PÁGINA (B-2, 24/09).
+  
+    ⚠️ Aquí no había ninguno: esta página rendía SOLO `header`, y todo su
+       contenido vivía fuera de cualquier landmark. Quien navega con lector de
+       pantalla salta por landmarks y usa «ir al contenido principal»: no había
+       adónde saltar. No lo caza ningún escáner de color ni la batería de
+       pintura, que mide píxeles.
+  
+    Envolver es seguro aquí: `.identidad` es `display: block`.
+  
+    ⚠️ **Y NO lleva `<footer>`**, a propósito: esta página no tiene bloque de
+       cierre que envolver, y inventarle uno sería texto nuevo que nadie ha
+       firmado. El landmark que faltaba —el sitio al que saltar— es éste.
+  -->
+  <main>
 
   @if (!hayMedidas()) {
     <p class="identidad__nomide">
@@ -283,4 +320,5 @@
       </ul>
     </div>
   </div>
+  </main>
 </section>

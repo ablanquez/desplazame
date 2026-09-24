@@ -304,3 +304,30 @@
 .identidad__numeros--proporcionales {
   font-variant-numeric: proportional-nums;
 }
+
+/* ⭐ LA SALIDA DE LA ISLA (F-1, 24/09).
+
+   Calcado de `.creditos-pagina__volver` y `.creditos-pagina__enlace`: mismo
+   hueco entre la flecha y la palabra, mismo subrayado, y el mismo foco
+   reforzado [WCAG 2.4.7] que el pie del buscador y `.detalles`. Es el patrón de
+   casa, con el prefijo de esta página. */
+.identidad__volver {
+  margin: 0;
+}
+
+.identidad__enlace {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: inherit;
+  text-decoration: underline;
+}
+
+.identidad__enlace:hover {
+  text-decoration: none;
+}
+
+.identidad__enlace:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

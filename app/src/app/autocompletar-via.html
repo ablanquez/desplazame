@@ -26,6 +26,28 @@
   }
 </label>
 
+<!--
+  ⭐ CON MENOS DE DOS LETRAS, SE DICE (F-5, 24/09).
+
+  ⚠️ Escribir una sola letra daba **cero sugerencias y ningún mensaje**: la app
+     no le pregunta al motor con menos de dos —es deliberado y tiene su prueba
+     de unidad—, pero desde fuera **un segundo de silencio es indistinguible de
+     «esto no funciona»**. La decisión no cambia; lo que cambia es que ahora se
+     cuenta.
+
+  Va por `role="status"`, que es el canal que la casa ya usa para lo que cambia
+  solo —el aviso de la ubicación, el progreso de la ruta—: [WAI-ARIA] `status`
+  es una región *advisory* y **no interrumpe** a quien esté leyendo otra cosa,
+  que es justo lo que corresponde a una pista de ayuda.
+
+  ⚠️ Solo cuando el campo está ABIERTO y hay algo escrito: con el campo vacío no
+     hay nada que aclarar —todavía no se ha empezado—, y anunciarlo sería ruido
+     nada más poner el foco.
+-->
+@if (hacenFaltaMasLetras()) {
+  <p class="sugerencias__pista" role="status">Escribe al menos dos letras para buscar.</p>
+}
+
 @if (hayQueMostrar()) {
   <ul
     class="sugerencias"

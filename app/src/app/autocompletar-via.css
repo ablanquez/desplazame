@@ -135,3 +135,16 @@
   color: var(--warning-dark);
   background: var(--warning);
 }
+
+/* ⭐ LA PISTA DE LAS DOS LETRAS (F-5, 24/09).
+
+   Misma tinta y mismo aire que `.sugerencias__aviso` —«Buscando…», «Sin
+   resultados»—, porque es la misma clase de mensaje: una aclaración del campo,
+   no un error. Lo que no comparte es la caja del desplegable: esto aparece
+   cuando NO hay desplegable, así que no puede colgar de él. */
+.sugerencias__pista {
+  margin: 0.25rem 0 0;
+  padding: 0.35rem 0.5rem;
+  color: var(--leyenda);
+  font-size: 0.85rem;
+}

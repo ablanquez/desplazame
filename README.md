@@ -722,11 +722,19 @@ Con las dos arriba, en el navegador:
 | **<http://localhost:4200/identidad>** | la identidad visual: los tokens medidos, con su contraste (9/09) |
 | **<http://localhost:4200/creditos>** | los créditos y las fuentes, con su licencia y su enlace (10/09) |
 
-> Son **cuatro páginas y solo una tiene puerta**: `/creditos`, desde la franja del pie, porque un
-> aviso legal tiene que estar accesible «de forma permanente, fácil y directa» [RD 1495/2011]. A
-> las otras dos se llega escribiendo su dirección, a propósito: el panel y la identidad son sitios
-> donde el ojo comprueba, y ese sitio no es el producto. ⚠️ **Aquí ponía «dos páginas y no hay
-> barra que las una»**, y las dos cosas dejaron de ser verdad el 9 y el 10/09.
+> Son **cuatro páginas y dos tienen puerta**, las dos desde la franja del pie: `/creditos`, porque
+> un aviso legal tiene que estar accesible «de forma permanente, fácil y directa» [RD 1495/2011],
+> y `/identidad` **desde el 24/09**. Al panel se sigue llegando escribiendo su dirección, a
+> propósito: es donde el ojo comprueba, y ese sitio no es el producto.
+>
+> ⚠️ **Aquí ponía que a la identidad también se llegaba solo escribiendo la URL, «a propósito»**,
+> y ha dejado de ser verdad. Lo movió el hallazgo F-1 de la auditoría de cierre, que midió las dos
+> mitades del problema y solo una estaba declarada aquí: no se llegaba —eso sí lo decía este
+> párrafo— **y no se salía**, que no lo cubría ningún papel. La salida es el mismo «Volver al
+> buscador» de `/creditos`; la llegada, un enlace «Identidad» en el pie de la portada. La razón
+> por la que el panel se queda fuera no ha cambiado: es intranet y en producción **no existe**.
+> ⚠️ Y antes de eso ponía «dos páginas y no hay barra que las una», que dejó de ser verdad el 9
+> y el 10/09.
 > Cualquier otra —incluida `/visor`, que fue una página hasta el 22/08— cae en el buscador por
 > el comodín del router: ni pantalla en blanco ni 404.
 

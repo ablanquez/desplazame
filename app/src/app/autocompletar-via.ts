@@ -290,6 +290,19 @@ export class AutocompletarVia {
     () => this.abierto() && this.consulta().trim().length >= MINIMO,
   );
 
+  /**
+   * ⭐ ¿HAY QUE PEDIR MÁS LETRAS? (F-5, 24/09)
+   *
+   * El hueco exacto entre «no se ha escrito nada» y «ya se busca»: con el campo
+   * abierto y entre 1 y `MINIMO - 1` caracteres no pasaba **nada**, ni consulta
+   * ni mensaje. Con cero no se dice nada a propósito — no se ha empezado, y
+   * anunciarlo al poner el foco sería ruido.
+   */
+  protected readonly hacenFaltaMasLetras = computed(() => {
+    const escrito = this.consulta().trim().length;
+    return this.abierto() && escrito > 0 && escrito < MINIMO;
+  });
+
   // ⚠️ Aquí había un `comoSeVe(via)` que solo llamaba a `comoSeVeLaVia`, y era
   //    código muerto que viajaba en el inicial: la plantilla dejó de usarlo el
   //    23/08 (a13b6eb) y, siendo `protected`, nadie más podía. Podado el 22/09.

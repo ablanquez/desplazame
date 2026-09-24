@@ -2267,3 +2267,40 @@ app-conmutador-de-tema {
     transition: none;
   }
 }
+
+/* ⭐ LA SALIDA DE UN VIAJE QUE NO EXISTE (F-4, 24/09).
+
+   Un botón que se lee como lo que es —una propuesta, no el botón principal de
+   la pantalla—, así que va con la tinta del enlace y sin relleno de botón: si
+   compitiera con «Generar ruta» en peso, la sugerencia parecería la acción
+   obligatoria. El foco se refuerza, como en todo lo demás [WCAG 2.4.7]. */
+.sin-viaje {
+  margin: 0.75rem 0 0;
+}
+
+.sin-viaje__salida {
+  padding: 0.35rem 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ⚠️ Dentro de `@media (hover: hover)`, y **esto lo cazó la jueza**, no la
+   escribí bien a la primera: la casa exige que ninguna regla `:hover` viva
+   suelta en la hoja global, porque en táctil el `:hover` se queda PEGADO tras
+   el toque y deja el control con aspecto de estar activo. La jueza de
+   `pintura.spec.ts` recorre la hoja contando llaves para saber en qué contexto
+   cae cada selector, y ésta se puso roja en el acto. */
+@media (hover: hover) {
+  .sin-viaje__salida:hover {
+    text-decoration: none;
+  }
+}
+
+.sin-viaje__salida:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
