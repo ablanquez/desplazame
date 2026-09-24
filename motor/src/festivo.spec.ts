@@ -332,7 +332,12 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
    * que suplir, y preguntar sería gastar una visita para nada.
    */
   test('⭐ 3 · fuera de la ventana no se suple: manda el feed a secas', () => {
-    const hoy = new Date(2026, 8, 6);
+    // ⛔ ACTA (T1, 24/09): era `new Date(2026, 8, 6)` —la medianoche **del
+    //    proceso**—, y `laVentana` resuelve desde hoy el día civil de Zaragoza.
+    //    `2026-09-05T22:00:00Z` es justo esa medianoche del domingo 6 en la
+    //    calle: el peor instante posible, el que en UTC todavía es el día 5.
+    //    Las fechas esperadas de abajo NO se han tocado.
+    const hoy = new Date('2026-09-05T22:00:00Z');
     const ventana = laVentana(hoy);
     assert.equal(ventana.length, VENTANA_DIAS + 1, 'hoy y los nueve siguientes');
     assert.equal(ventana[0], '20260906');

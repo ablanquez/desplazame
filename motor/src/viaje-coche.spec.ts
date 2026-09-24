@@ -121,9 +121,30 @@ function loConducido(t: Trayecto): number {
  * El **1 de septiembre de 2026 es martes** y el **6, domingo**. Sin poder
  * mentirle al reloj, la juez de la franja solo se podría correr entre semana y
  * de 8 a 20 — que es como no poder correrla.
+ *
+ * ── ⛔ ACTA (T1, 24/09): se compra LO MISMO, por el camino nuevo ────────────
+ *
+ * Aquí ponía `new Date(2026, 8, 1, 10, 0, 0)`, y ese constructor no fija un
+ * instante: fija **las 10:00 de donde corra el proceso**. Mientras
+ * `laZbeEstaEnVigor` también leía el reloj del proceso, las dos mitades se
+ * daban la razón y la juez acertaba **en cualquier huso, por la razón
+ * equivocada**. Desde hoy la función resuelve en Zaragoza [`reloj.ts`], así
+ * que un instante montado con el huso del proceso sería una premisa prestada
+ * de esta máquina: en un portátil en UTC, estas «10:00» serían las 12:00 de
+ * Zaragoza y el caso dejaría de ser el que se quiere juzgar.
+ *
+ * Se escriben en **UTC con su `Z`** y con el reloj de pared de Zaragoza al
+ * lado, que es el precedente de `huso.spec.ts` —`FIJO`, `CRUDO_DE_VERANO`—:
+ * un instante es un hecho y se puede escribir exacto; un **desfase** es una
+ * regla y ésos no se escriben a mano nunca [la doctrina de la nº41].
+ *
+ * ⚠️ **Los valores esperados no se han tocado.** Las mismas horas de pared,
+ *    los mismos dos días de la semana, los mismos veredictos.
  */
-const MARTES_A_LAS_10 = new Date(2026, 8, 1, 10, 0, 0);
-const DOMINGO_A_LAS_10 = new Date(2026, 8, 6, 10, 0, 0);
+/** El **martes 1/09/2026 a las 10:00 en Zaragoza** (CEST, +2). */
+const MARTES_A_LAS_10 = new Date('2026-09-01T08:00:00Z');
+/** El **domingo 6/09/2026 a las 10:00 en Zaragoza** (CEST, +2). */
+const DOMINGO_A_LAS_10 = new Date('2026-09-06T08:00:00Z');
 
 /**
  * ⭐ LAS MANERAS DE IR, con las repeticiones seguidas colapsadas (3/09).
@@ -984,8 +1005,18 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       // Y el reloj es el que decide: `laZbeEstaEnVigor` no adivina.
       assert.equal(laZbeEstaEnVigor(MARTES_A_LAS_10), true);
       assert.equal(laZbeEstaEnVigor(DOMINGO_A_LAS_10), false);
-      assert.equal(laZbeEstaEnVigor(new Date(2026, 8, 1, 7, 59)), false, 'a las 7:59 todavía no');
-      assert.equal(laZbeEstaEnVigor(new Date(2026, 8, 1, 20, 0)), false, 'a las 20:00 ya no');
+      // Los dos bordes de la franja, en hora de Zaragoza (ver el acta de arriba):
+      // `05:59Z` son las 7:59 y `18:00Z` las 20:00 de aquel martes de septiembre.
+      assert.equal(
+        laZbeEstaEnVigor(new Date('2026-09-01T05:59:00Z')),
+        false,
+        'a las 7:59 de Zaragoza todavía no',
+      );
+      assert.equal(
+        laZbeEstaEnVigor(new Date('2026-09-01T18:00:00Z')),
+        false,
+        'a las 20:00 de Zaragoza ya no',
+      );
     });
 
     /**

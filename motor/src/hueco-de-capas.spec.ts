@@ -61,10 +61,18 @@ const EL_CASO = {
   modo: 'bus',
 };
 
+/**
+ * ⛔ ACTA (T1, 24/09): estos dos instantes alimentan `hoyEnGtfs`, que desde hoy
+ * resuelve el **día civil de Zaragoza** y ya no el del proceso. Se montaban con
+ * `new Date(2026, 8, 13, 13, 0, 0, 0)` —las 13:00 de donde corriera Node—, así
+ * que el día de servicio que salía era prestado de esta máquina. Ahora se
+ * escriben en UTC con su `Z` y la hora de pared al lado, como en `huso.spec.ts`.
+ * **Los dos días de servicio esperados —el domingo y el lunes— son los mismos.**
+ */
 /** Un domingo con huecos de calendario: así la capa del festivo tiene trabajo. */
-const UN_DOMINGO = new Date(2026, 8, 13, 13, 0, 0, 0);
+const UN_DOMINGO = new Date('2026-09-13T11:00:00Z'); // domingo 13/09, 13:00 en Zaragoza
 /** Y un laborable, donde el feed lo trae todo y no hay nada que suplir. */
-const UN_LUNES = new Date(2026, 8, 14, 13, 0, 0, 0);
+const UN_LUNES = new Date('2026-09-14T11:00:00Z'); // lunes 14/09, 13:00 en Zaragoza
 
 /** 🔒 Nada sale a la red: el poste vivo contesta 503 y el viaje sale igual. */
 const LA_CALLE_MUDA: typeof fetch = (async () =>

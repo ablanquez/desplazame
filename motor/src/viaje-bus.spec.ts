@@ -1810,10 +1810,30 @@ describe('⭐ LA VENTANA HORARIA DEL SERVICIO — el reloj que faltaba', () => {
     );
   });
 
-  /** ⭐ Y el reloj de pared se lee igual que la fecha: en LOCAL. */
-  test('⭐ segundosDelDia lee la hora local, y elDiaAntes cruza el mes', () => {
-    assert.equal(segundosDelDia(new Date(2026, 8, 6, 13, 0, 0)), 46_800);
-    assert.equal(segundosDelDia(new Date(2026, 8, 6, 0, 10, 30)), 630);
+  /**
+   * ⭐ Y el reloj de pared se lee igual que la fecha: **el de ZARAGOZA**.
+   *
+   * ── ⛔ ACTA (T1, 24/09): mismo veredicto, camino nuevo ─────────────────────
+   *
+   * El título decía «lee la hora local» y los instantes se montaban con
+   * `new Date(2026, 8, 6, 13, 0, 0)`: las 13:00 **del proceso**. Las dos
+   * mitades compartían la premisa, así que la juez daba 46.800 en cualquier
+   * huso — y no vigilaba ninguno. Desde hoy `segundosDelDia` resuelve en
+   * Zaragoza, y el instante se escribe como lo que es: en UTC con su `Z`, con
+   * la hora de pared al lado [el precedente de `huso.spec.ts`].
+   *
+   * ⚠️ **Los 46.800 y los 630 no se han tocado**, ni las dos fechas de
+   *    `elDiaAntes`. Se compra exactamente lo mismo.
+   *
+   * ⚠️ Y el segundo caso es el que muerde: `2026-09-05T22:10:30Z` son las
+   *    **00:10:30 del día siguiente en Zaragoza**. En UTC daría 79.830 s del
+   *    día anterior — la madrugada que rompía el día de servicio del bus.
+   */
+  test('⭐ segundosDelDia lee la hora de Zaragoza, y elDiaAntes cruza el mes', () => {
+    // Las 13:00 del domingo 6/09/2026 en Zaragoza (CEST, +2).
+    assert.equal(segundosDelDia(new Date('2026-09-06T11:00:00Z')), 46_800);
+    // Y las 00:10:30 de ese mismo domingo, que en UTC todavía es sábado.
+    assert.equal(segundosDelDia(new Date('2026-09-05T22:10:30Z')), 630);
     assert.equal(elDiaAntes('20260901'), '20260831');
     assert.equal(elDiaAntes('20260101'), '20251231');
   });
