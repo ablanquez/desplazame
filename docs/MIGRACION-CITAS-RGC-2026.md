@@ -38,16 +38,16 @@ enlace servirá el texto reformado **sin que haya que tocar nada**.
 
 **36 citas** al RGC en `motor/src`, `app/src` y `tipos/src` (`.ts` y `.html`).
 Ninguna en texto visible: las de producto son comentarios, y la única línea que
-el usuario podría leer es del **log del motor** (`servidor.ts:339`), que cita el
+el usuario podría leer es del **log del motor** (`servidor.ts:349`), que cita el
 art. 50 y **no cambia**.
 
 | Grupo | Cuántas | Dónde |
 |---|---|---|
 | **A · art. 121.1** → migra | 5 | `andando.ts` 28 · 50 · 97 · 109 · `andando.spec.ts` 15 |
-| **B · art. 121.2** → migra | 9 | `rueda.ts` 89 · 253 · `red-rueda.ts` 19 · 547 · `etapas.ts` 278 · `servidor.ts` 378 · `tipos/index.ts` 779 · `empuje.spec.ts` 11 · `tramos.spec.ts` 26 |
-| **C · art. 50** → QUEDA | 17 | `red-rueda.ts` ×10 · `rueda.ts` ×3 · `servidor.ts` ×2 · `rueda.spec.ts` ×2 · `buscador.ts` 972 · `buscador.spec.ts` 2120 |
+| **B · art. 121.2** → migra | 9 | `rueda.ts` 89 · 253 · `red-rueda.ts` 19 · 547 · `etapas.ts` 278 · `servidor.ts` 388 · `tipos/src/index.ts` 813 · `empuje.spec.ts` 11 · `tramos.spec.ts` 26 |
+| **C · art. 50** → QUEDA | 17 | `red-rueda.ts` ×10 · `rueda.ts` ×3 · `servidor.ts` ×2 · `rueda.spec.ts` ×2 · `buscador.ts` 980 · `buscador.spec.ts` 2131 |
 | **D · art. 48** → QUEDA | 2 | `yego.ts` 108 · `viaje-yego.ts` 50 |
-| **E · «RGC» en prosa, sin artículo** | 3 | `andando.ts` 79 · `andando.spec.ts` 24 · `rueda.ts` 555 |
+| **E · «RGC» en prosa, sin artículo** | 3 | `andando.ts` 79 · `andando.spec.ts` 24 · `rueda.ts` 560 |
 
 **Ninguna cita del RGC lleva URL**, así que en el grupo que migra no hay nada
 que convertir a ELI. La única URL al BOE del **producto** está en
@@ -148,7 +148,7 @@ toca.** La cita queda; se anota el matiz donde vive.
 
 ### E · Las tres de prosa
 
-`andando.ts:79`, `andando.spec.ts:24` y `rueda.ts:555` nombran «el RGC» sin
+`andando.ts:79`, `andando.spec.ts:24` y `rueda.ts:560` nombran «el RGC» sin
 artículo, hablando del reglamento como fuente. No hay número que migrar.
 
 ---

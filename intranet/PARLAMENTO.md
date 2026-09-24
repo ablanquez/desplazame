@@ -71,7 +71,7 @@ lleve hasta él. Meterlo en la intranet sería romper eso.
 
 El encargo pedía verificar, no suponer, la consecuencia de arquitectura del
 acceso. Verificada contra el motor, y sale **más fuerte** que la hipótesis
-(`motor/src/servidor.ts:1139`, escrito el 8/09 con el despliegue delante):
+(`motor/src/servidor.ts:1149`, escrito el 8/09 con el despliegue delante):
 
 > ⚠️ **«Y aquí no hay Apache que ayude.** En Hostinger el `.htaccess` de
 > `public_html` enruta TODO a la app de Node, así que los estáticos no los sirve
