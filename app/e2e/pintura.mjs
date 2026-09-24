@@ -5755,7 +5755,8 @@ const FOCO_P31 = `(() => {
     return cual + ': ' + (a ? p.outlineStyle + ' ' + p.outlineWidth + ' ' + p.outlineColor : 'box-shadow');
   }).filter(Boolean);
   return {
-    que: e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : ''),
+    que: e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : '') +
+      (e.getAttribute('href') ? '[' + e.getAttribute('href') + ']' : ''),
     visible: anillo || sombra || enPseudo.length > 0,
     detalle: anillo
       ? s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor
@@ -5769,6 +5770,33 @@ const FOCO_P31 = `(() => {
   };
 })()`;
 
+/*
+ * ⛔ ACTA (24/09): EL IDENTIFICADOR DE LA P31 LLEVA AHORA EL `href`, y no es
+ *    cosmética — es que sin él la jueza daba un ROJO FALSO.
+ *
+ * Identificaba cada parada del tabulador por `etiqueta + id o primera clase`.
+ * Con eso, **enlaces distintos que comparten clase son indistinguibles**: el
+ * pie de la portada pasó de 3 a 6 `a.creditos__enlace` seguidos (F-1 y F-2
+ * metieron «Identidad», «Código en GitHub» y «Antonio Blánquez»), y la
+ * detección de foco atrapado —«el mismo control 4 veces seguidas»— se disparó:
+ *
+ *   ✗✗ P31 · teclado · portada · oscuro · ⭐ 2.1.2 · ningún control atrapa el
+ *      foco (el mapa incluido)  ·  ATRAPADO en a.creditos__enlace
+ *
+ * El foco **avanzaba perfectamente**; lo que no avanzaba era el nombre que la
+ * jueza le ponía. Con tres enlaces el contador llegaba a 2 y se quedaba por
+ * debajo del umbral de 4: el defecto estaba ahí desde siempre y hacía falta un
+ * cuarto hermano para verlo.
+ *
+ * ⚠️ Y esto **NO afloja la detección de trampas de verdad**: un foco atrapado
+ *    de verdad se queda en el MISMO elemento, así que su descriptor —`href`
+ *    incluido— sigue repitiéndose idéntico. Lo que se gana es dejar de contar
+ *    como repetición a seis controles distintos.
+ *
+ * Se cambia en los DOS sitios a la vez —el censo de candidatos y la lectura del
+ * foco— porque se comparan entre sí: tocar uno solo habría hecho que la 2.1.1
+ * dijera que no se llega a controles a los que sí se llega.
+ */
 const CANDIDATOS_P31 = `(() => {
   const vale = (e) => {
     const r = e.getBoundingClientRect();
@@ -5779,7 +5807,8 @@ const CANDIDATOS_P31 = `(() => {
   };
   return [...new Set([...document.querySelectorAll('a[href], button, input, select, textarea, [tabindex="0"]')]
     .filter(vale)
-    .map((e) => e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : '')))];
+    .map((e) => e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : '') +
+      (e.getAttribute('href') ? '[' + e.getAttribute('href') + ']' : '')))];
 })()`;
 
 for (const pagina of P31_APLICAN) {
