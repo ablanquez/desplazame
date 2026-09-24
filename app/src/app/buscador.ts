@@ -1349,6 +1349,46 @@ export class Buscador {
   }
 
   /**
+   * ⭐ ¿ES ESTO UNA RESPUESTA DEL DISTINTIVO, O SOLO SE LE PARECE? (A-10, 24/09)
+   *
+   * ── ⚠️ Qué estrechaba de menos la guarda de antes ───────────────────────────
+   *
+   * Preguntaba `'clase' in cuerpo` y acto seguido hacía `as DistintivoConsultado`:
+   * miraba **un** campo de los cuatro obligatorios. Un cuerpo de error con
+   * `clase` y sin `texto` pasaba la guarda, y la pantalla **pintaba un hueco**
+   * —porque lo que se pinta es `texto`—. El dato viene de nuestro propio motor,
+   * así que el riesgo era bajo; lo que no era bajo es la distancia entre lo que
+   * la guarda comprobaba y lo que la aserción de después afirmaba.
+   *
+   * ⚠️ **No se fija la lista de `clase`, y es a propósito.** Las ramas que la
+   *    leen son `if`/`else if` que caen a pintar `texto`, así que una clase que
+   *    el contrato estrene mañana degrada bien: se enseña su frase. Lo que la
+   *    pantalla **no** sobrevive es quedarse sin frase, y eso es lo que se
+   *    exige aquí. Estrechar hasta la unión cerrada convertiría un contrato que
+   *    crece en un mudo, que sería el defecto contrario.
+   */
+  private static esRespuestaDelDistintivo(x: unknown): x is DistintivoConsultado {
+    if (x === null || x === undefined || typeof x !== 'object') {
+      return false;
+    }
+    // ⚠️ Se sondea como `Record<string, unknown>` y NO como
+    //    `Partial<DistintivoConsultado>`: tiparlo con la forma que se está
+    //    comprobando es dar por cierto lo que se quiere averiguar, y `tsc` lo
+    //    dijo con todas las letras —«esta comparación no tiene sentido: los
+    //    tipos no se solapan»— al mirar si `clase` estaba vacía. El dato entra
+    //    como desconocido y se comprueba como desconocido.
+    const c = x as Record<string, unknown>;
+    return (
+      typeof c['clase'] === 'string' &&
+      c['clase'] !== '' &&
+      typeof c['texto'] === 'string' &&
+      c['texto'] !== '' &&
+      c['fuente'] === 'DGT' &&
+      typeof c['cuando'] === 'string'
+    );
+  }
+
+  /**
    * ⭐ QUÉ SE DICE CUANDO NO HAY RESPUESTA BUENA.
    *
    * Si el motor mandó un cuerpo —el 400 del formato—, manda su texto: lo
@@ -1357,8 +1397,8 @@ export class Buscador {
    */
   private loQueDiceElFallo(fallo: unknown): DistintivoConsultado {
     const cuerpo = (fallo as { readonly error?: unknown } | null)?.error;
-    if (cuerpo !== null && typeof cuerpo === 'object' && cuerpo !== undefined && 'clase' in cuerpo) {
-      return cuerpo as DistintivoConsultado;
+    if (Buscador.esRespuestaDelDistintivo(cuerpo)) {
+      return cuerpo;
     }
     return {
       clase: 'mudo',
