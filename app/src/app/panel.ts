@@ -3,6 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import type { SaludFeed } from '@desplazame/tipos';
 import { ConmutadorDeTema } from './conmutador';
 
+import { rotular } from './rotulo';
 /**
  * EL PANEL DE FRESCURA: si cada conjunto de datos está fresco o caduco.
  *
@@ -226,6 +227,10 @@ export class Panel {
   readonly hoy = new Date();
 
   constructor() {
+    // ⭐ El rótulo de esta página (B-1, 24/09). No viaja a producción —la
+    //    intranet se queda fuera del dist—, y se pone igual: la coherencia de
+    //    la casa no depende de quién mire.
+    rotular('Panel de frescura — Desplázame [intranet]', 'Herramienta interna de Desplázame.');
     // El manifiesto se pide AQUÍ y solo aquí: es lo que mantiene la portada a
     // cero peticiones de datos. Va por `fetch` y no por HttpClient porque es un
     // fichero estático servido junto a la aplicación, no una llamada a la API.
@@ -235,7 +240,19 @@ export class Panel {
       .then((p: { resources: Recurso[] }) => {
         this.filas.set(p.resources.map((r) => ({ r, e: estadoDe(r, this.hoy) })));
       })
-      .catch((e: unknown) => this.fallo.set(String(e)));
+      // ⭐ SIN LA EXCEPCIÓN EN CRUDO (B-4, 24/09). Aquí había `String(e)`, y eso
+      //    llegaba a la pantalla tal cual: «No se ha podido leer el manifiesto:
+      //    TypeError: Failed to fetch». `/panel` es intranet y su lector es de
+      //    casa, pero una excepción de JavaScript no es un mensaje: no dice qué
+      //    hacer. Texto firmado por Antonio.
+      //
+      // ⚠️ Y el motivo técnico NO se pierde, se MUEVE: va a la consola, que es
+      //    donde lo busca quien va a arreglarlo, en vez de a la cara de quien
+      //    solo quería mirar la tabla.
+      .catch((e: unknown) => {
+        console.error('panel: el manifiesto no se ha podido leer —', e);
+        this.fallo.set('No se ha podido leer el estado de los datos. Recarga la página.');
+      });
 
     // ⭐ Y LA FILA VIVA DEL FEED, que el manifiesto NO puede dar (8/09).
     //

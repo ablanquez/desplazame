@@ -8,7 +8,27 @@
      cabecera de su hoja juraba que iba sobre `--background`. Ver la bitácora
      del 20/09. Un nombre de clase en una hoja global es un identificador de
      toda la aplicación: éste no lo comparte con nadie. -->
-<section class="frescura">
+<!--
+  ⭐ EL LANDMARK DE ESTA PÁGINA, Y POR QUÉ ES `<main>` Y NO UN ENVOLTORIO (B-2, 24/09).
+
+  ⚠️ **Aquí NO se puede envolver el contenido**, y es la diferencia con las
+     otras tres. `.frescura` es una REJILLA y su regla `.frescura > *` coloca a
+     **los hijos directos** en la columna de texto; `.frescura > .frescura__marco`
+     saca la tabla a ancho completo. Un `<main>` metido en medio se convertiría
+     en el único hijo de la rejilla y todo lo demás perdería su columna: se
+     llevaría por delante la alineación que se midió el 23/09 —título, entradilla
+     y tabla al mismo borde— y lo que compran las juezas P28, P31 y P35.
+
+  Así que el landmark se pone donde no cuesta nada: **esta `<section>` pasa a
+  ser `<main>`**. Mismo elemento, misma rejilla, mismos hijos, cero píxeles
+  movidos — y la página gana el sitio al que saltar, que es lo que faltaba.
+
+  ⚠️ Y su `<footer>` queda DENTRO de este `<main>`, así que es genérico y no
+     `contentinfo` [HTML: solo lo es cuando su ancestro de seccionado más
+     cercano es `body`]. Sacarlo fuera lo sacaría de la rejilla y volvería a
+     mover las mismas métricas. Se declara en vez de fingirlo.
+-->
+<main class="frescura">
   <header class="frescura__cabecera">
     <h1>Frescura de los datos</h1>
     <!-- ⭐ El conmutador de tema (20/09, H1): la MISMA pieza de la casa, no una
@@ -24,7 +44,10 @@
   </p>
 
   @if (fallo(); as e) {
-    <p class="frescura__fallo">No se ha podido leer el manifiesto: {{ e }}</p>
+    <!-- ⭐ La frase entera la trae la señal (B-4, 24/09). Aquí ponía «No se ha
+         podido leer el manifiesto: {{ e }}», y ese `{{ e }}` era la excepción de
+         JavaScript en crudo. El motivo técnico va ahora a la consola. -->
+    <p class="frescura__fallo">{{ e }}</p>
   } @else if (filas(); as f) {
     <p class="frescura__resumen">
       <span class="frescura__estado frescura__estado--rojo">{{ cuantos('rojo') }} caducados</span>
@@ -91,14 +114,14 @@
       </table>
     </div>
 
-    <p class="frescura__pie">
+    <footer class="frescura__pie">
       El manifiesto sigue el descriptor <strong>Data Package v1</strong> de Frictionless Data y
       toma de <strong>DCAT</strong> los términos de frescura. Vive en
       <code>datapackage.json</code>, en la raíz del repositorio, y su huella <code>sha256</code>
       se recalcula en cada prueba: si un fichero de datos cambiara sin actualizarlo, la prueba se
       pondría roja.
-    </p>
+    </footer>
   } @else {
     <p class="frescura__cargando">Leyendo el manifiesto…</p>
   }
-</section>
+</main>

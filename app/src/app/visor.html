@@ -12,5 +12,25 @@
     </p>
   </header>
 
-  <app-mapa-de-capas [alto]="alto" />
+  <!--
+    ⭐ EL `<main>` DE ESTA PÁGINA (B-2, 24/09).
+  
+    ⚠️ Aquí no había ninguno: esta página rendía SOLO `header`, y todo su
+       contenido vivía fuera de cualquier landmark. Quien navega con lector de
+       pantalla salta por landmarks y usa «ir al contenido principal»: no había
+       adónde saltar. No lo caza ningún escáner de color ni la batería de
+       pintura, que mide píxeles.
+  
+    ⚠️ `.visor` es `display: flex` en columna y el mapa llena lo que queda,
+       así que este `<main>` NO puede ser un envoltorio cualquiera: se le da
+       `flex: 1` y `min-height: 0` en la hoja para que ocupe exactamente el
+       hueco que ocupaba el mapa. Sin `min-height: 0` un hijo flexible se
+       niega a encoger por debajo de su contenido y el mapa desbordaría.
+  
+    ⚠️ Sin `<footer>`: esta página es la cabecera y el lienzo, y no hay cierre
+       que envolver.
+  -->
+  <main class="visor__lienzo">
+    <app-mapa-de-capas [alto]="alto" />
+  </main>
 </section>

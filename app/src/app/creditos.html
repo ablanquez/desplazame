@@ -25,6 +25,20 @@
     </p>
   </header>
 
+  <!--
+    ⭐ EL `<main>` DE ESTA PÁGINA (B-2, 24/09).
+  
+    ⚠️ Aquí no había ninguno: esta página rendía SOLO `header`, y todo su
+       contenido vivía fuera de cualquier landmark. Quien navega con lector de
+       pantalla salta por landmarks y usa «ir al contenido principal»: no había
+       adónde saltar. No lo caza ningún escáner de color ni la batería de
+       pintura, que mide píxeles.
+  
+    Envolver es seguro aquí: `.creditos-pagina` es `display: block`, así que
+       un contenedor más no cambia ni una métrica.
+  -->
+  <main>
+
   <h2>Llegadas y recorrido operativo</h2>
   <p class="creditos-pagina__titular">Avanza Zaragoza S.A.U.</p>
   <p>

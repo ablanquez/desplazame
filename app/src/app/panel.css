@@ -69,7 +69,19 @@
     minmax(var(--aire), 1fr) [todo-f];
   align-content: start;
   padding: 1.5rem 0 3rem;
-  font-family: system-ui, sans-serif;
+  /* ⭐ LA LETRA DE LA CASA, POR FIN TAMBIÉN AQUÍ (B-5, 24/09).
+
+     Aquí ponía `font-family: system-ui, sans-serif`, y era la deuda que el
+     ESTADO llevaba declarada desde el puente-bis. Medido el 24/09 en Chrome, el
+     bloque de contenido de cada página: portada, créditos, visor e identidad
+     computaban `Inter, "Inter Fallback", system-ui, sans-serif` y `.frescura`
+     era **la única** que computaba `system-ui, sans-serif` — la única superficie
+     de la casa que no iba en la letra de la casa. El `body` de `/panel` sí era
+     Inter; quien se salía era esto, que es todo lo que se lee de la página.
+
+     ⚠️ Se RETIRA la declaración en vez de poner `var(--font-sans)`: sin ella se
+        hereda, que es lo que hacen las otras cuatro páginas. Una segunda
+        declaración sería una segunda copia de la misma decisión. */
 }
 
 /* Todo vive en la columna de texto salvo quien diga lo contrario, que es uno. */

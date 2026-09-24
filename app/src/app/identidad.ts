@@ -338,6 +338,11 @@ export class Identidad {
   protected readonly hayMedidas = signal(false);
 
   constructor() {
+    // ⭐ El rótulo de esta página (B-1, 24/09). Ver `rotulo.ts`.
+    rotular(
+      'Identidad — Desplázame',
+      'Cómo está hecho Desplázame: las decisiones, la doctrina y los datos detrás del buscador.',
+    );
     // Las sondas tienen que estar pintadas para poder leerlas: `getComputedStyle`
     // sobre un elemento que aún no está en el documento no devuelve colores.
     afterNextRender(() => this.medir());

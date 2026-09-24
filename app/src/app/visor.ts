@@ -3,6 +3,7 @@ import { Capas } from './capas';
 import { ConmutadorDeTema } from './conmutador';
 import { MapaDeCapas } from './mapa-de-capas';
 
+import { rotular } from './rotulo';
 /**
  * El visor de capas: el instrumento con el que se verificó cada conjunto que
  * entró en el proyecto, a ventana casi completa.
@@ -42,6 +43,9 @@ export class Visor {
   protected readonly alto = '100%';
 
   constructor() {
+    // ⭐ El rótulo de esta página (B-1, 24/09). Tampoco viaja a producción, y
+    //    se pone igual, por lo mismo que el del panel.
+    rotular('Visor de capas — Desplázame [intranet]', 'Herramienta interna de Desplázame.');
     // La descarga la pide LA PÁGINA, no el mapa: así una prueba puede montar el
     // mapa sin que se dispare ni una petición. `cargar()` es idempotente.
     this.capas.cargar();

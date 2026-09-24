@@ -5222,7 +5222,13 @@ describe('Buscador', () => {
       .error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' });
     await fixture.whenStable();
 
-    expect(avisosDeRuta(raiz)[0]).toContain('No se pudo preguntar al motor');
+    // ⛔ ACTA (B-4, 24/09): esta jueza compraba «No se pudo preguntar al
+    //    motor», y ese texto se ha ido por decisión firmada: «el motor» es
+    //    vocabulario de dentro y «¿está arrancado?» era una pregunta dirigida a
+    //    quien desarrolla, no a quien busca una ruta. Se compra el texto NUEVO,
+    //    y lo que la jueza vigila —que el aviso salga, que no se pinte ni un
+    //    paso, que el botón vuelva— no ha cambiado.
+    expect(avisosDeRuta(raiz)[0]).toContain('No se ha podido calcular la ruta');
     expect(raiz.querySelectorAll('.paso').length).toBe(0);
     expect(botonGenerar(raiz).disabled).toBe(false);
     expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(0);

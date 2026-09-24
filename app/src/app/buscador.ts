@@ -771,6 +771,21 @@ function familiaDe(modo: Modo): Familia {
   styleUrls: ['./buscador.css', './resultado.css'],
 })
 export class Buscador {
+  /**
+   * ⭐ EL RÓTULO DE LA PORTADA (B-1, 24/09). Ver `rotulo.ts` para el porqué.
+   *
+   * ⚠️ Esta clase no tenía constructor, y se le añade uno **solo para esto**:
+   *    no es el sitio donde meter lógica de la pantalla —eso sigue viviendo en
+   *    sus señales y sus `computed`—, es donde Angular da contexto de
+   *    inyección para `Title` y `Meta`.
+   */
+  constructor() {
+    rotular(
+      'Desplázame — buscador de rutas de Zaragoza',
+      'Buscador multimodal de Zaragoza: andando, bus urbano, BiZi, patinete, moto compartida y coche, con datos abiertos del Ayuntamiento.',
+    );
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   //  ⭐ EL ESQUELETO (10/09, tanda 3). Solo estructura: dónde vive cada cosa y
   //     qué está abierto. Ni un dato ni una regla del producto pasa por aquí.
@@ -3653,7 +3668,15 @@ export class Buscador {
   private noContesta(): void {
     this.generando.set(false);
     this.acabaLaEspera();
-    this.avisoRuta.set('No se pudo preguntar al motor. ¿Está arrancado?');
+    // ⭐ SIN JERGA Y CON SALIDA (B-4, 24/09). Aquí ponía «No se pudo preguntar
+    //    al motor. ¿Está arrancado?»: «el motor» es vocabulario de dentro —quien
+    //    busca una ruta no sabe que hay un motor— y «¿está arrancado?» es una
+    //    pregunta dirigida a quien lo desarrolla, no a quien está en la calle,
+    //    que no puede arrancar nada. Y no ofrecía salida. Texto firmado por
+    //    Antonio; la FORMA del aviso ya estaba bien y no se toca.
+    this.avisoRuta.set(
+      'No se ha podido calcular la ruta. El buscador no responde en este momento — prueba de nuevo en un rato.',
+    );
   }
 
   /**

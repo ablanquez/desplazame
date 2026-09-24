@@ -47,3 +47,17 @@ app-mapa-de-capas {
   flex: 1;
   min-height: 0;
 }
+
+/* ⭐ EL HUECO DEL MAPA, AHORA DENTRO DE `<main>` (B-2, 24/09).
+
+   El landmark que faltaba se puso envolviendo el lienzo, y `.visor` es un flex
+   en columna: sin estas dos líneas el `<main>` no crecería y el mapa se
+   quedaría en su alto intrínseco.
+
+   ⚠️ `min-height: 0` NO sobra: un hijo flexible tiene `min-height: auto` por
+      defecto y se niega a encoger por debajo de su contenido, así que el mapa
+      desbordaría la ventana en vez de ajustarse a lo que queda. */
+.visor__lienzo {
+  flex: 1;
+  min-height: 0;
+}
