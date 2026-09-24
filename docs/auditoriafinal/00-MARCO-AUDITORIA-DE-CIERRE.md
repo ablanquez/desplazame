@@ -325,11 +325,45 @@ contexto limpio de verdad].
 | Bloque E · operación | `docs/auditoriafinal/E-OPERACION.md` | `4fd65cc` | 2026-09-24 | **ENTREGADO** |
 | Bloque F · experiencia | `docs/auditoriafinal/F-EXPERIENCIA.md` | `037e546` | 2026-09-24 | **ENTREGADO** |
 | Bloque D · documentación | `docs/auditoriafinal/D-DOCUMENTACION.md` | `53ae338` | 2026-09-24 | **ENTREGADO** |
-| Tandas de arreglo | (las decide Antonio sobre los mapas) | — | — | — |
+| Tandas de arreglo | §10 de este marco | — | — | EN MESA |
 | Verificación del auditor | `docs/auditoriafinal/VERIFICACION.md` | — | — | — |
 | Escáneres externos | `docs/auditoriafinal/EXTERNA.md` + capturas | — | — | — |
 | Cierre: tag + release + CHANGELOG + badge | — | — | — | — |
 | El reposo: papeles al día, cabos declarados | — | — | — | — |
+
+## 10 · LA MESA DE DECISIONES (24/09 — los seis mapas entregados; decide Antonio)
+
+**EL VEREDICTO DEL HUSO (24/09, el minuto de Antonio por SSH):** 🔴 CONFIRMADO.
+El banner del servidor de-fra-web2061: «09:43 UTC» con Madrid en las 11:43; y en las
+variables de entorno del panel NO EXISTE `TZ` (solo los dos secretos conocidos). Producción
+decide la hora en UTC: dos horas atrás todo el día, y de 00:00 a 02:00 de Madrid sirve el
+calendario GTFS del día anterior. [El `node` del PATH de SSH no existe — irrelevante: Node
+hereda el huso del sistema salvo `TZ`, y no hay `TZ`.]
+
+**Los 38 hallazgos de los seis informes, agrupados para dictado. Estados posibles por
+pieza: TANDA · SE DECLARA (no se toca, con acta) · NEVERA. Nada se toca sin dictado.**
+
+| Grupo | Piezas | Dictado de Antonio |
+|---|---|---|
+| G1 · EL HUSO [🔴 A-1+C-1, confirmado] | el arreglo [4 opciones del A] + la red [3 opciones del C] | PENDIENTE |
+| G2 · fuente única y poda | A-2 [frase disponibilidad ×3 + includes] · A-3 [tipos sin declarar] · A-4 [muerta ×4] · A-5 [TIPOS_CON_FACTOR] · los 🔵 del A [2 muertas · 74 exports · dos «día» · aserción floja · ⚖️ buscador.ts 3.771 líneas: reportado PARA QUE NO SE PARTA — pide un «se declara» explícito] · D-2 [enlace roto] | PENDIENTE |
+| G3 · tests y guardianes | C-2 [«TODO VERDE» prematuro ×4] · C-3 [jueces del empuje] · C-4 [m.esperar mata la suite] · ⚖️ C-5 [suites sin script — DECISIÓN] · 🔵 los cinco grep-de-fuente [«forma, no comportamiento» — candidatos a se-declara] · 🔵 la lección de la M1a | PENDIENTE |
+| G4 · interfaz y textos | B-1 [title/description] · B-2 [main/footer] · ⚖️ B-3 [noscript mudo — DECISIÓN, 4 opciones] · B-4 [errores en jerga] · B-5 [letra del panel] · 🔵 [táctiles fuera de censo · reduced-motion 2/11] | PENDIENTE |
+| G5 · experiencia [casi todo producto] | ⚖️ F-1 [/identidad isla: el «no se llega» está documentado deliberado (D); el «no se sale» no] · ⚖️ F-2 [sin puente al código/autor — esto es portfolio] · ⚖️ F-3 [/creditos→/panel sirve la portada; la frase cumple la Ley 37/2007 — 4 opciones] · F-4 [YeGo sin salida] · F-5 [una letra no sugiere] | PENDIENTE |
+| G6 · operación y papeles | E-1 [PORT='' → puerto aleatorio mudo] · E-2 [fail-safe no nombra lo apagado] · ⚖️ E-3 [auto-deploy sin documentar] · E-4 [22 _cabeceras.txt fuera del manifiesto] · ⚖️ D-1 [2 rojas en clon + cómo-correr-las-pruebas sin sitio — 4 opciones] · 🔵 D-3 [README sin captura] · D-4 [aviso npm install] · D-5 [licencia en package.json] | PENDIENTE |
+
+**LA PROPUESTA DE TANDAS del estratega (a firmar o cambiar por Antonio):**
+
+| Tanda | Contenido propuesto | Estado |
+|---|---|---|
+| T1 · el huso | G1 [lo canónico: arreglo opción 3 (TZ en lanzador + las cuatro por reloj.ts) + red opción 1 (jueza con hijo UTC)] | PENDIENTE DE DICTADO |
+| T2 · fuente única y poda | G2 entero | PENDIENTE DE DICTADO |
+| T3 · tests + textos | de G3: C-2 + C-3 + C-4 [los tres arreglables sin decisión]; de G4: B-1 + B-2 + B-4 + B-5 [ídem]; los ⚖️ de ambos [C-5, B-3] entran solo con dictado | PENDIENTE DE DICTADO |
+| T4 · operación y papeles | de G6: E-1 + E-2 + E-4 + D-2 + los 🔵 documentales [D-3 captura · D-4 nota · D-5 licencia]; los ⚖️ [E-3 auto-deploy, D-1 cómo-correr-las-pruebas] y todo G5 entran solo con dictado | PENDIENTE DE DICTADO |
+| Sesiones de mano de Antonio | NVDA y teléfono físico [instrucciones en el §7 del F] | PENDIENTE |
+
+*Este cuadro se actualiza con cada dictado y cada tanda cerrada; los informes de bloque no
+se tocan.*
 
 **Gobierno de la fase:** cada bloque = UN encargo de solo-lectura al ejecutor [R1], con este
 marco como doctrina; los informes son registros fechados que no se reescriben; las tandas de
