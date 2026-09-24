@@ -28,6 +28,8 @@
 import { alMinuto } from './etapas.ts';
 import { estadoVivoDe, llegadasDelPoste, type EstadoVivo } from './avanza.ts';
 import type { PosteVivo } from '@desplazame/tipos';
+// ⭐ La frase con la que la app DECIDE, del contrato y no tecleada (A-2, 24/09).
+import { MARCA_DE_DISPONIBILIDAD } from '@desplazame/tipos';
 
 /**
  * Cómo se nombra el poste **dentro de la respuesta del endpoint**: «este».
@@ -78,13 +80,15 @@ export function comoSeDiceLoVivo(
     };
   }
   if (estado.clase === 'mudo') {
-    // ⚠️ Las mismas palabras que el BiZi —«disponibilidad no verificada»—
-    // porque es la misma condición: se ha preguntado y no se sabe.
+    // ⚠️ Las mismas palabras que el BiZi porque es la misma condición: se ha
+    //    preguntado y no se sabe. Y desde el 24/09 son las mismas **de verdad**
+    //    —salen de `MARCA_DE_DISPONIBILIDAD`, en el contrato— y no por haberlas
+    //    tecleado igual en tres sitios confiando en este comentario (A-2).
     return {
       clase: 'mudo',
       texto:
         `No hemos podido preguntar cuándo pasa la línea ${corto} por ${donde}: ` +
-        'disponibilidad no verificada.',
+        `${MARCA_DE_DISPONIBILIDAD}.`,
     };
   }
   return null;

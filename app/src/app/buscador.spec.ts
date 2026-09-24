@@ -973,6 +973,17 @@ const VIAJE_CON_FICHAS: Trayecto = {
  * Generar: `vivo` con clase `mudo` y el aviso con el poste nombrado, que es la
  * forma de `comoSeDiceLoVivo`.
  */
+/*
+ * ⛔ ACTA (A-2, 24/09): estos maniquíes SIGUEN TECLEANDO la frase, a propósito.
+ *
+ * La constante con la que el buscador decide —`MARCA_DE_DISPONIBILIDAD`— se ha
+ * mudado al contrato y ya no se declara en `buscador.ts`. Estos textos **no son
+ * esa constante**: son maniquíes que imitan lo que el motor manda por el cable,
+ * y su trabajo es llegar con la frase ya dentro para que el filtro de
+ * `avisosDeHito` tenga algo que reconocer. Pedírsela al contrato los volvería
+ * tautológicos —el filtro buscaría lo que el maniquí acaba de meter— y
+ * aprobarían cualquier cambio de la constante, que es justo lo que no deben.
+ */
 const MUDO_DEL_33 =
   'No hemos podido preguntar cuándo pasa la línea 35 por el poste 33 · Av. Academia General Militar N.º 37: ' +
   'disponibilidad no verificada.';

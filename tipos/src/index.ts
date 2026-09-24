@@ -1,17 +1,51 @@
 /**
  * EL CONTRATO entre el motor y la interfaz.
  *
- * Este fichero no emite nada: son tipos y solo tipos. Se consume con
- * `import type`, así que desaparece al compilar y no llega al navegador ni al
- * servidor. Su única función es que **no haya dos copias del contrato**: el
- * motor y la interfaz miran el mismo fichero, enlazado por el symlink del
- * workspace. Si el motor cambia aquí la forma de una respuesta, la interfaz
- * deja de compilar. Eso es a propósito.
+ * Casi todo lo de aquí son tipos y solo tipos: se consumen con `import type`,
+ * desaparecen al compilar y no llegan ni al navegador ni al servidor. Su
+ * función es que **no haya dos copias del contrato**: el motor y la interfaz
+ * miran el mismo fichero, enlazado por el symlink del workspace. Si el motor
+ * cambia aquí la forma de una respuesta, la interfaz deja de compilar. Eso es
+ * a propósito.
+ *
+ * ⚠️ **Y desde el 24/09 el contrato lleva UN valor de ejecución**, no solo
+ *    tipos: `MARCA_DE_DISPONIBILIDAD`. Aquí ponía *«este fichero no emite
+ *    nada»* y dejó de ser verdad, así que se reescribe en vez de dejarlo
+ *    mintiendo. El porqué, en la propia constante; lo que ese cambio obliga
+ *    —que el paquete tenga puerta de ejecución (`exports`) y no solo
+ *    `types`— está escrito en `tipos/package.json`.
  *
  * Regla de crecimiento: **el contrato crece cuando el motor lo pide**, no
  * antes. Lo que hoy no se puede derivar de la pantalla ni de CLAUDE.md se
  * queda escrito como NO CONSTA, no se rellena con lo probable.
  */
+
+/**
+ * ⭐ LA FRASE POR LA QUE SE RECONOCE «NO LO SABEMOS» (A-2, 24/09).
+ *
+ * ── Por qué vive en el contrato y no en cada lado ───────────────────────────
+ *
+ * Porque **es una atadura entre procesos**: el motor la escribe dentro del
+ * texto de un aviso y la interfaz **decide con ella** —`texto.includes(...)`
+ * para colgar la nota junto al hito—. Estaba tecleada a mano en cinco sitios
+ * (tres del motor, dos de la app) y nada ataba las copias: afinar la
+ * redacción del motor habría dejado a la app sin colgar la nota **sin que
+ * nada se pusiera rojo**, porque no hay jueza que las case. Un valor que
+ * cruza la frontera de proceso y del que depende el comportamiento **es
+ * contrato**, y el contrato es este fichero.
+ *
+ * ⚠️ **Es un TROZO de la frase, no la frase entera**, y a propósito: nombra la
+ *    condición —«no lo sabemos»— y no la anécdota de qué se preguntaba, así
+ *    que sobrevive a que se reescriba la primera mitad de cualquiera de los
+ *    avisos que la llevan. Cambiar estas tres palabras sí es cambiar la
+ *    condición, y entonces tiene que cambiar en los cinco sitios a la vez —
+ *    que es exactamente lo que esta constante consigue.
+ *
+ * ⚠️ **La redacción no se toca aquí.** El texto es el mismo que ya estaba; lo
+ *    que cambia es de dónde sale. Afinar las palabras es asunto de la interfaz
+ *    [bloque B], no de esta mudanza.
+ */
+export const MARCA_DE_DISPONIBILIDAD = 'disponibilidad no verificada';
 
 /**
  * Los modos de transporte. Excluyentes: solo uno a la vez.

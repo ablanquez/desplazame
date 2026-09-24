@@ -27,6 +27,9 @@ import type {
   ExtremoDeRuta,
   Sitio,
 } from '@desplazame/tipos';
+// ⭐ La frase por la que se reconoce «no lo sabemos», del CONTRATO (A-2, 24/09).
+//    Es la misma que el motor escribe: ver `MARCA_DE_DISPONIBILIDAD` allí.
+import { MARCA_DE_DISPONIBILIDAD } from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, timeout, TimeoutError, type Subscription } from 'rxjs';
 import { Mapa, type Mancha, type Vertice } from './mapa';
@@ -68,15 +71,20 @@ import { Marca } from './marca';
  * símbolo que está en la calle; `coge` es la bicicleta (`🚲`), el vehículo que
  * se toma. Son caracteres, como el resto — sin dependencias.
  */
-/**
- * ⭐ Por dónde se reconoce el aviso del plan D-G de BiZi.
+/*
+ * ⭐ Por dónde se reconoce el aviso del plan D-G de BiZi: `MARCA_DE_DISPONIBILIDAD`.
  *
- * Es un trozo del texto que el motor escribe cuando la sede no contesta, y es
- * el trozo que **nombra la condición** —no el que cuenta la anécdota—, así que
- * sobrevive a un cambio de redacción en la primera mitad de la frase. Ver
- * `notaDelHito` para por qué esto se hace por texto y no por un campo.
+ * ⚠️ **Ya no se declara aquí** (A-2, 24/09). Vivía en este fichero como una
+ *    constante propia mientras el motor escribía la misma frase a mano en tres
+ *    sitios: cinco copias, ninguna atada, y la app decidiendo con la suya. Si
+ *    alguien afinaba la redacción del motor, esta pantalla dejaba de colgar la
+ *    nota **y nada se ponía rojo**. Ahora sale del contrato —`@desplazame/tipos`,
+ *    importada arriba—, que es donde vive lo que cruza la frontera de proceso.
+ *
+ * Por qué es un trozo y no la frase entera, y por qué esto se decide por texto
+ * y no por un campo: lo primero está en la constante; lo segundo, en
+ * `notaDelHito`.
  */
-const MARCA_DE_DISPONIBILIDAD = 'disponibilidad no verificada';
 
 /**
  * ⭐ Y la del bus: la línea que ahora mismo no está pasando por su poste.

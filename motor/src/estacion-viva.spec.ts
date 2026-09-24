@@ -100,6 +100,22 @@ describe('cómo se dice el estado de una estación', () => {
    * ⭐ EL D-G DEL AYUNTAMIENTO, con sus palabras. Son las mismas que usa el
    * aviso del Generar y las mismas que el `mudo` del poste: se ha preguntado y
    * no se sabe. Que las tres cosas se digan igual **es** la doctrina.
+   *
+   * ── ⛔ ACTA (A-2, 24/09): esta jueza SIGUE TECLEANDO LA FRASE, y es a propósito
+   *
+   * Desde hoy las tres frases del motor salen de una sola constante en el
+   * contrato —`MARCA_DE_DISPONIBILIDAD` en `@desplazame/tipos`—, así que la
+   * copia a mano se ha ido **del código que corre**. Aquí no.
+   *
+   * ⚠️ Importar la constante en esta jueza la volvería **tautológica**: diría
+   *    «el texto contiene lo que la constante diga», y aprobaría cualquier
+   *    redacción nueva, incluida una vacía. El valor de esta línea es
+   *    precisamente que la frase está escrita **a mano y aparte**: es el ancla
+   *    contra la que se nota que alguien cambió la constante. Un guardián que
+   *    lee su expectativa de la misma fuente que vigila no vigila nada.
+   *
+   * Y se juzga sobre **salida real del motor** —`comoSeDiceLaEstacion`—, no
+   * sobre un maniquí: es la que compra que la constante llega hasta el cable.
    */
   test('⭐ la sede no contesta: mudo, con «disponibilidad no verificada»', () => {
     const dicho = comoSeDiceLaEstacion(null, 42, 'bicis', ESTA_ESTACION);

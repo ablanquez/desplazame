@@ -2,6 +2,10 @@
   "name": "@desplazame/tipos",
   "version": "0.0.0",
   "private": true,
-  "description": "El contrato entre el motor y la interfaz. Solo tipos: no emite nada.",
-  "types": "./src/index.ts"
+  "type": "module",
+  "description": "El contrato entre el motor y la interfaz: tipos, y desde el 24/09 un valor compartido. Sin build.",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  }
 }

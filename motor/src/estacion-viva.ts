@@ -30,6 +30,8 @@
 import { alMinuto } from './etapas.ts';
 import { disponibilidadDeBiZi, type Disponibilidad, type EstadoDeEstacion } from './bizi.ts';
 import type { EstacionViva, QueSePide } from '@desplazame/tipos';
+// ⭐ La frase con la que la app DECIDE, del contrato y no tecleada (A-2, 24/09).
+import { MARCA_DE_DISPONIBILIDAD } from '@desplazame/tipos';
 
 /**
  * Cómo se nombra la estación **dentro de la respuesta del endpoint**: «esta».
@@ -93,7 +95,7 @@ export function comoSeDiceLaEstacion(
       clase: 'mudo',
       texto:
         `No hemos podido preguntar ${loQueSePregunta(pide)} en ${donde} ahora mismo: ` +
-        'disponibilidad no verificada.',
+        `${MARCA_DE_DISPONIBILIDAD}.`,
     };
   }
   const estado = vivo.porNumero.get(estacion);

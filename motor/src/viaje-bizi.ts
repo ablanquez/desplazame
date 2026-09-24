@@ -13,6 +13,8 @@
  */
 
 import type { Aviso, Paso, QueSePide, Trayecto, TipoDeRuta } from '@desplazame/tipos';
+// ⭐ La frase con la que la app DECIDE, del contrato y no tecleada (A-2, 24/09).
+import { MARCA_DE_DISPONIBILIDAD } from '@desplazame/tipos';
 import { comoSeDiceLaEstacion, laCifra } from './estacion-viva.ts';
 import type { Motor } from './trayecto.ts';
 import type { Empuje } from './pasos.ts';
@@ -220,7 +222,7 @@ export function viajeEnBiZi(
     avisos.push({
       texto:
         'No hemos podido preguntar cuántas bicis hay ahora mismo: ' +
-        'disponibilidad no verificada.',
+        `${MARCA_DE_DISPONIBILIDAD}.`,
     });
   }
 
