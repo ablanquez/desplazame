@@ -1650,8 +1650,17 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         vacio: document.querySelector('.pasos__vacio') !== null,
       };
     `);
+    // ⛔ ACTA (B-4, 24/09): esta jueza compraba «No se pudo preguntar al motor.
+    //    ¿Está arrancado?», y ese texto se ha ido por decisión firmada de
+    //    Antonio: «el motor» es vocabulario de dentro —quien busca una ruta no
+    //    sabe que hay un motor— y «¿está arrancado?» es una pregunta dirigida a
+    //    quien lo desarrolla, no a quien está en la calle, que no puede
+    //    arrancar nada. Se compra el texto NUEVO, letra por letra; lo que esta
+    //    jueza vigila —que el error HABLE, y que lo haga por la región
+    //    `role="alert"`— no ha cambiado en nada.
     juzgar(
-      error.texto === 'No se pudo preguntar al motor. ¿Está arrancado?',
+      error.texto ===
+        'No se ha podido calcular la ruta. El buscador no responde en este momento — prueba de nuevo en un rato.',
       'P14 · ⭐ sin nadie al otro lado, el error habla — y por la región `alert`',
       `role=${error.papel} · «${error.texto}»`,
     );
