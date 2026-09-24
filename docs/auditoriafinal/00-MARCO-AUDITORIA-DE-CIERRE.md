@@ -339,6 +339,10 @@ variables de entorno del panel NO EXISTE `TZ` (solo los dos secretos conocidos).
 decide la hora en UTC: dos horas atrás todo el día, y de 00:00 a 02:00 de Madrid sirve el
 calendario GTFS del día anterior. [El `node` del PATH de SSH no existe — irrelevante: Node
 hereda el huso del sistema salvo `TZ`, y no hay `TZ`.]
+**MITIGACIÓN APLICADA (24/09, mano de Antonio):** `TZ=Europe/Madrid` añadida y aplicada en
+las variables de entorno del panel de Hostinger. Su efecto NO es verificable desde fuera
+[el hallazgo del E: cinco vías descartadas] — queda pendiente de la jueza de la T1; el
+arreglo de código de la T1 sigue en pie entero [la variable es el cinturón, no la fuente única].
 
 **Los 38 hallazgos de los seis informes, agrupados para dictado. Estados posibles por
 pieza: TANDA · SE DECLARA (no se toca, con acta) · NEVERA. Nada se toca sin dictado.**
