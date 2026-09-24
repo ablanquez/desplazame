@@ -29,6 +29,34 @@ const juzgar = (bien, titulo, detalle = '') => {
 };
 
 /**
+ * ⭐ UN BLOQUE NO SE MUERE: SE PONE ROJO Y SIGUE (C-4, 24/09).
+ *
+ * ── La ley, y de dónde viene ────────────────────────────────────────────────
+ *
+ * `m.esperar` falla DICIENDO —«⏱ TIEMPO AGOTADO esperando «…»: N ms sin que se
+ * cumpla», con su fichero y su línea—, y eso está bien. Lo que estaba mal es
+ * que la excepción **abortaba el módulo entero**: esta suite son 29 bloques
+ * independientes, cada uno con su Chrome, y un tope agotado en el tercero se
+ * llevaba por delante los veintiséis siguientes, el guardián de perfiles, el
+ * censo de los `⊘` y el veredicto. La batería veía entonces una línea con
+ * **0 verdes y 0 rojas** que solo el código de salida desmentía.
+ *
+ * El 22/09 se legisló justo esto para `bizi-y-resumen` (`0bcbe6c`): *«la suite
+ * falla DICIENDO y sigue contando — no muere con undefined»*. Aquí se extiende,
+ * con el mismo patrón —try → catch → juez en rojo → se sigue— y no con uno
+ * nuevo. Un tope agotado es un ROJO con su motivo, no una muerte.
+ *
+ * ⚠️ **Se nombra por el puerto** porque es lo único que identifica un bloque sin
+ *    inventarle un nombre: cada uno abre su Chrome en el suyo.
+ */
+const noSeMuere = (puerto, fallo) =>
+  juzgar(
+    false,
+    `el bloque del puerto ${puerto} llega entero hasta su última jueza`,
+    String(fallo?.message ?? fallo),
+  );
+
+/**
  * ⭐ EL CENSO DE MOTIVOS DE DECLARACIÓN (23/09, decisión de Antonio).
  *
  * Una casilla que no se juzga se DECLARA con un `⊘` en vez de callarse — esa
@@ -314,6 +342,8 @@ for (const [nombre, tactil, seVe] of [
     } else {
       await m.guardar(`${CAPTURAS}/pintura-pc.png`);
     }
+  } catch (fallo) {
+    noSeMuere(9401, fallo);
   } finally {
     m.cerrar();
   }
@@ -385,6 +415,8 @@ for (const [nombre, tactil, seVe] of [
       relleno.calle ? `calle «${relleno.calle}»` : `aviso «${(relleno.aviso ?? '').slice(0, 70)}»`,
     );
     await m.guardar(`${CAPTURAS}/pintura-pin-usado.png`);
+  } catch (fallo) {
+    noSeMuere(9403, fallo);
   } finally {
     m.cerrar();
   }
@@ -452,6 +484,8 @@ for (const [nombre, tactil, seVe] of [
     await m.evaluar(`document.querySelector('.acciones').scrollIntoView()`);
     await m.dormir(300);
     await m.guardar(`${CAPTURAS}/pintura-acciones.png`);
+  } catch (fallo) {
+    noSeMuere(9404, fallo);
   } finally {
     m.cerrar();
   }
@@ -528,6 +562,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
           ` (${movidas.length} cambian de ancho ellas mismas: ${movidas.length === 0 ? 'ninguna' : 'ojo'})`,
       );
     }
+  } catch (fallo) {
+    noSeMuere(9405, fallo);
   } finally {
     m.cerrar();
   }
@@ -668,6 +704,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       `«${campos.marcador}» pide ${campos.anchoTextoNum} px y la casilla da ${campos.anchoNum}`,
     );
     await m.guardar(`${CAPTURAS}/campos-tipo-y-numero.png`);
+  } catch (fallo) {
+    noSeMuere(9407, fallo);
   } finally {
     m.cerrar();
   }
@@ -768,6 +806,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       `«${vacio}»`,
     );
     await m.guardar(`${CAPTURAS}/vacio-letra-nueva.png`);
+  } catch (fallo) {
+    noSeMuere(9409, fallo);
   } finally {
     m.cerrar();
   }
@@ -910,6 +950,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     // propia jueza en `identidad.spec.ts`. El único sitio donde el oscuro se
     // pinta es la sonda de `/identidad`, así que el par de la banda en oscuro
     // se mide allí: ver el censo de `e2e/identidad.mjs`.
+  } catch (fallo) {
+    noSeMuere(9410, fallo);
   } finally {
     m.cerrar();
   }
@@ -960,6 +1002,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     } else {
       juzgar(false, 'P11 · la cabecera existe en táctil', 'no hay ninguna .bloque__cabecera');
     }
+  } catch (fallo) {
+    noSeMuere(9411, fallo);
   } finally {
     m.cerrar();
   }
@@ -1275,6 +1319,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       seguro.pegados.join(', ') || '(nada)',
     );
     await m.guardar(`${CAPTURAS}/movil-safe-area.png`);
+  } catch (fallo) {
+    noSeMuere(9412, fallo);
   } finally {
     m.cerrar();
   }
@@ -1638,6 +1684,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       downloadThroughput: -1,
       uploadThroughput: -1,
     });
+  } catch (fallo) {
+    noSeMuere(9414, fallo);
   } finally {
     m.cerrar();
   }
@@ -1777,6 +1825,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       enCreditos.map((x) => `${x.glifos} en ${x.donde}`).join(' | ') || '(ninguno)',
     );
     await m.guardar(`${CAPTURAS}/sin-emojis-creditos.png`);
+  } catch (fallo) {
+    noSeMuere(9415, fallo);
   } finally {
     m.cerrar();
   }
@@ -2153,6 +2203,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
             `${enRgb(chip.texto)} sobre ${enRgb(chip.fondo)}`,
       );
     }
+  } catch (fallo) {
+    noSeMuere(9416, fallo);
   } finally {
     m.cerrar();
   }
@@ -2548,6 +2600,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       enCoche.fugados.length === 0 ? `${enCoche.pasos} pasos revisados` : enCoche.fugados.join(' | '),
     );
     await m.guardar(`${CAPTURAS}/coche-atajo.png`);
+  } catch (fallo) {
+    noSeMuere(9417, fallo);
   } finally {
     m.cerrar();
   }
@@ -2820,6 +2874,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       'P20 · y la región del resumen sigue siendo role="status"',
       `role ${avisos.estado}`,
     );
+  } catch (fallo) {
+    noSeMuere(9420, fallo);
   } finally {
     m.cerrar();
   }
@@ -2882,6 +2938,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         ? `${pesos.pedidos} pesos declarados, todos con cara · ${pesos.otraFamilia} regla(s) con otra familia, fuera`
         : pesos.sinCara.map((p) => `${p.selector} → ${p.peso}`).join(' | '),
     );
+  } catch (fallo) {
+    noSeMuere(9421, fallo);
   } finally {
     m.cerrar();
   }
@@ -3197,6 +3255,8 @@ for (const pantalla of PANTALLAS) {
     await m.evaluar(`document.querySelector('.ficha-entidad')?.scrollIntoView({ block: 'center' })`);
     await m.dormir(300);
     await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-ficha.png`);
+  } catch (fallo) {
+    noSeMuere(9423, fallo);
   } finally {
     m.cerrar();
   }
@@ -3458,6 +3518,8 @@ for (const pantalla of PANTALLAS) {
     await m.evaluar(`(document.querySelector('.resumen') ?? document.querySelector('.ruta')).scrollIntoView({ block: 'start' })`);
     await m.dormir(300);
     await m.guardar(`${CAPTURAS}/cabecera-region-${pantalla.id}.png`);
+  } catch (fallo) {
+    noSeMuere(9423, fallo);
   } finally {
     m.cerrar();
   }
@@ -3733,6 +3795,8 @@ for (const pantalla of PANTALLAS) {
         }
       }
     }
+  } catch (fallo) {
+    noSeMuere(9423, fallo);
   } finally {
     m.cerrar();
   }
@@ -3753,6 +3817,8 @@ for (const pantalla of PANTALLAS) {
       );
       await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-coche.png`);
     }
+  } catch (fallo) {
+    noSeMuere(9423, fallo);
   } finally {
     m.cerrar();
   }
@@ -3807,6 +3873,8 @@ for (const pantalla of PANTALLAS) {
       juzgar(error !== null && error.contraste >= AA_TEXTO, `${dicho} · el error se lee`, error === null ? '(no hay error)' : `${error.contraste.toFixed(2)}:1`);
       await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-error.png`);
     }
+  } catch (fallo) {
+    noSeMuere(9423, fallo);
   } finally {
     m.cerrar();
   }
@@ -4760,6 +4828,8 @@ const HAY_PANEL = await (async () => {
   try {
     await m.ir(APP + 'panel', 6000);
     return await m.evaluar(`!!document.querySelector('app-panel')`);
+  } catch (fallo) {
+    noSeMuere(9749, fallo);
   } finally {
     m.cerrar();
   }
@@ -4933,6 +5003,8 @@ for (const tema of HAY_PANEL ? ['dark', 'light'] : []) {
       hay ? `${fallo === null ? '(fuera de la vista)' : fallo.contraste.toFixed(2) + ':1 · ' + enRgb(fallo.texto) + ' sobre ' + enRgb(fallo.fondo)}` : '(no ha salido el aviso)',
     );
     await m.guardar(`${CAPTURAS}/panel-${nombreTema}-fallo.png`);
+  } catch (fallo) {
+    noSeMuere(9782, fallo);
   } finally {
     m.cerrar();
   }
@@ -5028,6 +5100,8 @@ const estado = (m) =>
       `${dicho} · ℹ️ NO CONSTA si hubo fogonazo VISUAL`,
       'el arnés captura fotogramas a petición, no una película: no se puede medir el primer fotograma sin fingirlo. Se jura el mecanismo, no la ausencia de flash',
     );
+  } catch (fallo) {
+    noSeMuere(9800, fallo);
   } finally {
     m.cerrar();
   }
@@ -5075,6 +5149,8 @@ for (const [k, caso] of CASOS.entries()) {
       `${dicho} · ⭐ [§3] el texto pesa ${caso.espera === 'dark' ? '500' : '400'} en ${caso.espera}`,
       `font-weight del body: ${e.peso}`,
     );
+  } catch (fallo) {
+    noSeMuere(9802, fallo);
   } finally {
     m.cerrar();
   }
@@ -5103,6 +5179,8 @@ for (const [k, caso] of CASOS.entries()) {
       `(document.querySelector('.leaflet-tile-pane img')?.src ?? '').includes('dark_all') ? 'oscura' : 'clara'`,
     );
     juzgar(capa === 'oscura', `${dicho} · y la tesela del mapa le sigue [parte 2]`, `capa ${capa}`);
+  } catch (fallo) {
+    noSeMuere(9806, fallo);
   } finally {
     m.cerrar();
   }
@@ -5542,6 +5620,8 @@ const PAGINAS_QUE_ESTAN = await (async () => {
         estan.add(cual.id);
       }
     }
+  } catch (fallo) {
+    noSeMuere(9866, fallo);
   } finally {
     m.cerrar();
   }
@@ -5802,6 +5882,8 @@ const P32_APLICAN = await (async () => {
       await m.ir(APP + cual.url, cual.espera);
       if (await m.evaluar(`!!document.querySelector(${JSON.stringify(cual.marca)})`)) estan.push(cual);
     }
+  } catch (fallo) {
+    noSeMuere(9867, fallo);
   } finally {
     m.cerrar();
   }
@@ -6501,6 +6583,8 @@ for (const [tema, puerto] of [
     for (const modo of ['andando', 'coche', 'bici', 'patin', 'moto', 'bus']) {
       await elModoSeñala(m, modo, dicho);
     }
+  } catch (fallo) {
+    noSeMuere(9902, fallo);
   } finally {
     m.cerrar();
   }
@@ -6680,6 +6764,8 @@ if (ES_EL_DIST) {
       `${dicho} · ⭐ el mapa acaba ENTERO, no en franja: las teselas cubren el contenedor cuando la hoja llega después`,
       `contenedor ${cob.ancho}×${cob.alto} · teselas cargadas ${cob.teselas} cubren ${cob.cubreAncho}×${cob.cubreAlto} · al montar ${alMontar.ancho}×${alMontar.alto}`,
     );
+  } catch (fallo) {
+    noSeMuere(9600, fallo);
   } finally {
     m.cerrar();
   }

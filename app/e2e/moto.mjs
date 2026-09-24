@@ -367,6 +367,18 @@ try {
   await m.pintado();
   await m.guardar(FOTO);
   console.log(`   foto en ${FOTO}`);
+} catch (fallo) {
+  // ⭐ LA LEY DEL 22/09, EXTENDIDA AQUÍ (C-4, 24/09).
+  //
+  // ⚠️ `m.esperar` falla DICIENDO —«⏱ TIEMPO AGOTADO esperando «…»: N ms
+  //    sin que se cumpla», con su fichero y su línea—, pero la excepción
+  //    ABORTABA el bloque: las juezas de detrás no se corrían, el guardián
+  //    de perfiles no se ejecutaba y la batería veía una línea con 0 verdes
+  //    y 0 rojas que solo el código de salida desmentía. Se legisló para
+  //    `bizi-y-resumen` el 22/09 (`0bcbe6c`) y no se extendió a las demás.
+  //
+  // Un tope agotado es un ROJO con su motivo, no una muerte.
+  juez('la suite llega entera hasta su veredicto', false, String(fallo?.message ?? fallo));
 } finally {
   await m.cerrar();
 }

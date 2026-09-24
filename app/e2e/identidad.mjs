@@ -574,10 +574,6 @@ try {
     juzgar(t.bien, t.titulo, t.detalle);
   }
 
-  console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
-  // El veredicto también se lee a máquina: 0 es verde y 1 es rojo, que es lo que
-  // miran el shell y la batería. Sin esto el rojo solo quedaba en el texto.
-  process.exitCode = fallos === 0 ? 0 : 1;
 } finally {
   mando.cerrar();
 }
@@ -592,5 +588,18 @@ try {
 {
   const perf = perfilesResiduales();
   juzgar(perf.bien, perf.titulo, perf.detalle);
-  if (!perf.bien) process.exitCode = 1;
 }
+
+// ⭐ EL VEREDICTO HUMANO, Y VA AQUÍ ABAJO A PROPÓSITO (C-2, 24/09).
+//
+// ⚠️ Estaba dentro del `try`, ANTES de juzgar el arnés, y entonces el texto
+//    mentía: con un perfil intruso sembrado se leía «✅ TODO VERDE» seguido del
+//    ✖ del guardián y salida 1. El código de salida era correcto —la batería no
+//    se engañaba— pero quien mira la cola de la salida, o busca el banner, leía
+//    verde en una tirada que había fallado. Es el «sobre agregado que sale ok
+//    con algo caído» del marco, aquí en el instrumento que juzga a los demás.
+//
+// Y el `process.exitCode` del guardián ya no hace falta aparte: su `juez`
+// incrementa el mismo contador que esta línea lee.
+console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
+process.exitCode = fallos === 0 ? 0 : 1;

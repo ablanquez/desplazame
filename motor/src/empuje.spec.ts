@@ -166,6 +166,46 @@ describe('⭐ EL EMPUJE (30/08)', () => {
    * 4. **los segundos cuadran** con la mezcla — el empuje a 5 km/h y lo demás
    *    a 18 con su techo, no todo a una velocidad.
    */
+  /**
+   * ⭐ JUEZ 0 — EMPUJAR VA A 5 km/h, Y ESTA SUITE LO COMPRA (C-3, 24/09).
+   *
+   * ── ⚠️ Por qué hizo falta, y qué NO bastaba ─────────────────────────────────
+   *
+   * La mutación del bloque C movió `VELOCIDAD_EMPUJANDO_KMH` de **5 a 6** y esta
+   * suite —la que lleva el nombre del empuje y cuya cabecera promete *«5 km/h
+   * contra 18 o 20»*— se quedó **5/5 en verde**. La cazaron `rueda.spec.ts ⭐ 6`
+   * y la muralla, así que el sistema no estaba desprotegido; lo que fallaba es
+   * que la suite que lleva el nombre **no compraba su número**, y quien la
+   * leyera creería que sí.
+   *
+   * ⚠️ **Y la cota de la juez 1 no podía cazarlo**, por construcción: calcula el
+   *    mínimo teórico **con la propia constante**, así que el listón se mueve
+   *    con lo que vigila. Una cota que se ajusta sola al valor que juzga no es
+   *    una cota. Por eso el número se fija aquí, escrito a mano y aparte.
+   *
+   * Y no se fija solo el número: se fija **la relación de la que depende el
+   * mecanismo**. El empuje no tiene umbral de metros —compite en tiempo dentro
+   * del mismo Dijkstra—, y eso solo funciona mientras empujar sea **más lento
+   * que rodar** en los tres vehículos. El día que dejara de serlo, empujar
+   * ganaría en todas partes y la juez 2 —«donde rodar es mejor, no se gana ni
+   * un metro de acera»— se caería sin que nadie supiera por qué.
+   */
+  test('⭐ 0 · empujar va a 5 km/h y es más lento que rodar en los tres', () => {
+    assert.equal(
+      VELOCIDAD_EMPUJANDO_KMH,
+      5,
+      'la cabecera de esta suite, el aviso del arranque del motor y las cifras ' +
+        'medidas de abajo dicen 5 km/h: si cambia, cambian los tres',
+    );
+    for (const modo of ['bici', 'bizi', 'patin'] as const) {
+      assert.ok(
+        VELOCIDAD_EMPUJANDO_KMH < VELOCIDAD_KMH[modo],
+        `empujar (${VELOCIDAD_EMPUJANDO_KMH}) tiene que ser más lento que rodar en ` +
+          `${modo} (${VELOCIDAD_KMH[modo]}), o el empuje ganaría sin merecerlo`,
+      );
+    }
+  });
+
   test('⭐ 1 · el patín cruza en la mano y la ruta del caso baja de 5.741 m', () => {
     const t = trayecto('patin', COLOSO, ROMEO);
 

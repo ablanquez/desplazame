@@ -47,3 +47,9 @@ motor/logs/
 # Sale a `app/dist-local/` justo para no poder pisar el `app/dist/` versionado
 # que es el que viaja a producción. Aquí no entra ni por descuido.
 app/dist-local/
+
+# ⭐ LAS CAPTURAS DE LA BATERÍA (24/09, C-5). `npm run bateria` las escribe
+# aquí en vez de en la raíz del repositorio, que es donde caían por defecto
+# —las suites resuelven su carpeta a `.` si nadie se la da—. Son el testigo de
+# una tirada concreta: no se versionan.
+app/e2e/capturas/

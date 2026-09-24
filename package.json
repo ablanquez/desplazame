@@ -15,7 +15,18 @@
     "construir": "npm run construir --workspace desplazame",
     "comprobar-dist": "npm run comprobar-dist --workspace desplazame",
     "mantener-datos": "node scripts/mantener-datos.mjs",
-    "local": "npm run local --workspace desplazame"
+    "local": "npm run local --workspace desplazame",
+    "bateria": "node scripts/bateria.mjs",
+    "bateria:esqueleto": "node scripts/bateria.mjs esqueleto",
+    "bateria:dos-filas": "node scripts/bateria.mjs dos-filas",
+    "bateria:identidad": "node scripts/bateria.mjs identidad",
+    "bateria:creditos": "node scripts/bateria.mjs creditos",
+    "bateria:pantalla": "node scripts/bateria.mjs pantalla",
+    "bateria:pintura": "node scripts/bateria.mjs pintura",
+    "bateria:bizi-y-resumen": "node scripts/bateria.mjs bizi-y-resumen",
+    "bateria:proximo-bus": "node scripts/bateria.mjs proximo-bus",
+    "bateria:moto": "node scripts/bateria.mjs moto",
+    "bateria:yego": "node scripts/bateria.mjs yego"
   },
   "engines": {
     "node": ">=22"
