@@ -436,7 +436,7 @@ export const ASOMA_EL_RIBETE = 2;
  *    logo tal cual— se han borrado con su tabla. Sus cifras quedan en el
  *    checkpoint del 21/09; aquí no queda andamio de elección.
  */
-export const TINTA_DEL_PUNTERO = { cuerpo: 'ffffff', halo: '000000' } as const;
+const TINTA_DEL_PUNTERO = { cuerpo: 'ffffff', halo: '000000' } as const;
 
 /**
  * ⭐ **EL PANEL DEL PUNTERO, POR ENCIMA DE LAS MARCAS** — y este es el arreglo
@@ -494,7 +494,7 @@ const HALO_DEL_PUNTERO = 2;
  * techo de la caja hasta la punta, escalado. Centrarlo dejaría la coordenada
  * real media gota por encima de donde el ojo ve la punta, y nada lo delataría.
  */
-export const ANCLAJE_DEL_PUNTERO: L.PointTuple = [
+const ANCLAJE_DEL_PUNTERO: L.PointTuple = [
   ANCHO_DEL_PUNTERO / 2,
   (PUNTA_DE_LA_GOTA.y - CAJA_DEL_PUNTERO.y) * ESCALA_DEL_PUNTERO,
 ];
@@ -531,7 +531,7 @@ export interface Plano {
 }
 
 /** El teselado de OpenStreetMap, el del tema claro. Ver `contraste.ts`. */
-export const PLANO_DE_OSM: Plano = { masClaro: PLANO_MAS_CLARO, masOscuro: PLANO_MAS_OSCURO };
+const PLANO_DE_OSM: Plano = { masClaro: PLANO_MAS_CLARO, masOscuro: PLANO_MAS_OSCURO };
 
 /** Dark Matter de CARTO, el del tema oscuro. Ver `contraste.ts`. */
 export const PLANO_DE_DARK_MATTER: Plano = {

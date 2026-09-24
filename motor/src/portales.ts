@@ -88,7 +88,7 @@ export interface PortalesEnMemoria {
  * por eso se pide explícitamente. Sin ella, `71 TV C11` se colaría delante de
  * `71 TV C2`, que es exactamente el fallo que este orden viene a evitar.
  */
-export function ordenNatural(a: PortalCrudo, b: PortalCrudo): number {
+function ordenNatural(a: PortalCrudo, b: PortalCrudo): number {
   return (
     a.sortNumber - b.sortNumber ||
     a.displayNumber.localeCompare(b.displayNumber, 'es', { numeric: true })

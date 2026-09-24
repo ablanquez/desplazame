@@ -48,7 +48,7 @@
 // ⚠️ `Response.text()` ignora el charset declarado [WHATWG Fetch]. Ver `texto.ts`.
 import { textoDe } from './texto.ts';
 
-export const URL_POSTE = 'https://gps.avanzabus.com/index.php/zaragoza/fRefrescaEmpresaExternos';
+const URL_POSTE = 'https://gps.avanzabus.com/index.php/zaragoza/fRefrescaEmpresaExternos';
 
 /**
  * ⭐ EL TOPE: **4 segundos**, y el número no es mío.
@@ -389,7 +389,7 @@ export function estadoVivoDe(lectura: LecturaDePoste | null, corto: string): Est
  * GTFS no las conoce, y sin coordenada no se pueden pintar ni rutear — regla B
  * de la casa, **sin coordenada no existe**.
  */
-export function coordenadaDe(cuerpo: string): { readonly lat: number; readonly lon: number } | null {
+function coordenadaDe(cuerpo: string): { readonly lat: number; readonly lon: number } | null {
   let json: { maquinas?: Record<string, unknown> };
   try {
     json = JSON.parse(cuerpo) as typeof json;

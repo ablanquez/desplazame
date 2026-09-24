@@ -45,7 +45,7 @@ type Token = string;
 /** Los dos temas, que aquí son valores y no un estado global. */
 export type Tema = 'light' | 'dark';
 
-export const TEMAS: readonly Tema[] = ['light', 'dark'];
+const TEMAS: readonly Tema[] = ['light', 'dark'];
 
 /** Los semánticos —28 desde el puente-bis—, en el orden en que se leen. */
 export const SEMANTICOS: readonly Token[] = [
@@ -100,7 +100,7 @@ export const SEMANTICOS: readonly Token[] = [
 export const MODOS: readonly string[] = ['andando', 'bus', 'bici', 'patin', 'moto', 'coche'];
 
 /** Las cuatro variantes de cada modo. */
-export const VARIANTES: readonly string[] = ['soft', 'strong', 'solid', 'text'];
+const VARIANTES: readonly string[] = ['soft', 'strong', 'solid', 'text'];
 
 /** Los 24 tokens de modo, generados — no enumerados a mano. */
 export const TOKENS_DE_MODO: readonly Token[] = MODOS.flatMap((m) =>
@@ -284,7 +284,7 @@ export function aHex({ r, g, b }: Rgb): string {
  *    misma regla que el gris del panel de frescura — NO CONSTA no es un fallo,
  *    es la verdad sobre esa fila.
  */
-export function ratioDe(texto: Lectura, fondo: Lectura): number | null {
+function ratioDe(texto: Lectura, fondo: Lectura): number | null {
   if (!texto.rgb || !fondo.rgb) {
     return null;
   }

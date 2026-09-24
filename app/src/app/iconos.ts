@@ -252,7 +252,7 @@ export const AZUL = '#0d47a1';
 export const MORADO = '#6a1b9a';
 
 /** Morado: una biblioteca [familia cultura]. */
-export const COLOR_BIBLIOTECA = MORADO;
+const COLOR_BIBLIOTECA = MORADO;
 
 /**
  * ⭐ EL MOSTAZA OSCURO de la educación, uno solo para las tres categorías.
@@ -283,16 +283,16 @@ export const COLOR_BIBLIOTECA = MORADO;
 export const MOSTAZA = '#614800';
 
 /** Mostaza: un colegio o instituto [familia educación]. */
-export const COLOR_COLEGIO = MOSTAZA;
+const COLOR_COLEGIO = MOSTAZA;
 /** Mostaza: una guardería [familia educación]. */
-export const COLOR_GUARDERIA = MOSTAZA;
+const COLOR_GUARDERIA = MOSTAZA;
 /** Mostaza: una universidad [familia educación]. */
-export const COLOR_UNIVERSIDAD = MOSTAZA;
+const COLOR_UNIVERSIDAD = MOSTAZA;
 
 /** Azul: un hospital [señal S-23]. */
-export const COLOR_HOSPITAL = AZUL;
+const COLOR_HOSPITAL = AZUL;
 /** Azul: un centro de salud [PROPIO — ver la cabecera]. */
-export const COLOR_CENTRO_SALUD = AZUL;
+const COLOR_CENTRO_SALUD = AZUL;
 
 /**
  * Gris: una chincheta que **todavía no tiene papel**.
@@ -380,7 +380,7 @@ export function caminoDeCapa(clase: Clase): string {
 }
 
 /** Qué va dibujado ENCIMA de la figura, en blanco. */
-export function encimaDe(clase: Clase): Encima {
+function encimaDe(clase: Clase): Encima {
   return FIGURA[clase].encima;
 }
 

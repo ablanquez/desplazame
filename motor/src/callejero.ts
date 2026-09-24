@@ -102,7 +102,7 @@ export const PALABRAS_VACIAS: ReadonlySet<string> = new Set([
  * minúsculas y sin acentos, y los nombres del callejero separan sus palabras
  * con espacios simples. No se toca la puntuación: aquí no hay.
  */
-export function sinVacias(norma: string): string {
+function sinVacias(norma: string): string {
   return norma
     .split(' ')
     .filter((palabra) => palabra.length > 0 && !PALABRAS_VACIAS.has(palabra))

@@ -42,19 +42,19 @@
 // ⚠️ `Response.text()` ignora el charset declarado [WHATWG Fetch]. Ver `texto.ts`.
 import { textoDe } from './texto.ts';
 
-export const URL_AJAX = 'https://zaragoza.avanzagrupo.com/wp-admin/admin-ajax.php';
+const URL_AJAX = 'https://zaragoza.avanzagrupo.com/wp-admin/admin-ajax.php';
 
 /** La página de la que sale el nonce. Sin él, 403 con cuerpo vacío. */
-export const URL_NONCE = 'https://zaragoza.avanzagrupo.com/lineas-y-horarios/';
+const URL_NONCE = 'https://zaragoza.avanzagrupo.com/lineas-y-horarios/';
 
 /** El campo oculto donde vive. */
-export const CAMPO_NONCE = 'avz_bus_ajax_nonce';
+const CAMPO_NONCE = 'avz_bus_ajax_nonce';
 
 /**
  * TTL del nonce en memoria: **30 minutos**, muy por debajo de su validez real
  * (~12 h). Y si Avanza lo rotara antes, el primer 403 lo invalida y se re-pide.
  */
-export const TTL_NONCE_MS = 30 * 60_000;
+const TTL_NONCE_MS = 30 * 60_000;
 
 /** Lo que Avanza llama sentido. Se traduce a `direction_id` aparte. */
 export type SentidoAvanza = '-1' | '-2';
@@ -198,7 +198,7 @@ export function leerNonceDe(html: string): string {
 let nonce = { valor: '', expira: 0 };
 
 /** ⚠️ Nunca se imprime ni se guarda en disco: vive en memoria y caduca. */
-export async function obtenerNonce(
+async function obtenerNonce(
   pedir: typeof fetch = fetch,
   ahora: () => number = Date.now,
 ): Promise<string> {
@@ -218,7 +218,7 @@ export function invalidarNonce(): void {
 }
 
 /** Una lectura: la petición con su nonce. Lanza `RecorridoIlegible`. */
-export async function leerRecorrido(
+async function leerRecorrido(
   linea: string,
   sentido: SentidoAvanza,
   elNonce: string,

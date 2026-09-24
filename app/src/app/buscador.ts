@@ -161,7 +161,7 @@ interface LaConsultaViva {
 export const CUANDO_SE_DICE_QUE_TARDA_MS = 1000;
 
 /** Lo que se lee mientras se pregunta. Conciso: es un estado, no una frase. */
-export const MIENTRAS_SE_PREGUNTA = 'Preguntando a Avanza…';
+const MIENTRAS_SE_PREGUNTA = 'Preguntando a Avanza…';
 
 /**
  * ⭐ Y la de la BiZi (2/09), que nombra a OTRO (§ 1.23 del notices).
@@ -171,7 +171,7 @@ export const MIENTRAS_SE_PREGUNTA = 'Preguntando a Avanza…';
  * «Preguntando a Avanza…» mientras se consulta la sede del Ayuntamiento sería
  * atribuir el dato a quien no es.
  */
-export const MIENTRAS_SE_PREGUNTA_AL_AYUNTAMIENTO = 'Preguntando al Ayuntamiento…';
+const MIENTRAS_SE_PREGUNTA_AL_AYUNTAMIENTO = 'Preguntando al Ayuntamiento…';
 
 
 /**

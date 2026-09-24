@@ -73,8 +73,8 @@ export const CONSULTA =
   'https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/index.html';
 
 /** El tope y el reintento son los de la casa. Ver `avanza.ts`. */
-export const ESPERA_MS = 4000;
-export const BACKOFF_MS = 300;
+const ESPERA_MS = 4000;
+const BACKOFF_MS = 300;
 
 /**
  * ⭐ EL TECHO DE LA CONSULTA ENTERA (7/09, entrada nº38).
@@ -157,7 +157,7 @@ function sinEtiquetas(trozo: string): string {
  * nuestra**, y por eso el texto viaja entero: quien lo lea ve lo que la DGT
  * dijo, palabra por palabra.
  */
-export function leerLaFrase(frase: string): DistintivoConsultado {
+function leerLaFrase(frase: string): DistintivoConsultado {
   const cuando = new Date();
   const comun = { texto: frase, fuente: 'DGT' as const, cuando: cuando.toISOString() };
   const conEtiqueta = /Distintivo Ambiental (0|ECO|C|B)\b/.exec(frase);

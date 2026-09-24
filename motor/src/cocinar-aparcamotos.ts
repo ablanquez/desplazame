@@ -186,7 +186,7 @@ export const CONFLADOS: readonly Conflado[] = [
  * de magnitud de margen. Un aparcamoto que se moviera de verdad se saldría de
  * aquí y perdería su nombre, que es lo que tiene que pasar.
  */
-export const CASADO_A_LO_SUMO_M = 1;
+const CASADO_A_LO_SUMO_M = 1;
 
 /** Metros entre dos puntos, en el plano local. Basta para casar soportes. */
 function metrosEntre(ax: number, ay: number, bx: number, by: number): number {
@@ -204,7 +204,7 @@ export interface AparcamotosCocinados {
 /** El fichero de § 1.10, que ya está en el repositorio con su sha256. */
 export const FICHERO_DEL_WFS = '2026-08-18_wfs_movilidad-MU2_motos.json';
 
-export const FUENTE_DE_LOS_APARCAMOTOS =
+const FUENTE_DE_LOS_APARCAMOTOS =
   'https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0' +
   '&request=GetFeature&typeNames=movilidad:MU2_motos&outputFormat=application/json' +
   '&srsName=EPSG:4326';

@@ -85,11 +85,11 @@ export interface ParkingsZbe {
   readonly parkings: readonly ParkingCocinado[];
 }
 
-export const FUENTE_DEL_DIRECTORIO =
+const FUENTE_DEL_DIRECTORIO =
   'https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/equipamiento/' +
   'aparcamiento-publico.json?srsname=wgs84&start=0&rows=500';
 
-export const FICHERO_DE_LA_ZBE = '2026-09-02_wfs_movilidad-MU1_ZBE.json';
+const FICHERO_DE_LA_ZBE = '2026-09-02_wfs_movilidad-MU1_ZBE.json';
 
 /** El polígono de una fase, o `[]` si esa fase no está en la capa. */
 function poligonosDeLaFase(
@@ -107,7 +107,7 @@ function poligonosDeLaFase(
  * puede cruzar con un polígono, y meterlo con `false` en las dos banderas sería
  * decir que está fuera cuando lo que pasa es que no se sabe.
  */
-export function cocinarParkingsZbe(crudo: DirectorioCrudo, zbe: ZbeCruda): ParkingsZbe {
+function cocinarParkingsZbe(crudo: DirectorioCrudo, zbe: ZbeCruda): ParkingsZbe {
   const fase1 = poligonosDeLaFase(zbe, 'FASE 1');
   const fase2 = poligonosDeLaFase(zbe, 'FASE 2');
 
@@ -137,7 +137,7 @@ export function cocinarParkingsZbe(crudo: DirectorioCrudo, zbe: ZbeCruda): Parki
 }
 
 /** El fichero, escrito siempre igual: una ficha por línea y salto de línea final. */
-export function comoSeGuarda(cocinado: ParkingsZbe): string {
+function comoSeGuarda(cocinado: ParkingsZbe): string {
   const filas = cocinado.parkings.map((p) => `  ${JSON.stringify(p)}`);
   return (
     '{\n' +

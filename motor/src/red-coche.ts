@@ -30,7 +30,7 @@
  * nombre puesto.
  */
 /** La versión del cocinado. Sube cuando cambia la FORMA, no el dato. */
-export const FORMATO_DE_LA_RED_DE_COCHE = 1;
+const FORMATO_DE_LA_RED_DE_COCHE = 1;
 
 /**
  * ⭐ LA TABLA `speeds.highway` DE `car.lua`, EN km/h. **Copiada, línea a línea:**
@@ -82,13 +82,13 @@ export const VELOCIDAD_KMH: Readonly<Record<string, number>> = {
 };
 
 /** `default_speed = 10` en `car.lua`. Lo que no está en la tabla. */
-export const VELOCIDAD_POR_DEFECTO = 10;
+const VELOCIDAD_POR_DEFECTO = 10;
 
 /** `turn_penalty = 7.5` en `car.lua`. El techo de la sigmoide. */
-export const PENALIZACION_DE_GIRO = 7.5;
+const PENALIZACION_DE_GIRO = 7.5;
 
 /** `turn_bias = 1.075` en `car.lua`. Asimetría izquierda/derecha. */
-export const SESGO_DE_GIRO = 1.075;
+const SESGO_DE_GIRO = 1.075;
 
 /**
  * `duration = profile.properties.traffic_signal_penalty or 2` en
@@ -141,7 +141,7 @@ export function penalizacionDeGiro(anguloGrados: number): number {
  *    no son calzada de coche. `service` SÍ entra —son accesos, aparcamientos y
  *    calles interiores— y es el 21,5 % del viario.
  */
-export const RODABLES: ReadonlySet<string> = new Set([
+const RODABLES: ReadonlySet<string> = new Set([
   'motorway',
   'trunk',
   'primary',

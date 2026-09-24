@@ -228,7 +228,7 @@ export function rodarConElCoche(servida: RedDeCocheServida): RodarEntre {
  * `SIN_LLEGADA` si la traza es demasiado corta o no engancha a nada: entonces
  * no se sabe, y **no saber no es inventarse una restricción**.
  */
-export const METROS_DE_LA_PUNTA = 25;
+const METROS_DE_LA_PUNTA = 25;
 
 /**
  * ⭐ CÓMO SE LE LEE AL FEED por dónde entra o sale una de sus trazas.

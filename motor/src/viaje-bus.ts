@@ -441,7 +441,7 @@ export interface Indices {
   readonly aPie: Map<string, readonly { hasta: string; metros: number }[]>;
 }
 
-export function indexar(
+function indexar(
   red: RedDeBus,
   fecha: string,
   suprimidas?: ReadonlySet<string>,
@@ -985,7 +985,7 @@ function conElVivoDelGenerar(
  *
  * La redacción es de casa [PROPIO]: la GTFS da el concepto, no las palabras.
  */
-export function pasoDeTransbordo(
+function pasoDeTransbordo(
   poste: string,
   deLa: LineaDelViaje,
   aLa: LineaDelViaje,
@@ -1030,7 +1030,7 @@ export function pasoDeTransbordo(
   };
 }
 
-export function pasoDeBajar(poste: string): Paso {
+function pasoDeBajar(poste: string): Paso {
   const partes = [
     { papel: 'accion' as const, texto: 'Baja' },
     { papel: 'texto' as const, texto: ' en el poste ' },

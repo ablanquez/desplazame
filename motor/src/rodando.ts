@@ -154,7 +154,7 @@ export function admiteComoPuerta(
  * `haciaDelante` es ir de `desde` a `hasta`, que es el sentido en que OSM
  * dibujó el *way* — el que `oneway=yes` permite.
  */
-export function permiteElSentido(
+function permiteElSentido(
   red: RedDeLaRueda,
   arista: number,
   haciaDelante: boolean,

@@ -240,7 +240,7 @@ interface RespuestaWfs {
  * índice espacial, y el callejero quiere el punto medio de unas cuantas vías.
  * Ninguno de los dos necesita lo del otro.
  */
-export function leerEjes(): readonly EjeCrudo[] {
+function leerEjes(): readonly EjeCrudo[] {
   const respuesta = JSON.parse(readFileSync(EJES, 'utf8')) as RespuestaWfs;
   return respuesta.features.map((f) => ({
     // El código viene numérico y se guarda como texto: es una etiqueta, no

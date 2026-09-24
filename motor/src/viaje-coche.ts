@@ -125,7 +125,7 @@ export interface CuadernoDeCoche {
   consulta: number;
 }
 
-export function cuadernoDeCoche(cuantasAristas: number): CuadernoDeCoche {
+function cuadernoDeCoche(cuantasAristas: number): CuadernoDeCoche {
   return {
     coste: new Float64Array(cuantasAristas),
     sello: new Int32Array(cuantasAristas),
@@ -954,8 +954,8 @@ function pasoDelPrimerTrozoEnLaZbe(
  *    no vetaba y a las 20:30 vetaba. Tanda T1 sobre [A-CODIGO.md § A-1], con
  *    la franja juzgada por sus dos bordes en `huso.spec.ts`, juez 8.
  */
-export const ZBE_DESDE_H = 8;
-export const ZBE_HASTA_H = 20;
+const ZBE_DESDE_H = 8;
+const ZBE_HASTA_H = 20;
 
 export function laZbeEstaEnVigor(cuando: Date): boolean {
   const r = relojDeZaragoza(cuando);
@@ -1068,6 +1068,12 @@ export const AVISO_ZBE_SIN_RUTA =
  *    equivocada, el día equivocado y el día de la semana equivocado, en la
  *    misma frase que existe para demostrar que se ha mirado el reloj.
  */
+// ⚠️ ESTE `export` NO SOBRA, aunque ningún `import` literal lo nombre (A-7,
+//    24/09). Lo consume el **proceso hijo** de `motor/src/huso.spec.ts`, que
+//    carga el módulo con `import(process.argv[3])` — una ruta que solo existe
+//    en tiempo de ejecución—, así que ningún censo estático de exports lo ve.
+//    La poda de la A-7 se lo llevó y la juez 9 del huso se puso roja en el acto;
+//    queda escrito para que la próxima no repita el viaje.
 export function avisoDelRelojDeLaZbe(cuando: Date): string {
   const dos = (n: number): string => String(n).padStart(2, '0');
   const r = relojDeZaragoza(cuando);

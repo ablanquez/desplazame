@@ -57,7 +57,7 @@ export const REGISTRO = fileURLToPath(
  * recomendación sobre quien publica, no una regla que podamos comprobar sobre
  * un feed ya publicado.
  */
-export const DIAS_DE_AVISO = 7;
+const DIAS_DE_AVISO = 7;
 
 export interface FeedInfo {
   readonly feedVersion: string;

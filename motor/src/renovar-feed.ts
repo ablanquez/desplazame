@@ -52,10 +52,10 @@ import {
 /** El fichero del NAP que es nuestro feed: «Transporte urbano de Zaragoza». */
 export const FICHERO = 1176;
 
-export const BASE = 'https://nap.transportes.gob.es';
+const BASE = 'https://nap.transportes.gob.es';
 
 /** Generoso para 6,6 MB y corto frente a «nunca». El precedente de ZetaBus. */
-export const ESPERA_MS = 60_000;
+const ESPERA_MS = 60_000;
 
 /** Un zip truncado empieza por `PK` igual que uno entero: la firma no basta. */
 export const SUELO_BYTES = 1_000_000;

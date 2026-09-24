@@ -54,7 +54,7 @@ import { fechaGtfsEnZaragoza, ZONA_DE_ZARAGOZA } from './reloj.ts';
 import { SENTIDO_DE } from './recorrido.ts';
 
 /** La página del cuadro. La misma que ya da el nonce a `recorrido.ts`. */
-export const URL_HORARIOS = 'https://zaragoza.avanzagrupo.com/lineas-y-horarios/';
+const URL_HORARIOS = 'https://zaragoza.avanzagrupo.com/lineas-y-horarios/';
 
 /**
  * ⭐ HASTA DÓNDE LLEGA LA VENTANA, en días desde hoy. **Medido, no elegido.**
@@ -76,7 +76,7 @@ export const VENTANA_DIAS = 9;
 export const TTL_FESTIVO_MS = 6 * 60 * 60_000;
 
 /** Lo que se espera entre dos peticiones a la web. Ver el volumen en la ficha. */
-export const PAUSA_FESTIVO_MS = 800;
+const PAUSA_FESTIVO_MS = 800;
 
 /**
  * ⭐ EL TIPO DE DÍA, y **no se deduce del día de la semana**.
@@ -109,7 +109,7 @@ export const PAUSA_FESTIVO_MS = 800;
 export type TipoDeDia = 'L' | 'S' | 'F';
 
 /** El mínimo de servicios para que la mayoría signifique algo. */
-export const MINIMO_PARA_MAYORIA = 10;
+const MINIMO_PARA_MAYORIA = 10;
 
 export function tipoDeDiaDe(red: RedDeBus, fecha: string): TipoDeDia | null {
   const servicios = red.porFecha[fecha] ?? [];
@@ -136,7 +136,7 @@ export function tipoDeDiaDe(red: RedDeBus, fecha: string): TipoDeDia | null {
 }
 
 /** Cómo se llama cada tipo de día en la frase de la web. */
-export const ROTULO_DEL_TIPO: Readonly<Record<TipoDeDia, string>> = {
+const ROTULO_DEL_TIPO: Readonly<Record<TipoDeDia, string>> = {
   L: 'laborables',
   S: 'sábados',
   F: 'domingos y festivos',
@@ -162,7 +162,7 @@ export interface CuadroDelDia {
 }
 
 /** `HH:MM` → segundos desde medianoche, o `null` si no tiene esa forma. */
-export function segundosDeHhMm(hhmm: string): number | null {
+function segundosDeHhMm(hhmm: string): number | null {
   const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim());
   if (!m) {
     return null;
@@ -307,7 +307,7 @@ export async function pedirCuadro(
 const capa = new Map<string, CuadroDelDia>();
 const enVuelo = new Map<string, Promise<CuadroDelDia | null>>();
 
-export const claveDelCuadro = (linea: string, direccion: string, fecha: string): string =>
+const claveDelCuadro = (linea: string, direccion: string, fecha: string): string =>
   `${linea}|${direccion}|${fecha}`;
 
 /** Mete un cuadro en la capa. Lo usan el refresco y las jueces. */

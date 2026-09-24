@@ -354,7 +354,7 @@ const rutaDe = (fichero: string): string =>
 export const LIMITE_SITIOS = 10;
 
 /** Desde cuántas letras se busca. El mismo mínimo que `/api/vias`. */
-export const MINIMO_SITIOS = 2;
+const MINIMO_SITIOS = 2;
 
 /**
  * Lo que el fichero de equipamientos trae por registro, de lo que aquí se mira.
@@ -782,7 +782,7 @@ export function sinRepetidos<T extends { readonly id: number }>(
  * ⚠️ No caza `Col.` ni `Ctra.`: son abreviaturas de una palabra, no siglas, y
  * ahí «col» ya sale como palabra entera del troceador normal.
  */
-export function conSiglasEnteras(texto: string): string {
+function conSiglasEnteras(texto: string): string {
   const siglas = texto.match(/(?:\b[\p{L}\d]\.){2,}/gu);
   if (!siglas) {
     return texto;

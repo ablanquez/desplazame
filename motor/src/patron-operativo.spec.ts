@@ -86,9 +86,9 @@ const DONDE_ESTAN = new Map<number, { lat: number; lon: number }>([
  *    **contradicción**. Una línea puede dar un rodeo enorme y estar bien; lo
  *    que no puede es deshacer lo que acaba de andar.
  */
-export const CERCA_M = 20;
-export const LEJOS_M = 150;
-export const PASO_M = 5;
+const CERCA_M = 20;
+const LEJOS_M = 150;
+const PASO_M = 5;
 
 /** La línea convertida en puntos cada `PASO_M` metros de recorrido. */
 function remuestrear(traza: readonly (readonly [number, number])[]): [number, number][] {

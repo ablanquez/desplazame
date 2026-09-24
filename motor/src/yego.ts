@@ -49,7 +49,7 @@ import { metrosEntre } from './cercano.ts';
 import { dentroDeLaZbe } from './red-coche.ts';
 
 /** El feed de la flota. De los seis, es el que dice dónde hay una moto. */
-export const URL_FLOTA =
+const URL_FLOTA =
   'https://services.rideyego.com/gbfs/2-3/zaragoza/es/free_bike_status';
 
 /**
@@ -61,7 +61,7 @@ export const URL_FLOTA =
  * Service Zone»*, y estas manchas son esa Service Zone. El feed publica la
  * geometría; el contrato dice qué significa. Ver § 1.34 y `viaje-yego.ts`.
  */
-export const URL_ZONAS =
+const URL_ZONAS =
   'https://services.rideyego.com/gbfs/2-3/zaragoza/es/geofencing_zones';
 
 /**
@@ -80,11 +80,11 @@ export const TTL_S = 240;
  * suele tardar: se pone por lo que se está dispuesto a esperar con una pantalla
  * delante. Es el de `avanza.ts`, que lleva medido desde el 31/08.
  */
-export const ESPERA_MS = 4000;
+const ESPERA_MS = 4000;
 
 /** Y un reintento con 300 ms de espera, como Avanza. El peor caso son 8,3 s. */
-export const BACKOFF_MS = 300;
-export const REINTENTOS = 1;
+const BACKOFF_MS = 300;
+const REINTENTOS = 1;
 
 /**
  * ⭐ EL TIPO QUE SE USA, y **se selecciona por el id, nunca por `form_factor`**.

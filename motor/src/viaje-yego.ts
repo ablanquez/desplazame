@@ -141,7 +141,7 @@ import {
  *    un límite a cuántas se calculan, y quien elige entre ellas es el coste.
  *    Misma doctrina que los 40 del coche y los 40 postes del bus.
  */
-export const MOTOS_CANDIDATAS = 8;
+const MOTOS_CANDIDATAS = 8;
 
 /**
  * ⭐ LA RED DEL COCHE, VISTA POR UN CICLOMOTOR: los tiempos capados a 45 km/h.
@@ -205,7 +205,7 @@ function sinRuta(avisos: readonly Aviso[]): Trayecto {
  *    a quien busca una ruta no le dice nada, y publicarlo sería exponer el único
  *    campo que el operador se molesta en rotar. Lo que sirve es cuánto le queda.
  */
-export function nombreDeLaMoto(moto: MotoCerca): string {
+function nombreDeLaMoto(moto: MotoCerca): string {
   const km = Math.round(moto.autonomiaM / 1000);
   return `la moto de YeGo (${km} km de autonomía)`;
 }

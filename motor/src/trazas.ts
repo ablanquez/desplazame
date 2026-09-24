@@ -61,7 +61,7 @@ export const MAXIMO_DESVIO_M = 100;
  * mover un píxel en pantalla; a cinco (1,1 m) empezaría a notarse en una curva
  * cerrada al máximo zoom.
  */
-export const DECIMALES = 6;
+const DECIMALES = 6;
 
 /** Dónde cae una parada sobre una traza. */
 export interface Proyeccion {
@@ -188,12 +188,12 @@ export function proyectarMonotono(traza: Traza, paradas: readonly Vertice[]): Pr
 }
 
 /** Redondea un punto a `DECIMALES`. Ver por qué son seis. */
-export function redondear([lat, lon]: Vertice): Vertice {
+function redondear([lat, lon]: Vertice): Vertice {
   return [Number(lat.toFixed(DECIMALES)), Number(lon.toFixed(DECIMALES))];
 }
 
 /** El punto exacto donde cae una proyección. */
-export function puntoEn(traza: Traza, p: Proyeccion): Vertice {
+function puntoEn(traza: Traza, p: Proyeccion): Vertice {
   const [laA, loA] = traza[p.i]!;
   const [laB, loB] = traza[p.i + 1]!;
   return [laA + (laB - laA) * p.t, loA + (loB - loA) * p.t];

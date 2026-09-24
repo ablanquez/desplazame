@@ -97,7 +97,7 @@ export interface OpcionesDeLaMoto {
  * cuesta **una sola** búsqueda. No hay ninguna distancia a partir de la cual un
  * aparcamoto «no existe»: quien elige es el coste.
  */
-export const APARCAMOTOS_CANDIDATOS = 40;
+const APARCAMOTOS_CANDIDATOS = 40;
 
 /**
  * ⭐ CÓMO SE LEE EL SITIO donde se deja la moto: **la calle y el portal**.
@@ -119,7 +119,7 @@ export const APARCAMOTOS_CANDIDATOS = 40;
  *    relleno se apaga solo y esa frase vuelve a hacer falta. Un sitio sin
  *    nombre se dice sin nombre; ponerle el portal a secas sería peor que callar.
  */
-export function nombreDelAparcamoto(a: AparcamotoCerca, motor: Motor): string {
+function nombreDelAparcamoto(a: AparcamotoCerca, motor: Motor): string {
   const suyo = comoSeLeeElSitio(a, motor);
   return suyo === null
     ? "el aparcamiento de motos"
@@ -213,7 +213,7 @@ function hitoDeAparcarLaMoto(a: AparcamotoCerca, motor: Motor): Paso {
  * honrado: se queda **fuera**, y desde ahí se anda. Quien pregunta merece saber
  * que su destino está dentro y que el último trecho es a pie.
  */
-export function avisoDelRemateFueraDeLaZona(donde: string): string {
+function avisoDelRemateFueraDeLaZona(donde: string): string {
   return (
     "Tu destino queda dentro de la Zona de Bajas Emisiones. Sin distintivo solo se puede " +
     "entrar con autorización, y un aparcamiento de motos de calle no es de los que la " +

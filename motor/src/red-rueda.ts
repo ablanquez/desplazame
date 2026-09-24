@@ -95,15 +95,15 @@ interface RespuestaOverpass {
  * el arranque cuántas aristas debe su límite a qué, y distinguir «lo dice el
  * Ayuntamiento» de «lo dice la ley porque nadie ha dicho otra cosa».
  */
-export const SIN_FUENTE = 0;
-export const FUENTE_MUNICIPAL = 1;
-export const FUENTE_OSM = 2;
+const SIN_FUENTE = 0;
+const FUENTE_MUNICIPAL = 1;
+const FUENTE_OSM = 2;
 /** Defecto 20: plataforma única [RGC 50.a], por `plataforma=SI` de MU1. */
-export const DEFECTO_PLATAFORMA = 3;
+const DEFECTO_PLATAFORMA = 3;
 /** Defecto 30: un carril por sentido [RGC 50.b], contado con `lanes` de OSM. */
-export const DEFECTO_UN_CARRIL = 4;
+const DEFECTO_UN_CARRIL = 4;
 /** Defecto 50: dos o más carriles por sentido [RGC 50.c], con `lanes` de OSM. */
-export const DEFECTO_VARIOS_CARRILES = 5;
+const DEFECTO_VARIOS_CARRILES = 5;
 /** Defecto 30 por TIPO de vía. [PROPIO-por-tipo]: la capa menos apoyada. */
 export const DEFECTO_POR_TIPO = 6;
 

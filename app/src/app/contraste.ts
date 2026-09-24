@@ -48,7 +48,7 @@ export function luminancia({ r, g, b }: Rgb): number {
 }
 
 /** Razón de contraste WCAG entre dos colores. Simétrica: el orden da igual. */
-export function contrasteRgb(a: Rgb, b: Rgb): number {
+function contrasteRgb(a: Rgb, b: Rgb): number {
   const la = luminancia(a);
   const lb = luminancia(b);
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);

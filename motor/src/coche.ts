@@ -237,7 +237,7 @@ function gemelasDe(cocinada: RedDeCoche): Int32Array {
 }
 
 /** Lee los cuatro ficheros crudos. Se separa para poder medir la lectura. */
-export function leerCrudoDelCoche(): CrudoParaCocinar {
+function leerCrudoDelCoche(): CrudoParaCocinar {
   const leer = (ruta: string): unknown => JSON.parse(readFileSync(ruta, 'utf8'));
   return {
     viario: leer(VIARIO),

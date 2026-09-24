@@ -235,7 +235,7 @@ interface Miembro {
  * de la cabecera local. Los largos de nombre y extra de la cabecera LOCAL no
  * son los del directorio central: confundirlos desplaza el corte y sale basura.
  */
-export function localizar(zip: Buffer, nombre: string): Miembro | null {
+function localizar(zip: Buffer, nombre: string): Miembro | null {
   const buscado = Buffer.from(nombre, 'utf8');
   for (let i = zip.length - 22; i >= 0; i--) {
     if (zip.readUInt32LE(i) !== 0x0605_4b50) {
@@ -319,7 +319,7 @@ export function partirCsv(linea: string): string[] {
   return campos;
 }
 
-export async function porLineas(
+async function porLineas(
   ruta: string,
   zip: Buffer,
   miembro: string,
@@ -445,7 +445,7 @@ export interface Crudo {
 }
 
 /** Lee del zip todo lo que NO es `stop_times`, que es lo pequeño. */
-export async function leerLoPequeno(ruta: string, zip: Buffer): Promise<Crudo> {
+async function leerLoPequeno(ruta: string, zip: Buffer): Promise<Crudo> {
   const paradas = new Map<string, { codigo: string; nombre: string; lat: number; lon: number }>();
   await porLineas(ruta, zip, 'stops.txt', (c, cab) => {
     const [id, cod, nom, lat, lon] = indices(cab, [
@@ -559,7 +559,7 @@ export interface Tiempos {
   readonly paradaDe: readonly string[];
 }
 
-export async function leerLosTiempos(ruta: string, zip: Buffer): Promise<Tiempos> {
+async function leerLosTiempos(ruta: string, zip: Buffer): Promise<Tiempos> {
   // ── Pasada A: contar filas por viaje ──────────────────────────────────────
   const deViaje = new Map<string, number>();
   const cuantas: number[] = [];
@@ -649,7 +649,7 @@ export async function leerLosTiempos(ruta: string, zip: Buffer): Promise<Tiempos
  * mediana no se mueve por ellos; se guarda también el **máximo**, para poder
  * decir «suele tardar X, a veces Y» sin prometer.
  */
-export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronSinTraza[] {
+function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronSinTraza[] {
   const cajas = new Map<
     string,
     { linea: string; direccion: string; paradas: string[]; viajes: string[] }
@@ -946,7 +946,7 @@ export interface CuentasDeTraza {
  * desvía más de `MAXIMO_DESVIO_M` de la traza: si la parada no está donde la
  * traza pasa, el trozo entre ellas no es el camino de ese autobús.
  */
-export function vestirConTrazas(
+function vestirConTrazas(
   patrones: readonly PatronSinTraza[],
   trazas: Map<string, Traza>,
   donde: Map<string, Vertice>,
