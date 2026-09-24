@@ -14,6 +14,68 @@
 
 ---
 
+## [2026-09-24] ✅ CERRADA — El huso no solo se pinta: DECIDE. Cuatro funciones elegían el día de servicio y la franja de la ZBE por el reloj del proceso, y la suite del huso daba verde encima
+
+**Nota:** entrada creada al cerrar. La captura no se hizo el día que nació el
+fallo, pero **no es memoria fría**: la mutación que lo midió está fechada en
+`docs/auditoriafinal/C-TESTS.md` § C-1 (23/09), y el campo estrella de abajo se
+ejecutó hoy **antes** de tocar el código.
+
+**Categoría:** la prueba comparte la premisa del código y solo puede darle la razón
+**Síntoma:** el motor sirve en producción —Hostinger, UTC— el día GTFS
+**anterior** de 00:00 a 02:00 de Zaragoza, y corre la franja de la Zona de Bajas
+Emisiones **dos horas atrasada todo el día**: a las 08:30 de la calle no veta y a
+las 20:30 veta. Cuatro funciones que DECIDEN —`hoyEnGtfs`, `segundosDelDia`,
+`laZbeEstaEnVigor`, `laVentana`— resolvían día civil y hora de pared con
+`getDate()`, `getHours()` y `getDay()`, que dan el huso **de donde corra Node**.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la suite que lleva el nombre
+del huso. Ejecutada hoy con el fallo vivo, antes de tocar nada, junto a la jueza
+nueva que sí lo ve:
+`$ node --test src/huso.spec.ts`
+`✔ ⭐ EL HUSO — la hora es la de Zaragoza, corra el motor donde corra (142.0494ms)`
+`✖ ⭐ EL HUSO QUE DECIDE — las cuatro del A-1, con el proceso en UTC (163.6366ms)`
+Y en el hijo lanzado con `TZ=UTC`, lo que devolvían las cuatro para un instante
+que en Zaragoza es el martes 15 a las 00:30:
+`hoyEnGtfs → '20260914'` · `segundosDelDia → 81000` · `laVentana[0] → '20260914'`
+`laZbeEstaEnVigor(08:30 de la calle) → false`
+`avisoDelRelojDeLaZbe → «…y son las 22:30 del lunes»`
+El recuento de cuántas juezas seguían en verde con la mutación puesta **no se
+copia aquí**: vive en `C-TESTS.md` § C-1, que es su sitio.
+**Cómo se cazó:** instrumento — la mutación del bloque C de la auditoría de
+cierre, sobre el censo de ficheros:líneas del bloque A (§ A-1).
+**Causa raíz:** el 8/09 (entrada del huso, nº41) se arregló **la mitad que se
+pinta** y se creó `reloj.ts` para ella. La mitad que **decide** se quedó fuera del
+arreglo y fuera de las juezas, y nadie lo notó porque **todas las juezas corren en
+esta máquina, que va en hora de Madrid**: la premisa del código y la de la prueba
+eran la misma. Es la ley de la nº41 mordiendo un piso más abajo — y la propia
+suite del huso, que existe para esto, estaba escrita solo contra `alMinuto` y
+`cuandoDeLaSede`, así que su verde era cierto y estrecho a la vez.
+**Arreglo aplicado:** `reloj.ts` aprende `relojDeZaragoza()` —reloj de pared
+descompuesto, con día de la semana— y `fechaGtfsEnZaragoza()` —fecha civil
+`AAAAMMDD`, paseando los días por `Date.UTC` para que uno sean siempre 24 h—, y
+las cuatro resuelven por ahí: `trayecto.ts` (`hoyEnGtfs`), `viaje-bus.ts`
+(`segundosDelDia`), `viaje-coche.ts` (`laZbeEstaEnVigor` y `avisoDelRelojDeLaZbe`)
+y `festivo.ts` (`laVentana`). Ninguna firma cambia y ningún valor esperado se
+mueve. Como cinturón, `huso-del-proceso.ts` fija `process.env.TZ` en el
+repositorio y el arranque declara el huso que Node **resuelve**. Y la red:
+`huso.spec.ts` gana seis juezas con hijo en `TZ=UTC` y su juez 0 — nacieron 5
+rojas de 6 y quedan 11/11.
+**Commit:** `6cc6f61` (las cuatro) · `231efa3` (el cinturón) · `7986e9b` (la red).
+**Ley que sale de aquí:** la ley de la nº41 —*una prueba que corre en el mismo
+huso que el código que juzga no vigila el huso*— **no se acaba en lo que se
+pinta**. Donde el huso DECIDE —qué día se busca, desde qué minuto, si se veta—
+hace falta la misma red, y hace falta **nombrarla en el censo**: una suite
+llamada «el huso» que solo mira la presentación deja un verde que parece más
+ancho de lo que es. Y el corolario del instrumento: `getHours()` no da «la
+hora», da *la hora en el huso del proceso*; un comentario que jura «en hora
+LOCAL, no UTC» encima de un `getDate()` no es una descripción, es un deseo.
+**Traza:** `motor/src/trayecto.ts` (`hoyEnGtfs`), `motor/src/viaje-bus.ts`
+(`segundosDelDia`), `motor/src/viaje-coche.ts` (`laZbeEstaEnVigor`,
+`avisoDelRelojDeLaZbe`), `motor/src/festivo.ts` (`laVentana`),
+`motor/src/huso.spec.ts`. Censo y medición: `docs/auditoriafinal/A-CODIGO.md`
+§ A-1 y `docs/auditoriafinal/C-TESTS.md` § C-1.
+**Nota:** el arreglo ya había comenzado al abrir esta entrada.
+
 ## [2026-09-22] ✅ CERRADA — pintura salió en verde con el mapa de pc · coche roto: una franja de teselas arriba, zoom máximo y el resto gris
 
 **Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
