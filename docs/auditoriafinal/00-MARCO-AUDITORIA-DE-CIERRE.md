@@ -349,7 +349,7 @@ pieza: TANDA · SE DECLARA (no se toca, con acta) · NEVERA. Nada se toca sin di
 
 | Grupo | Piezas | Dictado de Antonio |
 |---|---|---|
-| G1 · EL HUSO [🔴 A-1+C-1, confirmado] | el arreglo [4 opciones del A] + la red [3 opciones del C] | TANDA [T1] — pendiente solo la firma del canónico: arreglo op.3 [TZ en lanzador + las cuatro por reloj.ts] + red op.1 [jueza con hijo UTC] |
+| G1 · EL HUSO [🔴 A-1+C-1, confirmado] | el arreglo [4 opciones del A] + la red [3 opciones del C] | TANDA [T1] — FIRMADO por Antonio y ⚰️ HECHO el 24/09 |
 | G2 · fuente única y poda | A-2 [frase disponibilidad ×3 + includes] · A-3 [tipos sin declarar] · A-4 [muerta ×4] · A-5 [TIPOS_CON_FACTOR] · los 🔵 del A [2 muertas · 74 exports · dos «día» · aserción floja · ⚖️ buscador.ts 3.771 líneas: reportado PARA QUE NO SE PARTA — pide un «se declara» explícito] · D-2 [enlace roto] | TANDA [T2] — y ⚖️ buscador.ts FIRMADO por Antonio 24/09: NO SE PARTE [se declara] |
 | G3 · tests y guardianes | C-2 [«TODO VERDE» prematuro ×4] · C-3 [jueces del empuje] · C-4 [m.esperar mata la suite] · ⚖️ C-5 [suites sin script — DECISIÓN] · 🔵 los cinco grep-de-fuente [«forma, no comportamiento» — candidatos a se-declara] · 🔵 la lección de la M1a | TANDA [T3] los arreglables; ⚖️ C-5 DICTADO SÍ [ley de la casa: «un arreglo que hay que acordarse de usar no es un arreglo del todo» → script en el repo]; los grep y la M1a: SE DECLARAN |
 | G4 · interfaz y textos | B-1 [title/description] · B-2 [main/footer] · ⚖️ B-3 [noscript mudo — DECISIÓN, 4 opciones] · B-4 [errores en jerga] · B-5 [letra del panel] · 🔵 [táctiles fuera de censo · reduced-motion 2/11] | TANDA [T3]; ⚖️ B-3 DICTADO POR DOCTRINA: opciones 1+2 [el noscript digno + el ErrorHandler — el §4·B exige que la pantalla de último recurso pueda abrirse, y «estados honestos diseñados» del DISEÑO] |
@@ -360,10 +360,10 @@ pieza: TANDA · SE DECLARA (no se toca, con acta) · NEVERA. Nada se toca sin di
 
 | Tanda | Contenido propuesto | Estado |
 |---|---|---|
-| T1 · el huso | arreglo op.3 + red op.1 [el canónico propuesto] | FIRMA PENDIENTE |
-| T2 · fuente única y poda | G2 entero [buscador.ts NO se toca: firmado] | FIRMA PENDIENTE |
-| T3 · tests + interfaz + experiencia | de G3: C-2 + C-3 + C-4 [los tres arreglables sin decisión]; de G4: B-1 + B-2 + B-4 + B-5 [ídem]; MÁS los dictados: C-5 [el script] · B-3 [noscript + ErrorHandler] · F-1 [llegada y salida de /identidad + README] · F-2 [el puente] · F-3 op.1 · F-4 · F-5 | FIRMA PENDIENTE |
-| T4 · operación y papeles | de G6: E-1 + E-2 + E-4 + D-2 + los 🔵 documentales [D-3 captura · D-4 nota · D-5 licencia]; MÁS los dictados: E-3 [documentar el auto-deploy] · D-1 op.4 | FIRMA PENDIENTE |
+| T1 · el huso | arreglo op.3 + red op.1 | ⚰️ HECHA 24/09 [3 commits 6cc6f61·231efa3·7986e9b, 12 ficheros solo motor/src: las cuatro por reloj.ts (relojDeZaragoza · fechaGtfsEnZaragoza, paseo de días por Date.UTC) · TZ desde huso-del-proceso.ts importado primero, con la doc de Node citada (changelog TZ: v13.0.0 POSIX · v16.2.0 Windows; engines>=22 cubre ambos) y el arranque IMPRIME el huso resuelto — la 1ª línea del log de Hostinger confirmará la variable al desplegar · la jueza hijo-UTC con juez-0: nació 5/6 roja y quedó 11/11 · 4 actas (instantes naive new Date(...) → UTC con Z y la pared al lado) · elDiaAntes verificado NEUTRAL corriéndolo en Madrid/UTC/Tokio × 6 fechas · unidad 668/668 · tipos limpios · e2e al peaje] |
+| T2 · fuente única y poda | G2 entero [buscador.ts NO se toca: firmado] | FIRMADA — pendiente de encargo |
+| T3 · tests + interfaz + experiencia | de G3: C-2 + C-3 + C-4 [los tres arreglables sin decisión]; de G4: B-1 + B-2 + B-4 + B-5 [ídem]; MÁS los dictados: C-5 [el script] · B-3 [noscript + ErrorHandler] · F-1 [llegada y salida de /identidad + README] · F-2 [el puente] · F-3 op.1 · F-4 · F-5 | FIRMADA — pendiente de encargo |
+| T4 · operación y papeles | de G6: E-1 + E-2 + E-4 + D-2 + los 🔵 documentales [D-3 captura · D-4 nota · D-5 licencia]; MÁS los dictados: E-3 [documentar el auto-deploy] · D-1 op.4 | FIRMADA — pendiente de encargo |
 | Sesiones de mano de Antonio | NVDA y teléfono físico [instrucciones en el §7 del F] | PENDIENTE |
 
 *Este cuadro se actualiza con cada dictado y cada tanda cerrada; los informes de bloque no
