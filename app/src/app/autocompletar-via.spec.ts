@@ -205,9 +205,17 @@ describe('AutocompletarVia', () => {
       .error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' });
     await fixture.whenStable();
 
+    // ⛔ ACTA (B-4, 25/09). Aquí ponía «No se pudo preguntar al motor», y ese
+    //    texto se ha ido por decisión firmada de Antonio: era el penúltimo sitio
+    //    de la misma jerga que el B-4 quitó del error de ruta y el B-4-bis del
+    //    poste vivo y de la ubicación. «El motor» es vocabulario de dentro y
+    //    «¿está arrancado?» le pregunta a quien desarrolla, no a quien busca una
+    //    calle. Se compra el texto NUEVO; lo que esta jueza vigila —que el fallo
+    //    SALGA, y que salga por la fila de aviso `--mal` y no como «Sin
+    //    resultados»— no ha cambiado en nada.
     const raiz = fixture.nativeElement as HTMLElement;
     expect(raiz.querySelector('.sugerencias__aviso--mal')?.textContent).toContain(
-      'No se pudo preguntar al motor',
+      'No se ha podido buscar la calle en este momento. Prueba de nuevo en un rato.',
     );
   });
 

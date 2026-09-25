@@ -264,9 +264,14 @@ describe('SelectorPortal', () => {
     await fixture.whenStable();
 
     entrar(fixture);
+    // ⛔ ACTA (B-4, 25/09), la misma que la de `autocompletar-via.spec.ts`: el
+    //    texto viejo —«No se pudo preguntar al motor. ¿Está arrancado?»— era el
+    //    último sitio de esa jerga en el producto. Se compra el nuevo, firmado
+    //    por Antonio; lo que se vigila —que el fallo salga por la fila `--mal`,
+    //    y no confundido con «Sin resultados»— sigue igual.
     const raiz = fixture.nativeElement as HTMLElement;
     expect(raiz.querySelector('.portales__aviso--mal')?.textContent).toContain(
-      'No se pudo preguntar al motor',
+      'No se han podido cargar los portales en este momento. Prueba de nuevo en un rato.',
     );
   });
 });

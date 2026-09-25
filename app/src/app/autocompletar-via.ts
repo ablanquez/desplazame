@@ -198,6 +198,19 @@ export class AutocompletarVia {
       temporizador = setTimeout(() => this.consultaConEspera.set(escrito), ESPERA_MS);
       alLimpiar(() => clearTimeout(temporizador));
     });
+
+    // ⭐ LA TÉCNICA, AL LOG (B-4, 25/09, la fórmula del DISEÑO). El aviso de la
+    //    lista dice lo que le importa a quien busca —que no se ha podido buscar
+    //    la calle y que vuelva a probar—; **qué endpoint falló y con qué error**
+    //    va a la consola, que es donde lo busca quien va a arreglarlo. Antes no
+    //    iba a ninguna parte: el fallo solo existía como una línea roja en un
+    //    desplegable.
+    effect(() => {
+      const fallo = this.sugerencias.error();
+      if (fallo) {
+        console.error('/api/vias no contestó', fallo);
+      }
+    });
   }
 
   /**

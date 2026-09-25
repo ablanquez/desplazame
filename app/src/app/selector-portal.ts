@@ -92,6 +92,17 @@ export class SelectorPortal {
       this.activo.set(-1);
       this.abierto.set(false);
     });
+
+    // ⭐ LA TÉCNICA, AL LOG (B-4, 25/09, la fórmula del DISEÑO). Igual que en
+    //    `autocompletar-via.ts`: en pantalla, lo que le importa a quien busca;
+    //    en la consola, **qué endpoint falló y con qué error**, que es lo que
+    //    hace falta para arreglarlo y no tenía dónde aparecer.
+    effect(() => {
+      const fallo = this.portales.error();
+      if (fallo) {
+        console.error('/api/portales no contestó', fallo);
+      }
+    });
   }
 
   /**
