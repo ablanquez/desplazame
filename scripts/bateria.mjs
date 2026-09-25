@@ -87,7 +87,8 @@ const E2E = join(RAIZ, 'app', 'e2e');
  * · `url`      dónde espera la dirección: `argv` (segundo argumento) o el
  *              nombre de la variable de entorno que lee.
  * · `segundo`  qué es su segundo argumento: `carpeta` (de capturas), `png`
- *              (el nombre del fichero), `caso` (vía y portal del caso) o nada.
+ *              (el nombre del fichero), `caso` (las cuatro casillas del viaje,
+ *              y entonces la captura va detrás, en su `argv[6]`) o nada.
  *
  * El orden es el de esta lista: primero las estructurales y baratas, y al final
  * las que salen a fuentes vivas y tardan más. **Es una decisión de aquí**, no
@@ -107,7 +108,16 @@ const SUITES = [
 ];
 
 /** El caso de ejemplo de las dos que conducen un viaje. El de su documentación. */
-const CASO = ['COLOSO', '2'];
+// ⚠️ LAS CUATRO CASILLAS ENTERAS, Y NO DOS (25/09, T4). Son exactamente los
+//    valores que estas dos suites ponen por defecto —no cambia lo que miden—,
+//    pero hay que escribirlas para poder darles lo que va DETRÁS: su `argv[6]`,
+//    que es dónde dejan la captura. Con dos argumentos, ese sitio quedaba vacío
+//    y la imagen caía en el directorio desde el que se lanzó la batería: la raíz
+//    del repositorio. Lo avisaba la propia cabecera de `proximo-bus.mjs` —«una
+//    imagen suelta ahí se cuela en el siguiente git add sin que nadie la
+//    mire»— y esta entrada lo hacía igual. Cazado corriéndola: apareció
+//    `proximo-bus.png` sin rastrear en la raíz.
+const CASO = ['COLOSO', '2', 'CALLE OVIEDO', '5'];
 
 function comoSeLlama(suite, url, capturas) {
   const args = [join(E2E, `${suite.nombre}.mjs`)];
@@ -123,7 +133,7 @@ function comoSeLlama(suite, url, capturas) {
   if (suite.segundo === 'carpeta') args.push(capturas);
   else if (suite.segundo === 'carpeta-primera') args.push(capturas);
   else if (suite.segundo === 'png') args.push(join(capturas, `${suite.nombre}.png`));
-  else if (suite.segundo === 'caso') args.push(...CASO);
+  else if (suite.segundo === 'caso') args.push(...CASO, join(capturas, `${suite.nombre}.png`));
   return { args, env };
 }
 
