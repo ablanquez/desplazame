@@ -14,6 +14,59 @@
 
 ---
 
+## [2026-09-25] ✅ CERRADA — Una juez que se llama «el puerto es 3000» dio verde con el puerto en 0: calculaba lo esperado con la misma expresión que vigilaba
+
+**Categoría:** prueba tautológica · variables de entorno
+**Síntoma:** con `PORT` **puesta y vacía** —lo que queda cuando alguien la borra
+a medias en el panel de un hosting—, `Number(process.env['PORT'] ?? 3000)` daba
+**0**, y `listen(0)` es legal: *«dame cualquier puerto libre»*. El motor cargaba
+los 68.649 nodos, imprimía su banner entero y quedaba escuchando **donde nadie lo
+busca, sin un solo aviso**. Lo destapó el bloque E de la auditoría de cierre
+(E-1); esta entrada es por **el instrumento**, no por el fallo.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la juez 3 de
+`motor/src/servidor.spec.ts`, que se llama *«sin PORT en el entorno, el puerto es
+3000»* y es la única que mira el puerto. Ejecutada hoy contra el árbol de antes
+de la T4 (`worktree` en `0d70748`), con `PORT=''` y sin tocar nada:
+
+```
+PORT=[]  →  PUERTO = 0 · tipo number · ¿NaN? false
+  ✔ ⭐ 3 · sin PORT en el entorno, el puerto es 3000 (0.658ms)
+ℹ tests 1 · pass 1 · fail 0
+```
+
+El puerto valía 0 y su juez, con «el puerto es 3000» en el nombre, decía ✔.
+
+**Cómo se cazó:** instrumento — al arreglar el E-1 hubo que mirar qué compraba
+su juez, y la juez compraba `assert.equal(PUERTO, suyo === undefined ? 3000 :
+Number(suyo))`: leía **el mismo `process.env`** y aplicaba **la misma fórmula**
+que el código vigilado.
+**Causa raíz:** el valor esperado se **calculaba**, no se escribía. Una prueba
+que deriva lo esperado de la misma expresión que juzga no puede fallar nunca:
+los dos lados se equivocan a la vez y se dan la razón. Es el `expect(CONSTANTE)`
+del §4·C de la auditoría, en su forma más difícil de ver — aquí ni siquiera hay
+una constante sospechosa, hay una fórmula repetida.
+**Arreglo aplicado:** la juez 3 compra ahora las **tres ramas** contra
+`elPuertoYSuOrigen`, con valores **escritos a mano** (`''`, `'   '`, `'8080'`,
+`' 4200 '`, basura), incluida la muerte ruidosa de la basura
+(`ERR_SOCKET_BAD_PORT`) y —al revés— que `listen(0)` es legal, que es la razón de
+que el fallo fuera MUDO. Y tres juezas nuevas (13, 14, 15) leen el banner de un
+motor de verdad arrancado con el entorno a medias.
+**Commit:** `69ef35e` (T4, grupo operación).
+**Ley que sale de aquí:** **el valor esperado de una prueba se escribe, no se
+calcula.** Si para saber qué esperar hay que repetir la expresión del código, la
+prueba no vigila nada: vigila que una fórmula sea igual a sí misma. Y su
+corolario de la casa: una variable de entorno se prueba en sus **tres** estados
+—ausente, vacía y con basura—, porque la vacía es la que se cuela.
+**Traza:** `motor/src/servidor.ts:130` (antes) · `motor/src/servidor.spec.ts`
+juez 3 · hallazgo E-1 de `docs/auditoriafinal/E-OPERACION.md` §5.
+
+**Nota:** el arreglo ya había comenzado al abrir esta entrada — el campo estrella
+se capturó **contra el árbol de antes**, en un `worktree` sobre `0d70748`, para
+que no fuera memoria fría.
+
+---
+
 ## [2026-09-24] ✅ CERRADA — El huso no solo se pinta: DECIDE. Cuatro funciones elegían el día de servicio y la franja de la ZBE por el reloj del proceso, y la suite del huso daba verde encima
 
 **Nota:** entrada creada al cerrar. La captura no se hizo el día que nació el
