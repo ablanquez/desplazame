@@ -5560,6 +5560,14 @@ describe('Buscador', () => {
     http.expectNone(() => true);
   });
 
+  /**
+   * ⛔ ACTA (B-4-bis, T4 25/09). Esta jueza compraba «No se pudo preguntar al
+   * motor», y ese texto se ha ido por decisión firmada de Antonio: era la misma
+   * jerga que el B-4 quitó del error de ruta —«el motor» es vocabulario de
+   * dentro, y quien busca una calle no puede arrancar nada—. Compra el texto
+   * NUEVO; lo que vigilaba —que el aviso salga, que el botón siga usable y que
+   * NO se rellene media dirección— no ha cambiado en nada.
+   */
   it('si el motor no contesta, lo dice igual que los demás campos', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
@@ -5574,7 +5582,9 @@ describe('Buscador', () => {
       .error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' });
     fixture.detectChanges();
 
-    expect(avisoUbicacion(raiz)).toContain('No se pudo preguntar al motor');
+    expect(avisoUbicacion(raiz)).toContain(
+      'No se ha podido obtener tu ubicación. Escribe la calle a mano para buscar igual.',
+    );
     expect(botonUbicacion(raiz).disabled).toBe(false);
     expect(valor(raiz, 'calleOrigen')).toBe('');
   });

@@ -236,7 +236,12 @@ try {
   //    de los estados que existen, va vestida de advertencia SI Y SOLO SI dice
   //    que no se pudo leer, y no queda ninguna tira que diga otra cosa. Contra
   //    la fuente de verdad: lo que conteste es lo que se juzga.
-  const MUDO = /disponibilidad no verificada\.$|^No se pudo preguntar al motor/;
+  // ⛔ ACTA (B-4-bis, T4 25/09): la segunda alternativa era «^No se pudo
+  //    preguntar al motor», y ese texto se ha ido por decisión firmada de
+  //    Antonio —la misma jerga que el B-4 quitó del error de ruta—. Se compra el
+  //    texto NUEVO; lo que este patrón decide —cuándo la L5 está diciendo que NO
+  //    PUDO leer, para exigirle entonces el vestido de advertencia— no cambia.
+  const MUDO = /disponibilidad no verificada\.$|^La disponibilidad en tiempo real no responde/;
   const leerL5 = (i) =>
     m.evaluar(`(() => {
       const b = document.querySelectorAll('.vivo__boton')[${i}];

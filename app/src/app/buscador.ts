@@ -2438,7 +2438,24 @@ export class Buscador {
       // ⚠️ Que el MOTOR no conteste no es lo mismo que la fuente callando, y se
       //    dice distinto: aquello lo cuenta el motor con sus palabras, esto es
       //    que no hay nadie a quien preguntárselo.
-      error: () => acabar('No se pudo preguntar al motor. ¿Está arrancado?', 'mudo'),
+      //
+      // ⭐ SIN JERGA, CON SALIDA Y TRANQUILIZANDO LO QUE SE TEME (B-4-bis, T4
+      //    25/09, la fórmula del DISEÑO). Aquí ponía «No se pudo preguntar al
+      //    motor. ¿Está arrancado?» — la MISMA jerga que el B-4 quitó del error
+      //    de ruta, viva en dos sitios más. Lo que teme quien lee esto no es que
+      //    falte un dato en tiempo real: es que **la ruta que tiene delante no
+      //    sirva**. Por eso el texto lo dice antes que nada. Firmado por Antonio.
+      //
+      // Y la causa técnica va al LOG, que es donde la busca quien va a
+      // arreglarla, y no a la cara de quien está en la calle.
+      error: (fallo: unknown) => {
+        console.error(`consulta viva: ${ruta} no contestó`, fallo);
+        acabar(
+          'La disponibilidad en tiempo real no responde ahora mismo; la ruta sigue siendo ' +
+            'válida. Vuelve a probar en un momento.',
+          'mudo',
+        );
+      },
     });
   }
 
@@ -3108,9 +3125,21 @@ export class Buscador {
       .get<PortalCercano | null>(`/api/portal-cercano?lat=${latitude}&lon=${longitude}`)
       .subscribe({
         next: (cercano) => this.conElPortal(cercano),
-        error: () => {
+        // ⭐ SIN JERGA Y CON SALIDA (B-4-bis, T4 25/09). Aquí ponía «No se pudo
+        //    preguntar al motor. ¿Está arrancado?», el tercer sitio de la misma
+        //    jerga. Texto firmado por Antonio.
+        //
+        // ⚠️ Y queda dicho qué ha fallado de verdad, porque el texto no lo dice:
+        //    la ubicación SÍ se obtuvo —hay coordenadas—, lo que no contestó es
+        //    `/api/portal-cercano`. Para quien busca, el resultado es el mismo
+        //    —su ubicación no le ha servido para rellenar el formulario— y la
+        //    salida, la misma; la causa exacta va al log.
+        error: (fallo: unknown) => {
+          console.error('portal-cercano: no contestó', fallo);
           this.buscandoUbicacion.set(false);
-          this.avisoUbicacion.set('No se pudo preguntar al motor. ¿Está arrancado?');
+          this.avisoUbicacion.set(
+            'No se ha podido obtener tu ubicación. Escribe la calle a mano para buscar igual.',
+          );
         },
       });
   }
