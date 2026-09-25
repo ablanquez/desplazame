@@ -225,7 +225,20 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 23/09 tarde, lo en-local son CINCO commits: LA MIGRACIÓN
+*(Al 24/09, LO EN-LOCAL ES EL LOTE DE LA FASE 7 — 40+ commits
+sin push, peaje pendiente. LA FASE 7 [auditoría de cierre, el
+remate de ZetaBus] ESTÁ EN CURSO y su documento rector es
+docs/auditoriafinal/00-MARCO-AUDITORIA-DE-CIERRE.md: §9 el
+tablero [los SEIS informes A·C·B·E·F·D ENTREGADOS el 23-24/09]
+y §10 la mesa [el 🔴 del huso CONFIRMADO en UTC por SSH y
+ARREGLADO: TZ en panel + T1; las CUATRO TANDAS T1-T4 HECHAS el
+24/09; bitácoras 70-71 nuevas, con ley: «el valor esperado se
+escribe, no se calcula»]. Lo que queda del ciclo: dictado de 5
+reportados nuevos → EL PEAJE del lote [batería entera; la
+re-tirada de pintura pendiente] → la séptima pieza → cierre
+[tag+release+CHANGELOG] → escáneres → reposo. El detalle vive
+en el marco, no aquí — este papel no duplica esa mesa.)*
+*(Histórico del 23/09 tarde: lo en-local eran CINCO commits: LA MIGRACIÓN
 DEL RGC — 14 citas al texto reformado [XML oficial], la rueda
 ELI en toda URL al BOE, el dictamen del 50 [queda], los dos
 PAROs declarados sin tocar regla, el dist reconstruido [servía
@@ -1827,17 +1840,17 @@ HUESO de carga que ya no calca la forma de lo que llega [la
 cabecera llega con caja y el esqueleto la dibuja sin ella —
 doctrina: el placeholder calca el layout final] · la deuda
 del lector de pantalla real [NO CONSTA cómo se oyen las cinco
-líneas] · [5b: HECHO ENTERO el 21/09, crónica en su bloque del
+líneas — la instrucción exacta para la sesión, escrita en el §7
+de F-EXPERIENCIA.md desde el 24/09] · [5b: HECHO ENTERO el 21/09, crónica en su bloque del
 PLAN] · [#555 y --superficie-realce: HECHOS en la parte 1 —
 --leyenda y el token real] · los cabos de la parte 2: el #999
 del lienzo en mapa.css + EXTENDER la jueza del color a pelo
 al mapa [hoy solo barre las hojas del resultado] · la key de
 CARTO sin restricción de dominio posible [acta: visible por
-diseño] · los enlaces del pie de 17-114 px NO medidos · el
+diseño] · [enlaces del pie: MEDIDOS Y CENSADOS el 24/09 por el bloque B, excepción En-línea firmada] · el
 README gana su sección de temas/mapa tras la parte 3 · [44 px: HECHOS el 18/09] · dos
 pares fuera del censo vigilados por la P27 [acta del puente] ·
-la tipografía de panel.css [system-ui mientras la app va en
-Inter — cabo del puente-bis; mueve métricas de la tabla]; (3) los pendientes del 14 en
+[tipografía de panel.css: HECHA el 24/09 en la T3 — .frescura a Inter, con acta de métricas]; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · [el cron
 educado: HECHO el 19/09, crónica en su bloque del PLAN]; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
