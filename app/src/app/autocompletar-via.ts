@@ -320,6 +320,28 @@ export class AutocompletarVia {
   });
 
   /**
+   * ⭐ SI SE ESTÁ PREGUNTANDO, SE DICE — Y SE PREGUNTA POR UNA SOLA CAPA
+   *    (25/09).
+   *
+   * ── ⚠️ Aquí ponía `sugerencias.isLoading()` y solo miraba a las VÍAS ──────
+   *
+   * Con una categoría elegida esa capa **no se pide nunca**, así que el
+   * «Buscando…» no aparecía jamás y la lista caía al «Sin resultados» de más
+   * abajo **con la petición todavía en vuelo**: afirmaba que no hay ninguna
+   * farmacia así mientras aún se estaba preguntando. Medido antes de tocarlo:
+   * `EN VUELO[1] dice: Sin resultados`.
+   *
+   * ⚠️ **Y no es un `||` de las dos**, que sería lo cómodo: las dos capas SE
+   *    EXCLUYEN —con `via` no se pide una sola categoría, y al revés—, así que
+   *    lo que hay que mirar es **la carga de lo que de verdad se está
+   *    pidiendo**. Un OR daría lo mismo hoy por casualidad, y mentiría el día
+   *    que alguien vuelva a pedir las dos a la vez.
+   */
+  protected readonly cargandoLaCapaActiva = computed(() =>
+    this.capa() === 'via' ? this.sugerencias.isLoading() : this.sugerenciasSitios.isLoading(),
+  );
+
+  /**
    * ⭐ EL AVISO DE QUE LA CAPA DE SITIOS NO CONTESTA (25/09).
    *
    * ── ⚠️ De dónde sale, que es el hallazgo ────────────────────────────────

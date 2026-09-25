@@ -55,7 +55,7 @@
     [attr.data-campo]="campo()"
     role="listbox"
   >
-    @if (sugerencias.isLoading()) {
+    @if (cargandoLaCapaActiva()) {
       <li class="sugerencias__aviso">Buscando…</li>
     } @else if (sugerencias.error()) {
       <li class="sugerencias__aviso sugerencias__aviso--mal">

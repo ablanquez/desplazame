@@ -247,6 +247,39 @@ describe('AutocompletarVia', () => {
   });
 
   /**
+   * ⭐ MIENTRAS SE PREGUNTA, SE DICE QUE SE ESTÁ PREGUNTANDO — también en una
+   *    categoría (25/09).
+   *
+   * El «Buscando…» miraba `sugerencias.isLoading()`, o sea **la capa de vías**,
+   * y con una categoría elegida esa capa no se pide nunca. Resultado medido
+   * antes de arreglarlo: con la petición de sitios EN VUELO la lista decía
+   * «Sin resultados» —`EN VUELO[1] dice: Sin resultados`—, que es afirmar que no
+   * existe ninguna farmacia así **mientras todavía se está preguntando**. El
+   * mismo «no hay nada» ≠ «no lo sé» del marco, en el estado de carga.
+   *
+   * ⚠️ Se compra con la petición RETENIDA a propósito: sin `flush`, que es el
+   *    único momento en que este estado existe.
+   */
+  it('⭐ con una categoría y la petición en vuelo, dice «Buscando…» y NO «Sin resultados»', async () => {
+    const fixture = TestBed.createComponent(AnfitrionDeSitios);
+    await fixture.whenStable();
+    await escribir(fixture, 'navarra');
+
+    // La petición se queda EN VUELO: se localiza y no se contesta.
+    const enVuelo = http.match((r) => r.url.startsWith('/api/sitios'));
+    expect(enVuelo.length).toBe(1);
+    fixture.detectChanges();
+
+    const lista = (fixture.nativeElement as HTMLElement).querySelector('.sugerencias')!;
+    expect(lista.textContent?.trim()).toBe('Buscando…');
+    expect(lista.textContent).not.toContain('Sin resultados');
+
+    // Y se cierra la petición, que si no la suite se queja con razón.
+    for (const p of enVuelo) p.flush([]);
+    await fixture.whenStable();
+  });
+
+  /**
    * ⭐ LA CAPA DE SITIOS QUE NO CONTESTA — y por qué esta jueza no existía.
    *
    * La lista vigilaba el error de la capa de VÍAS y **no el de la de sitios**.
