@@ -48,8 +48,14 @@ import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.
  * arrancar es lo que se pide**. Quien lo pide es esta línea, y nadie más.
  */
 process.env['DESPLAZAME_SIN_ARRANCAR'] = '1';
-const { atenderPeticion, PUERTO, RAIZ_DE_LA_APP, hayAppConstruida, servirDeLaApp } =
-  await import('./servidor.ts');
+const {
+  atenderPeticion,
+  elPuertoYSuOrigen,
+  PUERTO,
+  RAIZ_DE_LA_APP,
+  hayAppConstruida,
+  servirDeLaApp,
+} = await import('./servidor.ts');
 
 /** Lo que el manejador escribe, sin sockets: código, cabeceras y cuerpo. */
 interface LoEscrito {
@@ -155,12 +161,34 @@ describe('⭐ EL SERVIDOR — la puerta, atendida sin abrir ningún puerto', () 
   });
 
   /**
-   * ⭐ JUEZ 3 — EL PUERTO SALE DEL ENTORNO, CON EL 3000 DE DEFECTO.
+   * ⭐ JUEZ 3 — EL PUERTO SALE DEL ENTORNO, CON EL 3000 DE DEFECTO, Y LA VACÍA
+   *    NO ES UNA VARIABLE PUESTA.
    *
    * [12factor.net/config] la configuración no vive en el código, y su *port
    * binding* dice que el hosting asigna el puerto por la variable `PORT`. Lo
    * que se compra aquí es el defecto: sin `PORT`, **3000**, que es la rutina
    * local de siempre y no puede cambiar sin que alguien se entere.
+   *
+   * ⛔ **ACTA (E-1, T4 25/09). Aquí ponía `assert.equal(PUERTO, suyo ===
+   *    undefined ? 3000 : Number(suyo))`, y eso no compraba nada**: calculaba
+   *    lo esperado **con la misma expresión que vigilaba**, leyendo el mismo
+   *    `process.env` — la tautología que el §4·C nombra, `expect(CONSTANTE)` en
+   *    vez del cableado—. Con `PORT=''` la fórmula daba `0` y el código daba
+   *    `0`: los dos de acuerdo, y el motor escuchando **donde nadie lo busca**.
+   *    Por eso el agujero llegó vivo hasta la auditoría con esta juez en verde.
+   *
+   * Ahora se compran las **tres ramas** contra la función que decide, con
+   * valores escritos a mano y no leídos del entorno:
+   *
+   *   · vacía (y a espacios) → **3000**, y dicho «defecto»
+   *   · número              → ese número, y dicho «entorno»
+   *   · basura              → `NaN`, que es lo que hace que el `listen` muera
+   *                           **RUIDOSAMENTE**. Eso se compra aquí también: es
+   *                           la mitad buena de la historia y no se puede
+   *                           perder al arreglar la otra.
+   *
+   * Y que el valor exportado **sale de esa función** lo compra la juez 5, que
+   * arranca un motor de verdad con su `PORT` y lee la línea del arranque.
    */
   /**
    * ⭐ JUEZ 4 — IMPORTAR EL MÓDULO **ARRANCA EL SERVIDOR**, que es lo que el
@@ -441,9 +469,149 @@ ${dicho.slice(-1200)}`,
     assert.equal(toco, false, 'y no puede haber escrito nada en la respuesta');
   });
 
-  test('⭐ 3 · sin PORT en el entorno, el puerto es 3000', () => {
-    const suyo = process.env['PORT'];
-    assert.equal(PUERTO, suyo === undefined ? 3000 : Number(suyo));
+  test('⭐ 3 · sin PORT, con PORT vacía y con PORT basura: las tres ramas', () => {
+    // Ausente y vacía son la MISMA cosa, y la vacía es la que se colaba.
+    assert.deepEqual(elPuertoYSuOrigen(undefined), { puerto: 3000, origen: 'defecto' });
+    assert.deepEqual(elPuertoYSuOrigen(''), { puerto: 3000, origen: 'defecto' });
+    assert.deepEqual(elPuertoYSuOrigen('   '), { puerto: 3000, origen: 'defecto' });
+
+    // Un número es un número, y se dice de dónde viene.
+    assert.deepEqual(elPuertoYSuOrigen('8080'), { puerto: 8080, origen: 'entorno' });
+    assert.deepEqual(elPuertoYSuOrigen(' 4200 '), { puerto: 4200, origen: 'entorno' });
+
+    // Y la basura sigue dando NaN, que es lo que mata al `listen` a gritos.
+    const basura = elPuertoYSuOrigen('no-soy-un-puerto');
+    assert.equal(basura.origen, 'entorno', 'mal configurada NO es lo mismo que no configurada');
+    assert.ok(Number.isNaN(basura.puerto), `la basura tiene que dar NaN: ${basura.puerto}`);
+    assert.throws(
+      () => createServer().listen(basura.puerto),
+      /ERR_SOCKET_BAD_PORT/,
+      'un puerto que no es número tiene que morir RUIDOSAMENTE, no arrancar mudo',
+    );
+
+    // ⚠️ Y el otro lado de la moneda, que es de donde salía el fallo: el 0 que
+    //    daba la vacía es un puerto PERFECTAMENTE LEGAL para Node —«dame
+    //    cualquiera libre»—, y por eso el arranque no se quejaba.
+    assert.doesNotThrow(() => {
+      const s = createServer();
+      s.listen(0, () => s.close());
+    }, 'listen(0) es legal: por eso la cadena vacía era un fallo MUDO');
+
     assert.ok(Number.isFinite(PUERTO) && PUERTO >= 0, `el puerto tiene que ser un número: ${PUERTO}`);
+  });
+
+  // ══ LAS DOS VARIABLES A MEDIAS, LEÍDAS EN UN ARRANQUE DE VERDAD ══════════
+  //
+  // ⭐ E-1 y E-2 de la auditoría de cierre (T4 25/09). Las dos preguntas son la
+  //    misma: **qué dice el motor cuando el entorno está a medias**. Un hijo
+  //    solo, con `PORT` y `DESPLAZAME_REGEN_TOKEN` **puestas y vacías** —que es
+  //    lo que queda cuando alguien las borra a medias en el panel de un
+  //    hosting—, y dos juezas leyendo su banner.
+  //
+  // ⚠️ `DESPLAZAME_SIN_ARRANCAR=1`: aquí no se abre ningún puerto. Con `PORT`
+  //    vacía el motor caería al 3000 y se llevaría por delante el motor que
+  //    Antonio tenga levantado. Se lee lo que DICE, no lo que escucha.
+  //
+  // ⚠️ Y el vaciado gana al fichero: `.env.local` puede traer un token bueno,
+  //    pero lo que ya está en el entorno MANDA —es la semántica del cargador—,
+  //    así que esta jueza mide igual en la máquina de Antonio y en un clon.
+  // ⚠️ **Contra el FUENTE, no contra el `dist`**, que es la diferencia con la
+  //    juez 5: esto son leyes del arranque de hoy, y el artefacto emitido puede
+  //    ser de ayer. Un hijo por entorno, reutilizado por las juezas que lo
+  //    comparten, para no pagar dos veces el arranque.
+  const bannersPedidos = new Map<string, Promise<string>>();
+  const elBannerCon = (variables: Record<string, string>): Promise<string> => {
+    const clave = JSON.stringify(variables);
+    const yaPedido = bannersPedidos.get(clave);
+    if (yaPedido) return yaPedido;
+    const pedido = new Promise<string>((listo, falla) => {
+      const entrada = new URL('./servidor.ts', import.meta.url).href;
+      const hijo = spawn(process.execPath, ['-e', 'import(process.argv[1]);', entrada], {
+        // `DESPLAZAME_SIN_ARRANCAR` va SIEMPRE: aquí no se abre ningún puerto.
+        env: { ...process.env, ...variables, DESPLAZAME_SIN_ARRANCAR: '1' },
+      });
+      let salida = '';
+      const reloj = setTimeout(() => {
+        hijo.kill();
+        falla(new Error(`el arranque no dijo lo suyo en 120 s:\n${salida.slice(-800)}`));
+      }, 120_000);
+      const mirar = (t: Buffer): void => {
+        salida += t.toString();
+        // Se espera a la línea del FEED, que va DESPUÉS de las dos que aquí se
+        // juzgan: esperar a la última de ellas se arriesga a cortar el hijo
+        // entre dos `console.log` y perder justo la línea nueva.
+        if (/motor: feed GTFS/.test(salida)) {
+          clearTimeout(reloj);
+          hijo.kill();
+          listo(salida);
+        }
+      };
+      hijo.stdout.on('data', mirar);
+      hijo.stderr.on('data', mirar);
+      // Si se muere antes de decirlo, las juezas fallan enseñando lo que dijo.
+      hijo.on('close', () => {
+        clearTimeout(reloj);
+        listo(salida);
+      });
+    });
+    bannersPedidos.set(clave, pedido);
+    return pedido;
+  };
+
+  /**
+   * ⭐ JUEZ 13 — CON `PORT` VACÍA, EL ARRANQUE DICE **3000 (DEFECTO)**.
+   *
+   * La juez 3 compra la regla; ésta compra que el motor la **aplica y la
+   * cuenta**. Antes de esto, `PORT=''` dejaba al motor escuchando en un puerto
+   * aleatorio del sistema y su banner no lo mencionaba: la única forma de
+   * enterarse era que nadie contestara donde tocaba.
+   */
+  test('⭐ 13 · con PORT vacía, el arranque cae al 3000 y lo DICE', async () => {
+    const dicho = await elBannerCon({ PORT: '', DESPLAZAME_REGEN_TOKEN: '' });
+    assert.match(
+      dicho,
+      /motor: puerto 3000 \(defecto\)/,
+      `una PORT vacía tiene que caer al 3000 y decirlo: ${dicho.slice(-600)}`,
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 14 — CON `PORT` DE VERDAD, EL ARRANQUE DICE EL NÚMERO Y **«ENTORNO»**.
+   *
+   * La otra mitad de la misma línea, y la que ata el valor exportado al
+   * entorno: sin ella, `elPuertoYSuOrigen` podría estar perfecta y no estar
+   * cableada a nada. No se puede comprar en la juez 5 —aquélla arranca el
+   * `dist`, que puede ser de ayer—, así que se compra aquí, contra el fuente.
+   */
+  test('⭐ 14 · con PORT puesta, el arranque dice ese puerto y de dónde sale', async () => {
+    const dicho = await elBannerCon({ PORT: '9099' });
+    assert.match(
+      dicho,
+      /motor: puerto 9099 \(entorno\)/,
+      `el puerto del entorno tiene que salir dicho y nombrado: ${dicho.slice(-600)}`,
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 15 — SIN TOKEN, EL ARRANQUE **NOMBRA LA CAPACIDAD APAGADA**.
+   *
+   * El motor ya decía *«sin .env.local […]; manda el entorno»* —cierto y
+   * suficiente para un humano atento—, pero no nombraba **qué deja de
+   * funcionar**: el endpoint de renovación quedaba muerto y solo se sabía
+   * llamándolo. Esa línea se queda; esta juez compra la que faltaba.
+   *
+   * ⚠️ Se compra el TEXTO, con el nombre de la variable y el mínimo dentro,
+   *    porque es lo que alguien va a buscar en el log de un panel remoto. Y no
+   *    se compra ningún valor de ningún secreto: aquí no hay ninguno.
+   */
+  test('⭐ 15 · sin token válido, el arranque nombra la renovación APAGADA', async () => {
+    const dicho = await elBannerCon({ PORT: '', DESPLAZAME_REGEN_TOKEN: '' });
+    assert.match(
+      dicho,
+      /motor: renovación del feed: APAGADA \(sin DESPLAZAME_REGEN_TOKEN o de menos de 32 caracteres\)/,
+      `el arranque tiene que nombrar la capacidad apagada: ${dicho.slice(-600)}`,
+    );
+    // Y la línea de siempre SIGUE ahí: esto añade, no sustituye.
+    assert.match(dicho, /motor: (sin \.env\.local|\.env\.local aporta)/, 'la línea del cargador se queda');
   });
 });

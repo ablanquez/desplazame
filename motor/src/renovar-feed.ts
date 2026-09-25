@@ -383,13 +383,29 @@ export interface Respuesta {
  * ZetaBus: la URL **se queda en los logs**. Por eso esta función solo mira la
  * cabecera y no recibe la `URL` siquiera — no puede leerla ni por descuido.
  */
+/**
+ * ⭐ LA REGLA DE «EL TOKEN SIRVE», EN UN SOLO SITIO (E-2, T4 25/09).
+ *
+ * La usan dos: el `503` de aquí abajo —que es la respuesta al operador— y la
+ * línea del arranque que **nombra la capacidad apagada** (`servidor.ts`). Antes
+ * la condición estaba escrita una vez y el arranque no decía nada; al darle voz
+ * al arranque, la regla pasó a tener dos lectores, y dos lectores de una regla
+ * escrita dos veces es una regla que se va a separar.
+ *
+ * ⚠️ **No recibe ni devuelve el secreto**: recibe lo configurado y devuelve
+ *    sí o no. Por aquí no se escapa un valor ni por descuido.
+ */
+export function elTokenSirve(configurado: string | undefined): boolean {
+  return (configurado?.trim() ?? '').length >= LARGO_MINIMO_DEL_TOKEN;
+}
+
 export function atenderRenovacion(
   configurado: string | undefined,
   cabecera: string | undefined,
   estado: EstadoDelCron,
 ): Respuesta {
   const secreto = configurado?.trim() ?? '';
-  if (secreto.length < LARGO_MINIMO_DEL_TOKEN) {
+  if (!elTokenSirve(configurado)) {
     return {
       codigo: 503,
       cuerpo: {

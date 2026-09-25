@@ -1,7 +1,7 @@
 {
   "name": "desplazame-datos",
   "title": "Desplazame — los conjuntos de datos que el proyecto consume",
-  "description": "Manifiesto de frescura: por cada conjunto, cuando se descargo, que fecha declara el dato de si mismo, con que regla caduca (y de donde sale esa regla) y su huella sha256. Sigue el descriptor Data Package v1 de Frictionless Data y toma de DCAT los terminos de frescura. Las propiedades en castellano son NUESTRAS y estan ahi porque el estandar calla: `descargadoEl`, `modifiedFuente`, `periodicidadFuente`, `caducaEl`, `caducidadFuente`. Lo que no consta se OMITE: la ausencia es el resultado, no un hueco que rellenar.",
+  "description": "Manifiesto de frescura: por cada conjunto, cuando se descargo, que fecha declara el dato de si mismo, con que regla caduca (y de donde sale esa regla) y su huella sha256. Sigue el descriptor Data Package v1 de Frictionless Data y toma de DCAT los terminos de frescura. Las propiedades en castellano son NUESTRAS y estan ahi porque el estandar calla: `descargadoEl`, `modifiedFuente`, `periodicidadFuente`, `caducaEl`, `caducidadFuente`, `peticionFuente`, `ficherosQueNoSonRecursos`. Lo que no consta se OMITE: la ausencia es el resultado, no un hueco que rellenar.",
   "profile": "data-package",
   "homepage": "https://www.zaragoza.es/sede/portal/datos-abiertos/",
   "created": "2026-08-23",
@@ -28,6 +28,7 @@
       "path": "THIRD-PARTY-NOTICES.md"
     }
   ],
+  "ficherosQueNoSonRecursos": "22 ficheros *_cabeceras.txt: cabeceras HTTP guardadas por el cron para la petición condicional — mecanismo del cron, no recursos servidos.",
   "resources": [
     {
       "name": "callejero-portales",

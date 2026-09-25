@@ -52,6 +52,8 @@ import {
   atenderRenovacion,
   cargarEntornoLocal,
   elMundoDeVerdad,
+  elTokenSirve,
+  LARGO_MINIMO_DEL_TOKEN,
   ponerLaCocina,
   registroGuardado,
   renovarFeed,
@@ -127,7 +129,44 @@ const CUERPO_MAXIMO = 4096;
  *
  * La interfaz le habla por el proxy de `ng serve`.
  */
-export const PUERTO = Number(process.env['PORT'] ?? 3000);
+const PUERTO_POR_DEFECTO = 3000;
+
+/**
+ * ⭐ EL PUERTO Y DE DÓNDE SALE, porque una variable VACÍA no es una variable
+ *    puesta (E-1 de la auditoría de cierre, T4 25/09).
+ *
+ * ── ⚠️ Aquí ponía `Number(process.env['PORT'] ?? 3000)`, y tenía un agujero ──
+ *
+ * `??` solo atrapa `undefined` y `null`: **la cadena vacía pasa**, y `Number('')`
+ * es **0**. Y `server.listen(0)` es legal —significa *«dame cualquier puerto
+ * libre»*—, así que el motor arrancaba, imprimía su banner entero y quedaba
+ * escuchando **donde nadie lo busca, sin un solo aviso**. Medido en proceso
+ * hijo por el bloque E: `PORT='' → PUERTO = 0 · tipo number · ¿NaN? false`.
+ *
+ * Una variable puesta y vacía en el panel de un hosting no es un caso
+ * retorcido: es lo que queda cuando alguien la borra a medias.
+ *
+ * **Vacía se trata como NO CONFIGURADA** —cae al 3000 documentado—, y se
+ * `trim()` antes de mirar porque un valor a espacios es la misma media borrada.
+ *
+ * ⚠️ **Y la basura sigue fallando RUIDOSAMENTE, a propósito**: `PORT='no-soy-un-
+ *    puerto'` da `NaN` y el `listen` muere con `RangeError
+ *    [ERR_SOCKET_BAD_PORT]`. Eso no se arregla porque no está roto: es la
+ *    diferencia entre *«no me lo has configurado»* y *«me lo has configurado
+ *    mal»*, y la segunda tiene que doler.
+ */
+export function elPuertoYSuOrigen(crudo: string | undefined): {
+  readonly puerto: number;
+  readonly origen: 'entorno' | 'defecto';
+} {
+  const pedido = (crudo ?? '').trim();
+  return pedido === ''
+    ? { puerto: PUERTO_POR_DEFECTO, origen: 'defecto' }
+    : { puerto: Number(pedido), origen: 'entorno' };
+}
+
+const EL_PUERTO = elPuertoYSuOrigen(process.env['PORT']);
+export const PUERTO = EL_PUERTO.puerto;
 
 /** Si hay una renovación del feed corriendo. Dos crones solapados → 409. */
 const CRON: EstadoDelCron = { enCurso: false };
@@ -197,6 +236,14 @@ if (!SIN_ARRANCAR) {
 //    enganchar la consola para que la línea entre también en el fichero del
 //    día: es el dato que hay que poder mirar cuando algo llegue a destiempo.
 console.log(elHusoDelProceso());
+
+// ⭐ Y EN QUÉ PUERTO, Y DE DÓNDE SALE ESE PUERTO (E-1, T4 25/09). Mismo sitio
+//    que el huso y por la misma razón: es una decisión que el entorno puede
+//    cambiar sin que nadie se entere, y el log es la única ventana que hay en un
+//    panel remoto. Dicho aquí, un `PORT` vaciado a medias se lee en la primera
+//    pantalla —«puerto 3000 (defecto)» cuando se esperaba el del panel— en vez
+//    de acabar en media hora buscando quién no contesta.
+console.log(`motor: puerto ${PUERTO} (${EL_PUERTO.origen})`);
 
 console.log('motor: cargando el grafo…');
 const memoria = cargarGrafo();
@@ -1249,6 +1296,27 @@ export const servidor = createServer(atenderPeticion);
     puestas.length > 0
       ? `motor: .env.local aporta ${puestas.length} variable(s): ${puestas.join(', ')}`
       : 'motor: sin .env.local (o sin nada nuevo que aportar); manda el entorno',
+  );
+}
+
+// ⭐ Y QUÉ CAPACIDAD QUEDA APAGADA, DICHA POR SU NOMBRE (E-2, T4 25/09).
+//
+// ⚠️ La línea de arriba se queda: es cierta y le basta a un humano atento. Lo
+//    que le falta es NOMBRAR lo que no va a funcionar. Sin token, el endpoint
+//    de renovación está muerto —contesta 503— y hasta hoy eso solo se sabía
+//    llamándolo: un motor que arranca entero, dice todo lo que sirve y se calla
+//    lo que no puede hacer.
+//
+// ⚠️ Solo se dice cuando está APAGADA. Una capacidad encendida ya se nota en que
+//    funciona, y el log del arranque tiene que poder leerse en veinte segundos.
+//
+// La condición NO se re-teclea aquí: la contesta `elTokenSirve`, la misma que
+// decide el 503. Y el texto se COMPONE de las dos constantes, que es lo que
+// impide que el día que el mínimo suba a 48 este aviso siga diciendo 32.
+if (!elTokenSirve(process.env[VARIABLE_DEL_TOKEN])) {
+  console.log(
+    `motor: renovación del feed: APAGADA (sin ${VARIABLE_DEL_TOKEN} o de menos de ` +
+      `${LARGO_MINIMO_DEL_TOKEN} caracteres)`,
   );
 }
 
