@@ -326,7 +326,7 @@ contexto limpio de verdad].
 | Bloque F · experiencia | `docs/auditoriafinal/F-EXPERIENCIA.md` | `037e546` | 2026-09-24 | **ENTREGADO** |
 | Bloque D · documentación | `docs/auditoriafinal/D-DOCUMENTACION.md` | `53ae338` | 2026-09-24 | **ENTREGADO** |
 | Tandas de arreglo | §10 de este marco | — | — | EN MESA |
-| Verificación del auditor | `docs/auditoriafinal/VERIFICACION.md` | — | — | — |
+| Verificación del auditor | `docs/auditoriafinal/VERIFICACION.md` | `035f855` | 2026-09-25 | **ENTREGADA** — 56 piezas verificadas · 3 discrepancias [B-6/B-7 sin dictado · «cinco importadores» son 4 · «17 nombres» del CENSO son 20] |
 | Escáneres externos | `docs/auditoriafinal/EXTERNA.md` + capturas | — | — | — |
 | Cierre: tag + release + CHANGELOG + badge | — | — | — | — |
 | El reposo: papeles al día, cabos declarados | — | — | — | — |
