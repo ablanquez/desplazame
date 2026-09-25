@@ -295,7 +295,22 @@ export class AutocompletarVia {
    * pintarlas distinto y una prueba puede distinguirlas sin leer prosa.
    */
   protected readonly lista = computed<readonly Opcion[]>(() => {
-    const vias: Opcion[] = (this.sugerencias.value() ?? []).map((via) => ({
+    // ⭐ FALLO CERRADO AL LEER EL VALOR (25/09).
+    //
+    // ⚠️ Aquí ponía `this.sugerencias.value() ?? []`, y el `??` no llegaba a
+    //    correr nunca en el caso que importaba: **leer el valor de un recurso
+    //    en estado de ERROR lanza**, y la excepción salía de aquí. En la
+    //    plantilla no se veía —las ramas de error se evalúan antes—, pero
+    //    `alTeclear` llama a `lista()` en su primera línea, así que con una
+    //    capa caída **el teclado del campo se quedaba muerto en silencio**:
+    //    Escape dejaba de cerrar el desplegable y el `dispatchEvent` se tragaba
+    //    la excepción. Medido en las DOS capas antes de arreglarlo:
+    //    `SITIOS cerró=false | VÍAS cerró=false`.
+    //
+    // Se pregunta si HAY valor antes de leerlo, que es lo que la API ofrece
+    // para esto. Y esto **no esconde el fallo**: quien lo canta es la plantilla,
+    // con su fila de aviso, y la canta ANTES de mirar si la lista está vacía.
+    const vias: Opcion[] = (this.sugerencias.hasValue() ? this.sugerencias.value() : []).map((via) => ({
       capa: 'via' as const,
       clase: 'via' as const,
       clave: via.codigo,
@@ -304,7 +319,9 @@ export class AutocompletarVia {
       extra: String(via.portales),
       via,
     }));
-    const sitios: Opcion[] = (this.sugerenciasSitios.value() ?? []).map((sitio) => ({
+    const sitios: Opcion[] = (
+      this.sugerenciasSitios.hasValue() ? this.sugerenciasSitios.value() : []
+    ).map((sitio) => ({
       capa: 'sitio' as const,
       clase: sitio.tipo,
       clave: sitio.codigo,

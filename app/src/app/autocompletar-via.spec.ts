@@ -247,6 +247,64 @@ describe('AutocompletarVia', () => {
   });
 
   /**
+   * ⭐ CON LA CAPA CAÍDA, EL TECLADO SIGUE VIVO — las dos capas (25/09).
+   *
+   * ── ⚠️ De dónde sale ────────────────────────────────────────────────────
+   *
+   * `alTeclear` calcula `this.lista().length` en su PRIMERA línea, y `lista()`
+   * lee el `value()` de los dos recursos. Leer el valor de un recurso **en
+   * estado de error LANZA**, así que con la capa caída el manejador moría antes
+   * de hacer nada — y la excepción **no llegaba a ninguna parte**: el
+   * `dispatchEvent` se la traga. Medido antes del arreglo:
+   *
+   *     SANA      abierta=true  cerró=true
+   *     EN ERROR  abierta=true  cerró=false  queja=ninguna
+   *
+   * O sea: **Escape dejaba de cerrar el desplegable**, en silencio, mientras
+   * durase el error.
+   *
+   * Se compra con **Escape**, y no con las flechas, a propósito: las flechas no
+   * tienen nada que recorrer con la lista vacía, así que no distinguirían «se
+   * murió» de «no había nada que hacer». Escape sí: o cierra, o no cierra.
+   *
+   * ⚠️ Y se compran LAS DOS CAPAS, cada una en su caso, aunque la medición diga
+   *    que una de ellas se salvaba: lo que aquí se vigila es la ley —el teclado
+   *    no depende de que las fuentes contesten—, y una ley que solo se compra
+   *    en el caso que falló se rompe por el otro lado la próxima vez.
+   */
+  it('⭐ con la capa en error —sitios y vías—, Escape sigue cerrando el desplegable', async () => {
+    const abierta = (f: any) => !!(f.nativeElement as HTMLElement).querySelector('.sugerencias');
+
+    // 1 · LA CAPA DE SITIOS, que es la que se midió muerta.
+    const conSitios = TestBed.createComponent(AnfitrionDeSitios);
+    await conSitios.whenStable();
+    await escribir(conSitios, 'navarra');
+    http
+      .match((r) => r.url.startsWith('/api/sitios'))
+      .forEach((p) => p.error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' }));
+    await conSitios.whenStable();
+    conSitios.detectChanges();
+    expect(abierta(conSitios)).toBe(true);
+    entrada(conSitios).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    conSitios.detectChanges();
+    expect(abierta(conSitios)).toBe(false);
+
+    // 2 · LA CAPA DE VÍAS, por simetría.
+    const conVias = TestBed.createComponent(Anfitrion);
+    await conVias.whenStable();
+    await escribir(conVias, 'burgos');
+    http
+      .match((r) => r.url.startsWith('/api/vias'))
+      .forEach((p) => p.error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' }));
+    await conVias.whenStable();
+    conVias.detectChanges();
+    expect(abierta(conVias)).toBe(true);
+    entrada(conVias).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    conVias.detectChanges();
+    expect(abierta(conVias)).toBe(false);
+  });
+
+  /**
    * ⭐ MIENTRAS SE PREGUNTA, SE DICE QUE SE ESTÁ PREGUNTANDO — también en una
    *    categoría (25/09).
    *
