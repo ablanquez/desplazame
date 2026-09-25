@@ -132,7 +132,27 @@ export class SelectorPortal {
    */
   protected readonly listo = computed(() => this.via() !== null);
 
-  private readonly todos = computed<readonly Portal[]>(() => this.portales.value() ?? []);
+  /**
+   * ⭐ FALLO CERRADO AL LEER EL VALOR (25/09), igual que en la hermana.
+   *
+   * ⚠️ Aquí ponía `this.portales.value() ?? []`, y el `??` **no llegaba a correr
+   *    nunca** en el caso que importaba: leer el valor de un recurso en estado
+   *    de ERROR lanza, y la excepción salía de aquí. En la plantilla no se veía
+   *    —la rama del aviso se evalúa antes que la de la lista vacía—, pero
+   *    `alTeclear` llama a `lista()` en su primera línea, y `lista()` pasa por
+   *    aquí: con `/api/portales` caído **el teclado del campo se quedaba muerto
+   *    en silencio** —Escape dejaba de cerrar el desplegable y el
+   *    `dispatchEvent` se tragaba la excepción—. Medido:
+   *    `PORTALES en error · abierta=true · Escape cerró=false`.
+   *
+   * Se pregunta si HAY valor antes de leerlo. Y no esconde el fallo: quien lo
+   * canta es la plantilla, con su fila `--mal`, y lo canta ANTES de mirar si la
+   * lista está vacía — comprobado, no heredado: `selector-portal.html:35` va
+   * delante de `:39`.
+   */
+  private readonly todos = computed<readonly Portal[]>(() =>
+    this.portales.hasValue() ? this.portales.value() : [],
+  );
 
   /**
    * Lo que se enseña: los portales de la vía, filtrados por lo escrito.

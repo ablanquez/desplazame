@@ -274,4 +274,41 @@ describe('SelectorPortal', () => {
       'No se han podido cargar los portales en este momento. Prueba de nuevo en un rato.',
     );
   });
+
+  /**
+   * ⭐ CON LOS PORTALES CAÍDOS, EL TECLADO SIGUE VIVO (25/09).
+   *
+   * Calco de la jueza hermana de `autocompletar-via.spec.ts`, y del mismo
+   * fallo: `alTeclear` calcula `this.lista().length` en su primera línea,
+   * `lista()` pasa por `todos()` y `todos()` leía `this.portales.value()` a
+   * pelo. **Leer el valor de un recurso en estado de error LANZA**, así que el
+   * manejador moría antes de hacer nada y la excepción no llegaba a ninguna
+   * parte: el `dispatchEvent` se la traga. Medido aquí antes de arreglarlo:
+   *
+   *     PORTALES en error · abierta=true · Escape cerró=false
+   *
+   * Se compra con **Escape** y no con las flechas, por la razón de la hermana:
+   * con la lista vacía las flechas no tienen nada que recorrer, así que no
+   * distinguirían «se murió» de «no había nada que hacer». Escape sí: o cierra,
+   * o no cierra.
+   */
+  it('⭐ con los portales en error, Escape sigue cerrando el desplegable', async () => {
+    const abierta = (f: any) => !!(f.nativeElement as HTMLElement).querySelector('.portales');
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    fixture.componentInstance.via.set(ADRIANO);
+    fixture.detectChanges();
+    http
+      .expectOne('/api/portales?via=160')
+      .error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' });
+    await fixture.whenStable();
+
+    entrar(fixture);
+    fixture.detectChanges();
+    expect(abierta(fixture)).toBe(true);
+
+    entrada(fixture).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(abierta(fixture)).toBe(false);
+  });
 });
