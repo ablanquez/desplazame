@@ -30,7 +30,7 @@ import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Salud } from '@desplazame/tipos';
 import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
@@ -288,7 +288,53 @@ ${dicho.slice(-1200)}`,
    *    tiene que ser el pid que contesta `/api/salud`**, que es la regla de casa
    *    para no medir contra un proceso que no es el que se cree.
    */
-  test('⭐ 5 · un lanzador que hace require() del puente lo pone a escuchar', async () => {
+  /**
+   * ⛔ ACTA DEL SKIP HONESTO (D-1·2 de la auditoría de cierre, T4 25/09).
+   *
+   * Esta juez necesita `motor/dist/servidor.js` —lo que `arranque.cjs` requiere—
+   * y ese fichero **lo produce `npm run build` y el `.gitignore` lo excluye**
+   * (línea 7): **un clon nunca lo trae**. Hasta hoy eso era un `ROJO` con
+   * `ERR_MODULE_NOT_FOUND` en la cara de cualquiera que clonara y corriera
+   * `npm run probar`, y el rojo **no era suyo**.
+   *
+   * ── LA ELECCIÓN, MEDIDA ANTES DE ELEGIR ─────────────────────────────────
+   *
+   * El encargo permitía construir el puente aquí dentro **si era barato y sin
+   * efectos**. Se midió: `npm run build --workspace @desplazame/motor` tarda
+   * **1,6 s en frío** y 3,0 s con `dist` ya hecho. **Barato sí. Sin efectos
+   * NO**, por dos razones:
+   *
+   * 1. Escribe **106 ficheros y 1,7 MB en `motor/dist`**, que es el artefacto
+   *    que el puente de Hostinger sirve. Una prueba de unidad que reconstruye
+   *    el artefacto de despliegue **pisa lo que el operador tenga ahí**, sin
+   *    pedir permiso y sin decirlo.
+   * 2. Y la peor: una prueba que se construye su propio prerrequisito **no
+   *    puede volver a avisar de que falta**. El dato que D-1 quiere en pantalla
+   *    —que el paso del build existe y el README de la raíz no lo nombra— se
+   *    perdería para siempre detrás de un verde. Es el «verde prestado» del
+   *    §4·C, que la propia regla pone por debajo del skip: *«un skipped honesto
+   *    > un rojo por entorno > un verde prestado»*.
+   *
+   * Así que se salta **diciendo el paso exacto**, que es lo único que hacía
+   * falta. Con el `dist` hecho —la máquina de Antonio, el servidor— corre igual
+   * que siempre: esto no relaja la juez, le pone un porqué.
+   *
+   * ⚠️ **Y queda dicho lo que esta juez mide, porque no es obvio:** el puente
+   *    requiere `dist/servidor.js`, o sea el **artefacto EMITIDO**, no el
+   *    fuente. Eso es lo correcto —es lo que Hostinger ejecuta—, pero significa
+   *    que **una ley nueva del fuente no se puede comprar aquí**: con un `dist`
+   *    de ayer, esta juez daría rojo por un cambio de hoy que está bien. Las
+   *    leyes del arranque se compran contra el fuente, y de eso se encargan las
+   *    juezas 13 a 15. Descubierto al intentar justo eso (T4, E-1).
+   */
+  const PUENTE_EMITIDO = fileURLToPath(new URL('../dist/servidor.js', import.meta.url));
+  const SIN_PUENTE = !existsSync(PUENTE_EMITIDO);
+
+  test('⭐ 5 · un lanzador que hace require() del puente lo pone a escuchar', {
+    skip: SIN_PUENTE
+      ? 'necesita motor/dist — npm run build --workspace @desplazame/motor'
+      : false,
+  }, async () => {
     const puente = fileURLToPath(new URL('../arranque.cjs', import.meta.url));
     const puerto = await new Promise<number>((listo) => {
       const s = createServer();

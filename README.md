@@ -11,6 +11,8 @@
 [![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n%20y%20en%20producci%C3%B3n-B45309)](#estado-ocho-modos-de-punta-a-punta)
 [![Producción](https://img.shields.io/badge/en%20l%C3%ADnea-desplazame.antonioblanquez.es-16A34A)](https://desplazame.antonioblanquez.es)
 
+![La portada de Desplázame: el buscador y el mapa](docs/img/portada.png)
+
 </div>
 
 ---
@@ -634,6 +636,9 @@
   ahora y qué queda.
 - **[`docs/BITACORA.md`](docs/BITACORA.md)** — los fallos reales, con lo que daba verde mientras
   el fallo estaba vivo y la ley que salió de cada uno.
+- **[`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md)** — cómo esto llega a producción: qué viaja y qué
+  no, el guardián del build, dónde viven las variables, y los cinco `NO CONSTA` del panel con la
+  instrucción exacta de qué mirar para cerrarlos.
 - **[`docs/INVESTIGACION-EQUIPAMIENTOS.md`](docs/INVESTIGACION-EQUIPAMIENTOS.md)** — los datos
   abiertos del Ayuntamiento sondeados uno a uno: qué publican, por qué puerta, y en qué no
   coinciden entre sí.
@@ -689,6 +694,13 @@ git clone https://github.com/ablanquez/desplazame.git
 cd desplazame
 npm install          # en la RAÍZ: son workspaces, instala los tres a la vez
 ```
+
+> ℹ️ **`npm install` imprime avisos `allow-scripts` de esbuild y otros: es lo esperado y no
+> bloquea nada.** Salen cuatro paquetes con `postinstall` sin ejecutar —`esbuild`, `lmdb`,
+> `@parcel/watcher`, `msgpackr-extract`— y la orden sale con **0**. Demostrado en el clon limpio del
+> bloque D de la auditoría de cierre: con esos mismos avisos, `ng serve` compiló y sirvió las
+> páginas. Se dice aquí porque cuatro líneas con la palabra `esbuild` en amarillo, sin nada escrito
+> al lado, son media hora de alguien comprobando si tiene un problema.
 
 > ⭐ **Y no hace falta ninguna clave para arrancar.** El GTFS entra en el repositorio como
 > **semilla fechada** —`app/data/2026-08-10_nap_gtfs-ficha1176.zip`—, así que un clon limpio
@@ -762,6 +774,35 @@ Con las dos arriba, en el navegador:
 > los contextos seguros, y `localhost` cuenta como tal; si abres la interfaz por la IP de la
 > máquina desde otro aparato, el botón lo dirá en vez de quedarse callado.
 
+### Correr las pruebas
+
+⚠️ **Aquí no había nada, y eso era el hallazgo D-1 de la auditoría de cierre.** Este README solo
+nombraba `npm test` **para decir que las de pantalla no entran en él**, y ningún otro papel de la
+raíz decía cómo correr las de unidad: quien probaba lo obvio —`npm run probar`, que la raíz
+expone— se llevaba **dos rojos que no eran suyos**. Son tres órdenes y **una va primero**:
+
+```bash
+npm run build --workspace @desplazame/motor   # PRIMERO: emite motor/dist (tsc, ~2 s)
+npm run probar                                # motor (node:test) + interfaz (Vitest)
+npm run comprobar-tipos                       # los dos lados, con censo de ficheros
+```
+
+**Por qué el build va antes.** Una jueza del motor comprueba el **puente de arranque de
+producción** (`motor/arranque.cjs`), y ese puente carga `motor/dist/servidor.js`, que **no viaja
+en el repositorio** (`.gitignore:7`). Sin construirlo primero, esa jueza **se salta diciéndolo**:
+
+```
+﹣ ⭐ 5 · un lanzador que hace require() del puente lo pone a escuchar # necesita motor/dist —
+  npm run build --workspace @desplazame/motor
+```
+
+Un *skip* que nombra su paso es información; el rojo que salía antes era ruido. Con el `dist`
+hecho, corre como siempre.
+
+**Y las de pantalla no entran en `npm run probar`**: son diez suites que conducen un Chrome de
+verdad y necesitan la aplicación sirviendo. Van por su propia entrada, `npm run bateria` — ver
+[«Y las pruebas de pantalla, a mano»](#comprobar-que-lo-que-contesta-es-lo-de-ahora), abajo.
+
 ### Comprobar que lo que contesta es lo de ahora
 
 Un `200` dice que **alguien** contesta; no dice quién ni con qué. Hay una guardia para cada
@@ -801,14 +842,40 @@ permite correrlos contra el `dist` y no solo contra `ng serve`. Miden lo que sol
 píxel: el contraste real, el aire entre piezas, los solapes, y los botones vivos contra sus
 fuentes.
 
+Desde el 24/09 tienen **entrada propia**, que es la que sabe qué argumentos pide cada una —son
+seis convenciones distintas— y dónde dejar las capturas:
+
 ```bash
-node app/e2e/pintura.mjs http://127.0.0.1:4200 <carpeta-de-capturas>   # la pintura del resultado
-APP=http://127.0.0.1:4200/ node app/e2e/proximo-bus.mjs                   # los botones, con la fuente viva
+npm run bateria                  # las diez, en fila, con su resumen y su código de salida
+npm run bateria:pintura          # una sola, por su nombre
+npm run bateria -- --url=http://localhost:4300/   # contra otra dirección
 ```
 
-⚠️ **`127.0.0.1` y no `localhost`**, y es un fallo medido: en Windows `localhost` resuelve antes a
-`[::1]`, y si ahí escucha otro proceso —un `ng serve` viejo, por ejemplo— el guion mide **su**
-página y no la tuya.
+Las capturas salen a `app/e2e/capturas/`, que está en el `.gitignore`: son el testigo de una
+tirada concreta. Y a pelo siguen corriendo igual, que es lo que permite afinar una:
+
+```bash
+node app/e2e/pintura.mjs http://localhost:4200 <carpeta-de-capturas>   # la pintura del resultado
+APP=http://localhost:4200/ node app/e2e/proximo-bus.mjs                # los botones, con la fuente viva
+```
+
+⚠️ **`localhost` y no `127.0.0.1` cuando sirve `ng serve`**, y es un hecho **medido hoy**
+(25/09): el servidor de desarrollo de Angular **se ata solo a `[::1]`** —`netstat` dice
+`TCP [::1]:4200 LISTENING`—, así que `http://127.0.0.1:4200/` **no contesta nadie**
+(`ECONNREFUSED`) y `localhost` y `[::1]` dan **200**. El motor es otra historia: escucha en
+`0.0.0.0` y en `[::]`, y por él se puede entrar de las tres formas.
+
+> ⚠️ **Aquí ponía justo lo contrario** —«`127.0.0.1` y no `localhost`», porque en Windows
+> `localhost` resuelve antes a `[::1]` y un `ng serve` viejo escuchando ahí te hace medir **su**
+> página—. El riesgo que describía es real y sigue siéndolo contra el `dist` servido por el motor;
+> lo que no decía es que contra `ng serve` **esa dirección no funciona en absoluto**. Se corrige
+> en vez de reescribirlo en silencio: dejó de ser un buen consejo el día que alguien lo siguió.
+
+ℹ️ **Y `MOTOR_LOG` es una captura de `stdout`, no el log diario del motor.** Las suites que
+esperan una línea del arranque buscan `^motor: …` anclado, y `motor/logs/<día>.log` escribe cada
+línea con su marca de tiempo delante (`2026-09-25T…Z I motor: …`): apuntar ahí **no casa nunca** y
+da un tope de dos minutos que parece un fallo del producto. Se le da el fichero donde se esté
+volcando la salida del motor.
 
 ### El arranque del bus, que es su comprobación
 

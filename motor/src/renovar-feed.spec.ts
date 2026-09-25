@@ -440,7 +440,24 @@ describe('⭐ LA RENOVACIÓN DEL FEED — el cron que lo trae del NAP', () => {
     const comoBarras = FICHEROS_DE_ENTORNO.map((r) => r.replace(/\\/g, '/'));
     assert.equal(comoBarras.length, 2, comoBarras.join(' | '));
     assert.match(comoBarras[0]!, /\/motor\/\.env\.local$/, 'el primero tiene que ser el del motor');
-    assert.match(comoBarras[1]!, /004_DESPLAZAME\/\.env\.local$/, 'y el segundo el de la raíz');
+
+    // ⛔ ACTA (D-1·1 de la auditoría de cierre, T4 25/09). Aquí ponía
+    //    `/004_DESPLAZAME\/\.env\.local$/`, o sea **el nombre de la carpeta de
+    //    quien la escribió**: en el clon limpio del bloque D —que se llamaba
+    //    `desplazame`, como el propio README manda clonar— esta línea era ROJA,
+    //    y el rojo no era de nadie que clonara. Su hermana de arriba ya lo hacía
+    //    bien, comprobando la FORMA y no el nombre.
+    //
+    //    Ahora se compra la relación de verdad —**el segundo es el de la raíz
+    //    que contiene a `motor/`**—, derivada del primero, que la línea anterior
+    //    acaba de comprobar. Así vale en cualquier máquina y en cualquier
+    //    carpeta, y sigue comprobando exactamente lo mismo.
+    const laRaiz = comoBarras[0]!.replace(/\/motor\/\.env\.local$/, '');
+    assert.equal(
+      comoBarras[1]!,
+      `${laRaiz}/.env.local`,
+      'y el segundo, el de la raíz que contiene a motor/ — se llame como se llame',
+    );
 
     // Y con dos ficheros, el PRIMERO manda y el segundo completa.
     const dir = mkdtempSync(join(tmpdir(), 'desplazame-env2-'));
