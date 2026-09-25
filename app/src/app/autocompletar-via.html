@@ -61,6 +61,8 @@
       <li class="sugerencias__aviso sugerencias__aviso--mal">
         No se ha podido buscar la calle en este momento. Prueba de nuevo en un rato.
       </li>
+    } @else if (sugerenciasSitios.error()) {
+      <li class="sugerencias__aviso sugerencias__aviso--mal">{{ avisoDeLaCapa() }}</li>
     } @else if (lista().length === 0) {
       <li class="sugerencias__aviso">Sin resultados</li>
     } @else {

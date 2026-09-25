@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import type { Via } from '@desplazame/tipos';
+import type { Sitio, Via } from '@desplazame/tipos';
 import { AutocompletarVia } from './autocompletar-via';
 
 /**
@@ -19,6 +19,7 @@ import { AutocompletarVia } from './autocompletar-via';
     campo="calleOrigen"
     etiqueta="Calle"
     capa="via"
+    etiquetaDeLaCapa="Dirección"
     [(texto)]="texto"
     [seleccion]="elegida()"
     (seleccionChange)="elegida.set($event)"
@@ -31,6 +32,32 @@ class Anfitrion {
 
   readonly texto = signal('');
   readonly elegida = signal<Via | null>(null);
+}
+
+/**
+ * El mismo campo, pero con una CATEGORÍA elegida en el desplegable «Tipo».
+ *
+ * ⚠️ Hace falta un anfitrión aparte porque `capa` se fija al montar y es lo que
+ *    decide qué se pide: con `via` no se pide la capa de sitios **en absoluto**.
+ *    Y `etiquetaDeLaCapa` lleva la etiqueta del catálogo de `buscador.ts`, que
+ *    es la palabra que la pantalla enseña — aquí escrita a mano porque esta
+ *    prueba monta el hijo sin el padre.
+ */
+@Component({
+  imports: [AutocompletarVia],
+  template: `<app-autocompletar-via
+    campo="calleDestino"
+    etiqueta="Nombre"
+    capa="farmacia"
+    etiquetaDeLaCapa="Farmacias"
+    [(texto)]="texto"
+    [sitio]="elegido()"
+    (sitioChange)="elegido.set($event)"
+  />`,
+})
+class AnfitrionDeSitios {
+  readonly texto = signal('');
+  readonly elegido = signal<Sitio | null>(null);
 }
 
 const BURGOS_CASETAS: Via = {
@@ -217,6 +244,43 @@ describe('AutocompletarVia', () => {
     expect(raiz.querySelector('.sugerencias__aviso--mal')?.textContent).toContain(
       'No se ha podido buscar la calle en este momento. Prueba de nuevo en un rato.',
     );
+  });
+
+  /**
+   * ⭐ LA CAPA DE SITIOS QUE NO CONTESTA — y por qué esta jueza no existía.
+   *
+   * La lista vigilaba el error de la capa de VÍAS y **no el de la de sitios**.
+   * Medido antes de escribir esto: 24 citas a `/api/sitios` repartidas en cinco
+   * pruebas y **ninguna la hacía fallar**, así que esa rama no la juzgaba nadie.
+   *
+   * Y no era un fallo parcial: las dos capas **se excluyen** —con una categoría
+   * elegida no se pide ni una vía—, así que al caerse `/api/sitios` no quedaba
+   * nada que enseñar y la lista decía «Sin resultados». O sea, **afirmaba que no
+   * existe ninguna farmacia que se llame así**. Es el «no hay nada» ≠ «no lo sé»
+   * del marco, sobre la única fuente viva de ese momento.
+   *
+   * Se compran las tres cosas: que la fila `--mal` diga el texto **con la
+   * palabra del desplegable**, que «Sin resultados» NO aparezca, y que el aviso
+   * sea lo único que hay en la lista —no hay resultados vivos que tapar, porque
+   * no puede haberlos—.
+   */
+  it('⭐ si la capa de sitios se cae, lo dice con SU palabra y no dice «Sin resultados»', async () => {
+    const fixture = TestBed.createComponent(AnfitrionDeSitios);
+    await fixture.whenStable();
+    await escribir(fixture, 'navarra');
+    http
+      .expectOne((r) => r.url.startsWith('/api/sitios'))
+      .error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const lista = (fixture.nativeElement as HTMLElement).querySelector('.sugerencias')!;
+    expect(lista.querySelector('.sugerencias__aviso--mal')?.textContent?.trim()).toBe(
+      'No se ha podido consultar la lista de farmacias en este momento. Prueba de nuevo en un rato.',
+    );
+    expect(lista.textContent).not.toContain('Sin resultados');
+    expect(lista.querySelectorAll('[role=option]').length).toBe(0);
+    expect(lista.children.length).toBe(1);
   });
 
   // ── El fallo de la entrada nº4 de la bitácora ─────────────────────────────

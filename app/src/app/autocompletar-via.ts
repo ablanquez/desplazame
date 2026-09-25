@@ -97,6 +97,19 @@ export class AutocompletarVia {
   readonly capa = input.required<Clase>();
 
   /**
+   * ⭐ CÓMO SE LLAMA ESA CAPA EN LA PANTALLA (25/09).
+   *
+   * No es una palabra nueva ni se teclea aquí: es **la etiqueta del desplegable
+   * «Tipo»**, que baja del catálogo de `buscador.ts` —el único sitio donde
+   * viven—. Se necesita para poder decir qué lista no se ha podido consultar,
+   * con la palabra que la persona acaba de elegir.
+   *
+   * ⚠️ Va obligatoria a propósito: quien monte este campo tiene que decidir qué
+   *    palabra usa, y «Dirección» es la del catálogo para la capa de calles.
+   */
+  readonly etiquetaDeLaCapa = input.required<string>();
+
+  /**
    * ⭐ EL FOCO: el código del OTRO extremo, si ya está resuelto.
    *
    * [DOC Pelias] `focus.point` *«will prioritize results closer to the focus
@@ -211,6 +224,14 @@ export class AutocompletarVia {
         console.error('/api/vias no contestó', fallo);
       }
     });
+
+    // Y la de sitios, por la misma razón y con el mismo patrón.
+    effect(() => {
+      const fallo = this.sugerenciasSitios.error();
+      if (fallo) {
+        console.error('/api/sitios no contestó', fallo);
+      }
+    });
   }
 
   /**
@@ -297,6 +318,30 @@ export class AutocompletarVia {
     // los sitios son la novedad, no el caso general.
     return [...vias, ...sitios];
   });
+
+  /**
+   * ⭐ EL AVISO DE QUE LA CAPA DE SITIOS NO CONTESTA (25/09).
+   *
+   * ── ⚠️ De dónde sale, que es el hallazgo ────────────────────────────────
+   *
+   * La lista vigilaba el error de la capa de VÍAS y **no el de la de sitios**.
+   * Y como las dos capas se EXCLUYEN —con una categoría elegida no se pide ni
+   * una vía—, si `/api/sitios` se caía no quedaba nada que enseñar y la lista
+   * decía **«Sin resultados»**: o sea, afirmaba que **no existe** ninguna
+   * farmacia que se llame así. Es el «no hay nada» ≠ «no lo sé» del marco, sobre
+   * la única fuente viva de ese momento.
+   *
+   * La frase se compone aquí —y no en la plantilla— porque lleva dentro **la
+   * palabra que la persona acaba de elegir** en el desplegable. La forma «la
+   * lista de …» es deliberada: vale para las siete etiquetas reales sin pelear
+   * artículos («la lista de farmacias», «la lista de centros de salud», «la
+   * lista de colegios e institutos»).
+   */
+  protected readonly avisoDeLaCapa = computed(
+    () =>
+      `No se ha podido consultar la lista de ${this.etiquetaDeLaCapa().toLowerCase()} ` +
+      `en este momento. Prueba de nuevo en un rato.`,
+  );
 
   /** Hay algo que enseñar en el desplegable: sugerencias, «buscando» o «nada». */
   protected readonly hayQueMostrar = computed(

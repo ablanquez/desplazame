@@ -2986,6 +2986,25 @@ export class Buscador {
     ]),
   ];
 
+  /**
+   * ⭐ LA ETIQUETA DE UN TIPO, DEL CATÁLOGO Y NO RETECLEADA (25/09).
+   *
+   * La lista de arriba es el ÚNICO sitio donde viven estas palabras, y es la
+   * misma que pinta el desplegable «Tipo». Desde hoy la necesita también el
+   * campo de búsqueda, para poder decir **qué lista** no ha podido consultar
+   * cuando la capa de sitios se cae: «la lista de farmacias», con la palabra
+   * que la persona acaba de elegir y no con una inventada aquí.
+   *
+   * ⚠️ El `find` no puede fallar con un tipo que esté elegido —solo se puede
+   *    elegir lo que este catálogo ofrece—, así que el caso imposible **no se
+   *    disfraza de vacío**: devuelve el propio `id`, que se ve, se lee raro y
+   *    lleva derecho aquí. Un `?? ''` dejaría un hueco en la frase.
+   */
+  protected etiquetaDeTipo(id: Clase): string {
+    const tipo = this.tipos.find((t) => t.id === id);
+    return tipo ? tipo.etiqueta : id;
+  }
+
   protected alElegirVia(lado: Lado, via: Via | null): void {
     lado.via.set(via);
     lado.portalTexto.set('');
