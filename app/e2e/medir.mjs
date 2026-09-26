@@ -388,6 +388,10 @@ const PUERTOS_DEL_ARNES = new Set([
   // ⭐ Los seis de la P30 (18/09), los 44 px del formulario: tres anchos × dos
   //    temas. Entran aquí a la vez que la jueza, que es lo que pide la guarda.
   9840, 9841, 9850, 9851, 9860, 9861,
+  // ⭐ Los dos de la P30·bis (26/09, B-6): el censo cerrado fuera de la portada,
+  //    `/creditos` y `/identidad`. Entran aquí a la vez que la jueza, que es lo
+  //    que pide la guarda — un puerto nuevo sin fila la pone en rojo.
+  9842, 9843,
   // Los tres de la P31 (18/09): reflow, zoom y teclado.
   9870, 9871, 9880,
   // ⭐ El sondeo de la P28 (19/09): ¿hay panel en lo que se está mirando? Desde

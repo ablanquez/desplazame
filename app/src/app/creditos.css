@@ -75,6 +75,16 @@
   text-decoration: underline;
 }
 
+/* ⭐ EL «VOLVER AL BUSCADOR», A LA VARA (B-6, 26/09).
+   Medido: **162,3×26,4**, y es el único de los diez enlaces de esta página que
+   NO va dentro de una frase —su `<p>` no contiene más texto que el suyo—. Los
+   otros nueve se acogen a la excepción En-línea [WCAG 2.5.5] y van escritos en
+   el censo de `app/e2e/pintura.mjs`; éste no tiene renglón que romper, así que
+   sube. Acotado al párrafo del volver, que es lo que lo distingue de ellos. */
+.creditos-pagina__volver .creditos-pagina__enlace {
+  min-height: 44px;
+}
+
 .creditos-pagina__enlace:hover {
   text-decoration: none;
 }

@@ -73,7 +73,17 @@
   font-size: 0.9rem;
 }
 
+/* ⭐ LA VARA DE LA CASA, TAMBIÉN AQUÍ (B-6, 26/09).
+   [WCAG 2.5.5, AAA] el objetivo táctil mide 44×44, y la casilla 5 lo fija para
+   esta casa. Este botón daba **166,6×42,2** medidos en Chrome: le faltaban 1,8
+   px de alto. No se acoge a «En-línea» —es un BOTÓN, no un enlace dentro de una
+   frase— así que la vara le manda entera.
+   El patrón es el que esta misma hoja ya usa para eso, `.identidad__pildora`:
+   `inline-flex` + `align-items: center` + `min-height`. No se estrena ninguno. */
 .identidad__conmutador {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   flex-shrink: 0;
   padding: 0.6rem 1rem;
   font: inherit;
@@ -321,6 +331,16 @@
   align-items: center;
   color: inherit;
   text-decoration: underline;
+}
+
+/* ⭐ Y EL «VOLVER AL BUSCADOR», QUE NO ES UN ENLACE EN LÍNEA (B-6, 26/09).
+   Medido: **162,3×20**. Vive SOLO dentro de su `<p>` —su bloque no tiene una
+   sola letra que no sea suya, comprobado a máquina—, así que la excepción
+   En-línea no le toca: no hay renglón que romper. Mismo patrón que arriba, y
+   acotado al párrafo del volver para no tocar a sus hermanos, que sí van dentro
+   de frases. */
+.identidad__volver .identidad__enlace {
+  min-height: 44px;
 }
 
 .identidad__enlace:hover {

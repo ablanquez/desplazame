@@ -5380,6 +5380,34 @@ const EXCEPCIONES_DE_TARGET = [
     excepcion: 'En-línea',
     porque: 'la atribución del mapa es una frase con sus enlaces dentro, y va como tal [OSMF, política de teselas]',
   },
+  /**
+   * ⭐ LOS DE LA PÁGINA DE CRÉDITOS (B-6, 26/09).
+   *
+   * ⚠️ **La fila de arriba decía cubrirlos y no llegaba.** Su porqué habla de
+   *    *«el pie y la página de créditos»*, pero su selector es
+   *    `a.creditos__enlace` —la franja del pie— y los de la página llevan OTRA
+   *    clase, `creditos-pagina__enlace`. Por eso el B-6 los encontró fuera del
+   *    censo: la intención estaba escrita, el selector no la alcanzaba.
+   *
+   * Medidos hoy uno a uno con el criterio firmado —¿tiene su bloque texto que
+   * no sea del propio enlace?—: **diez enlaces, nueve EN LÍNEA**, de 51,9×26,4
+   * a 261,7×26,4, dentro de frases («El mapa lo dibuja …», «Bajo …, que viaja
+   * junto a…», «© …») y del par del pie separado por «·».
+   *
+   * ⚠️ **El décimo NO entra aquí**: «Volver al buscador» vive solo en su `<p>`
+   *    —su bloque no tiene una sola letra ajena, comprobado a máquina— así que
+   *    no hay renglón que romper y la excepción no le toca. Ha subido a 44 en
+   *    `creditos.css` y por eso ya no aparece bajo la vara.
+   */
+  {
+    sel: 'a.creditos-pagina__enlace',
+    excepcion: 'En-línea',
+    porque:
+      'nueve de los diez van dentro de una frase de la página de créditos —medido: su bloque ' +
+      'tiene texto que no es del enlace—, y la letra exime el target en línea; agrandarlos ' +
+      'rompería el renglón. El décimo, el «Volver al buscador», NO se acoge: está solo en su ' +
+      'párrafo y por eso subió a 44',
+  },
 ];
 
 /**
@@ -5564,6 +5592,80 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
     } finally {
       m.cerrar();
     }
+  }
+}
+
+// ═══════════ P30·bis · EL CENSO CERRADO, TAMBIÉN FUERA DE LA PORTADA ═══════════
+//
+// ⭐ DE DÓNDE SALE: el hallazgo B-6 de la auditoría de cierre. El censo se
+//    llamaba «cerrado» y solo barría **la portada**: `/creditos` y `/identidad`
+//    quedaban fuera, y ahí vivían once targets por debajo de la vara que ninguna
+//    jueza miraba. Arreglarlos sin meterlos en el barrido habría dejado el
+//    agujero abierto para el siguiente.
+//
+// ⚠️ UNA SOLA PASADA Y UN SOLO TEMA, y va dicho por qué: lo que se mide aquí es
+//    GEOMETRÍA —el área clicable—, y la geometría no depende del tema ni del
+//    ancho de la ventana en estas dos páginas, que no tienen nada responsivo en
+//    sus controles. La P30 de arriba sí recorre anchos y temas porque el
+//    formulario cambia con ellos. Medir doce veces lo que no cambia sería pagar
+//    doce minutos por la misma cifra.
+//
+// ⚠️ Y el `/panel` NO entra: no viaja al dist de producción, así que según qué
+//    se esté midiendo puede no existir. Lo suyo lo vigila la P28, que ya sabe
+//    preguntar si está.
+for (const [k, [ruta, testigo]] of [
+  ['creditos', '.creditos-pagina__enlace'],
+  ['identidad', '.identidad__conmutador'],
+].entries()) {
+  const dicho = `P30·bis · /${ruta}`;
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9842 + k });
+  try {
+    await m.ir(APP + ruta, 6000);
+    console.log(`\n═══ EL CENSO CERRADO FUERA DE LA PORTADA · /${ruta} ═══`);
+    await m.esperar(`/${ruta} montada`, `!!document.querySelector('${testigo}')`, { topeMs: 25000 });
+    await m.pintado();
+
+    const todos = await leer(m, `return ${TODOS_LOS_TARGETS};`);
+    const bajos = todos.filter((t) => !t.esLienzo && (t.ancho < OBJETIVO_TARGET || t.alto < OBJETIVO_TARGET));
+    const sinFila = bajos.filter((t) => filaDelCenso(t) === null);
+    const enDeuda = bajos.filter((t) => filaDelCenso(t)?.tipo === 'deuda');
+    juzgar(
+      sinFila.length === 0,
+      `${dicho} · ⭐ EL CENSO ESTÁ CERRADO: ningún target bajo la vara sin excepción o deuda escrita`,
+      sinFila.length === 0
+        ? `${todos.length} targets · ${bajos.length} bajo la vara, todos con fila` +
+          ` (${bajos.length - enDeuda.length} por excepción, ${enDeuda.length} en deuda)`
+        : sinFila.map((t) => `${t.que} ${t.ancho}×${t.alto}`).join(' · '),
+    );
+    juzgar(
+      new Set(enDeuda.map((t) => t.que)).size <= DEUDA_MAXIMA,
+      `${dicho} · ⭐ y la deuda de targets NO crece`,
+      `${new Set(enDeuda.map((t) => t.que)).size} de ${DEUDA_MAXIMA}: ${[...new Set(enDeuda.map((t) => t.que))].join(', ') || '(ninguna en esta pantalla)'}`,
+    );
+
+    // ⭐ Y LOS DOS QUE EL B-6 SUBIÓ, CON SU CIFRA. La jueza de arriba ya los
+    //    cazaría —sin fila en el censo, rojo—, pero un arreglo que se hizo
+    //    merece su línea en el acta y no un silencio: eran 166,6×42,2 el
+    //    conmutador y 162,3×26,4 / 162,3×20 los dos «Volver al buscador».
+    const subidos = await leer(
+      m,
+      `return [...document.querySelectorAll(
+         '.identidad__conmutador, .creditos-pagina__volver a, .identidad__volver a')]
+         .map((e) => { const r = e.getBoundingClientRect(); return {
+           que: e.tagName.toLowerCase() + '.' + e.classList[0],
+           ancho: Math.round(r.width * 10) / 10, alto: Math.round(r.height * 10) / 10 }; });`,
+    );
+    for (const s of subidos) {
+      juzgar(
+        s.alto >= OBJETIVO_TARGET,
+        `${dicho} · ⭐ ${s.que} llega a la vara [B-6, 26/09]`,
+        `${s.ancho}×${s.alto} px de área clicable`,
+      );
+    }
+
+    await m.guardar(`${CAPTURAS}/p30bis-targets-${ruta}.png`);
+  } finally {
+    m.cerrar();
   }
 }
 
