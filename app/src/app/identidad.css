@@ -123,9 +123,25 @@
   grid-template-columns: repeat(auto-fit, minmax(min(30rem, 100%), 1fr));
 }
 
+/* ⭐ LA COLUMNA DESPLAZABLE, ALCANZABLE CON EL TECLADO (26/09, escáneres).
+   axe cantaba `scrollable-region-focusable` —seria, 4 nodos— a 390 px: estas
+   columnas se desplazan a lo ancho (358 de caja contra 606 de contenido) y
+   **no tienen ni un solo elemento tabulable dentro**, así que con el teclado no
+   había forma de llegar a lo que se sale. La letra de la regla pide justo lo
+   que hay ahora en el HTML: `tabindex="0"` para poder llegar, y un nombre —por
+   `aria-labelledby` al `<h2>` del bloque y al `<h3>` de la columna, o sea
+   **texto que ya se ve; cero palabra nueva**—.
+
+   Y si se puede enfocar, se tiene que VER enfocada [WCAG 2.4.7]: el mismo anillo
+   que usan los enlaces y los botones de esta casa. */
 .identidad__columna {
   min-width: 0;
   overflow-x: auto;
+}
+
+.identidad__columna:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .identidad__deuda {

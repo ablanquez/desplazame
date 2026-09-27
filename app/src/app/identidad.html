@@ -97,7 +97,7 @@
   }
 
   <!-- ══════════════ (i) LAS MUESTRAS, Y LO QUE MIDEN ══════════════ -->
-  <h2>Los pares, y su contraste</h2>
+  <h2 id="titulo-pares">Los pares, y su contraste</h2>
   <p class="identidad__nota">
     Cada fila es un texto sobre la superficie donde de verdad se pinta. El
     umbral es <strong>{{ aaTexto }}:1</strong>, el de WCAG 1.4.3 AA para texto
@@ -107,8 +107,13 @@
 
   <div class="identidad__temas">
     @for (t of temas; track t) {
-      <div class="identidad__columna">
-        <h3>
+      <div
+        class="identidad__columna"
+        role="region"
+        tabindex="0"
+        [attr.aria-labelledby]="'titulo-pares pares-' + t"
+      >
+        <h3 [id]="'pares-' + t">
           {{ t === 'light' ? 'Claro' : 'Oscuro' }}
           @if (cuantosIncumplen(t); as n) {
             <span class="identidad__deuda">{{ n }} por debajo de {{ aaTexto }}:1</span>
@@ -166,7 +171,7 @@
        su tabla. Son los dos componentes elegidos el 14/09 por esta norma —la
        ficha de contorno del poste y el círculo de origen y destino—, medidos en
        reposo y sobre la banda del realce. -->
-  <h2>Los límites, y su contraste</h2>
+  <h2 id="titulo-limites">Los límites, y su contraste</h2>
   <p class="identidad__nota">
     Cada fila es un borde sobre la superficie que tiene al lado. El umbral es
     <strong>{{ aaGrafico }}:1</strong>, el de WCAG 1.4.11 para lo que identifica
@@ -175,8 +180,13 @@
 
   <div class="identidad__temas">
     @for (t of temas; track t) {
-      <div class="identidad__columna">
-        <h3>{{ t === 'light' ? 'Claro' : 'Oscuro' }}</h3>
+      <div
+        class="identidad__columna"
+        role="region"
+        tabindex="0"
+        [attr.aria-labelledby]="'titulo-limites limites-' + t"
+      >
+        <h3 [id]="'limites-' + t">{{ t === 'light' ? 'Claro' : 'Oscuro' }}</h3>
         <table class="identidad__tabla">
           <thead>
             <tr>
