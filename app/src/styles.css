@@ -889,6 +889,25 @@ body:has(.marco) {
   display: none;
 }
 
+/* ⭐ Y CON ELLA SU `<h2>`, QUE SE HABÍA QUEDADO FUERA DE ESA DECISIÓN
+   (26/09, escáneres del cierre).
+
+   ⚠️ El `.bloque__titulo` es el título DEL ACORDEÓN, y su único contenido es el
+      botón de arriba. Escondido el botón, el `<h2>` se quedaba en el árbol
+      **vacío**: caja de 390×0 y ni una letra que anunciar. Un encabezado vacío
+      no es neutral — **miente la jerarquía**: quien navega por encabezados
+      encuentra un nivel 2 que no lleva a ningún sitio. Lo cazó Lighthouse con
+      `empty-heading` a 390, y está contado en
+      `docs/auditoriafinal/EXTERNA.md` §2.
+
+   Es la misma decisión de aquí arriba llevada hasta el final —en móvil manda la
+   barra de pestañas y lo del acordeón se apaga— y con el mismo `.panel` delante
+   por la misma razón de especificidad. En escritorio no cambia nada: el título
+   vuelve con su botón. */
+.panel .bloque__titulo {
+  display: none;
+}
+
 /* ⭐ LA CABECERA COMPACTA DE CADA PESTAÑA [App.tsx: `p-4 border-b shrink-0
    bg-card shadow-sm`]. La del Buscador es el título de la app; la de Ruta, su
    propio `<header>`. Las dos, el mismo traje. */
@@ -1456,9 +1475,18 @@ app-conmutador-de-tema {
   }
 
   /* Y las dos cabeceras del acordeón vuelven: aquí SÍ hay qué plegar.
-     Con el mismo `.panel` delante que las apaga en móvil, o perdería. */
+     Con el mismo `.panel` delante que las apaga en móvil, o perdería.
+
+     ⚠️ Y su `<h2>` con ellas (26/09): se apaga arriba junto al botón —un
+        encabezado vacío miente la jerarquía— así que aquí tiene que volver, o
+        el título del acordeón desaparecería del escritorio. Las dos reglas son
+        una sola decisión y van escritas la una al lado de la otra. */
   .panel .bloque__cabecera {
     display: flex;
+  }
+
+  .panel .bloque__titulo {
+    display: block;
   }
 
   /* ⚠️ Los DOS bloques están, mire donde mire `data-pestana`. El acordeón
