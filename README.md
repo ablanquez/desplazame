@@ -637,8 +637,14 @@
 - **[`docs/BITACORA.md`](docs/BITACORA.md)** — los fallos reales, con lo que daba verde mientras
   el fallo estaba vivo y la ley que salió de cada uno.
 - **[`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md)** — cómo esto llega a producción: qué viaja y qué
-  no, el guardián del build, dónde viven las variables, y los cinco `NO CONSTA` del panel con la
-  instrucción exacta de qué mirar para cerrarlos.
+  no, el guardián del build, dónde viven las variables, y lo que quedó por saber, con la
+  instrucción exacta de qué mirar. Al día con lo medido por SSH el 26/09 — incluido el aviso de
+  que **un push puede no disparar el despliegue**.
+- **[`docs/auditoriafinal/EXTERNA.md`](docs/auditoriafinal/EXTERNA.md)** — la **verificación
+  externa**: Lighthouse, axe, SSL Labs y el validador del W3C pasados sobre el sitio en
+  producción, con sus informes guardados al lado. Con la nota y con lo que la nota esconde —una
+  auditoría de accesibilidad que falla mientras la categoría marca 100— porque esto mide **la
+  forma, no el fondo**.
 - **[`docs/INVESTIGACION-EQUIPAMIENTOS.md`](docs/INVESTIGACION-EQUIPAMIENTOS.md)** — los datos
   abiertos del Ayuntamiento sondeados uno a uno: qué publican, por qué puerta, y en qué no
   coinciden entre sí.
