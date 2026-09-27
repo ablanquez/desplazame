@@ -4,7 +4,26 @@
      estructura. Cada afirmación sobre una licencia está transcrita en su ficha
      de `THIRD-PARTY-NOTICES.md`, que es donde se midió.
 -->
-<section class="creditos-pagina">
+<!--
+  ⭐ EL CONTENEDOR ES UN `div`, Y NO UN `section` (26/09, escáneres del cierre).
+
+  ⚠️ Aquí ponía `<section class="creditos-pagina">`, y eso dejaba a la cabecera
+     de esta página FUERA de todo landmark: un `<header>` solo es el landmark
+     `banner` cuando NO está anidado en `article`, `aside`, `main`, `nav` ni
+     `section`. Lo cazó axe-core con la regla `region` —«All page content should
+     be contained by landmarks», 2 nodos, impacto moderado— y está contado en
+     `docs/auditoriafinal/EXTERNA.md` §3.
+
+     El B-2 de la T3 le dio a esta página su `<main>`, y ahí está; lo que no se
+     vio entonces es que el envoltorio se llevaba por delante el `banner`.
+
+  Es el patrón que la PORTADA ya usa y tiene escrito —`<div class="marco">` con
+  su `<header>` y su `<main>` dentro, y su nota de que los contenedores son
+  `div` A PROPÓSITO—. Además, un `<section>` sin nombre accesible no aporta
+  landmark ninguno: no se pierde nada al cambiarlo, y las reglas de estilo van
+  por clase, así que ni un píxel se mueve.
+-->
+<div class="creditos-pagina">
   <header class="creditos-pagina__cabecera">
     <h1>Créditos y fuentes</h1>
     <p class="creditos-pagina__intro">
@@ -227,4 +246,4 @@
       >
     </span>
   </footer>
-</section>
+</div>

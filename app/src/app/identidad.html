@@ -25,7 +25,15 @@
   dentro se repinta entero: los tokens se redefinen en este subárbol y nada
   más. `<html>` no se toca, así que salir de esta página no deja rastro.
 -->
-<section class="identidad" [attr.data-theme]="tema()">
+<!--
+  ⭐ EL CONTENEDOR ES UN `div`, Y NO UN `section` (26/09, escáneres del cierre).
+     La misma razón y la misma letra que en `creditos.html`: un `<header>`
+     anidado en un `section` NO es el landmark `banner`, y por eso axe-core
+     cantaba `region` en las dos páginas —2 nodos, moderada—. El patrón bueno es
+     el de la portada: contenedor `div`, con su `<header>` y su `<main>` dentro.
+     Ver `docs/auditoriafinal/EXTERNA.md` §3.
+-->
+<div class="identidad" [attr.data-theme]="tema()">
   <header class="identidad__cabecera">
     <div>
       <h1>Identidad visual</h1>
@@ -321,4 +329,4 @@
     </div>
   </div>
   </main>
-</section>
+</div>
