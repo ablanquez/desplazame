@@ -327,7 +327,7 @@ contexto limpio de verdad].
 | Bloque D · documentación | `docs/auditoriafinal/D-DOCUMENTACION.md` | `53ae338` | 2026-09-24 | **ENTREGADO** |
 | Tandas de arreglo | §10 de este marco | — | 2026-09-24/25 | ⚰️ LAS CUATRO + el racimo + B-6 |
 | Verificación del auditor | `docs/auditoriafinal/VERIFICACION.md` | 035f855 | 2026-09-25 | ⚰️ ENTREGADA [56 piezas: 51 verificadas · 5 no-verificables legítimos · 3 discrepancias, las tres de cifra: B-6/B-7 sin dictado (dictados después: B-6 ⚰️ hecho en c98fe63 con los 3 targets a 44, los 9 al censo y la P30·bis; B-7 SE DECLARA a la cola) · «cinco importadores» eran cuatro · «17 citas» eran veinte] |
-| Escáneres externos | `docs/auditoriafinal/EXTERNA.md` + capturas | — | — | — |
+| Escáneres externos | `docs/auditoriafinal/EXTERNA.md` + `externa/` (22 ficheros) | `8aa418a` en producción | 2026-09-27 | **ENTREGADOS** — Lighthouse a11y 100 ×6 · SSL Labs A en 4 nodos · axe 0/1/1 · 4 NO CONSTA [securityheaders, W3C pintado, WAVE, la regla del desafío] · 3 hallazgos que la nota escondía |
 | Cierre: tag + release + CHANGELOG + badge | — | — | — | — |
 | El reposo: papeles al día, cabos declarados | — | — | — | — |
 
