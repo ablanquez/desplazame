@@ -1,0 +1,14 @@
+GET https://desplazame.antonioblanquez.es/  → 200
+alt-svc: h3=":443"; ma=86400
+connection: keep-alive
+content-encoding: br
+content-security-policy: upgrade-insecure-requests
+content-type: text/html; charset=utf-8
+date: Sun, 27 Sep 2026 14:58:41 GMT
+panel: hpanel
+platform: hostinger
+server: hcdn
+transfer-encoding: chunked
+x-hcdn-cache-status: DYNAMIC
+x-hcdn-request-id: 5dd9499cf1f81c02da9823c9140706da-fast-edge6
+x-hcdn-upstream-rt: 0.025

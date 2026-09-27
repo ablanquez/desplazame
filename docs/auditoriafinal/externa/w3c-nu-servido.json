@@ -1,0 +1,17 @@
+{
+ "https://desplazame.antonioblanquez.es/": {
+  "url": "https://desplazame.antonioblanquez.es/",
+  "version": "26.9.27",
+  "messages": []
+ },
+ "https://desplazame.antonioblanquez.es/identidad": {
+  "url": "https://desplazame.antonioblanquez.es/identidad",
+  "version": "26.9.27",
+  "messages": []
+ },
+ "https://desplazame.antonioblanquez.es/creditos": {
+  "url": "https://desplazame.antonioblanquez.es/creditos",
+  "version": "26.9.27",
+  "messages": []
+ }
+}

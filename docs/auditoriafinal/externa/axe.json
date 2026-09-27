@@ -1,0 +1,48 @@
+{
+ "portada": {
+  "url": "https://desplazame.antonioblanquez.es/",
+  "violations": [],
+  "incomplete": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodos": 3
+   }
+  ],
+  "pasadas": 45,
+  "version": "4.13.0",
+  "reglas": "axe"
+ },
+ "identidad": {
+  "url": "https://desplazame.antonioblanquez.es/identidad",
+  "violations": [
+   {
+    "id": "region",
+    "impact": "moderate",
+    "help": "All page content should be contained by landmarks",
+    "nodos": 2,
+    "ejemplo": "header > div"
+   }
+  ],
+  "incomplete": [],
+  "pasadas": 29,
+  "version": "4.13.0",
+  "reglas": "axe"
+ },
+ "creditos": {
+  "url": "https://desplazame.antonioblanquez.es/creditos",
+  "violations": [
+   {
+    "id": "region",
+    "impact": "moderate",
+    "help": "All page content should be contained by landmarks",
+    "nodos": 2,
+    "ejemplo": "header"
+   }
+  ],
+  "incomplete": [],
+  "pasadas": 20,
+  "version": "4.13.0",
+  "reglas": "axe"
+ }
+}
