@@ -16,11 +16,26 @@ import { Tema } from './tema';
  * · `role="switch"` con **`aria-checked`**, que es quien dice el estado.
  * · Un **nombre estable** por `aria-label`.
  *
+ * ⚠️ **Y EL NOMBRE EMPIEZA POR LO QUE SE LEE (26/09, escáneres del cierre).**
+ *    Aquí ponía `aria-label="Modo oscuro"`, y con la variante `barra` —la única
+ *    que pinta texto— eso incumplía [WCAG 2.5.3 *Label in Name*]: en pantalla
+ *    pone **«Tema»** y el nombre accesible no lo contenía, así que quien maneja
+ *    el sitio **por voz** decía lo que ve —«Tema»— y no activaba nada. Lo cazó
+ *    Lighthouse con `label-content-name-mismatch`… **y su categoría siguió
+ *    marcando 100**, porque esa auditoría pesa 0. Está contado en
+ *    `docs/auditoriafinal/EXTERNA.md` §2.
+ *
+ *    El nombre pasa a ser **«Tema oscuro»**: empieza por la palabra visible
+ *    —que es lo que la letra prefiere—, sigue siendo **uno solo para las tres
+ *    variantes** y **sigue sin cambiar con el estado**. El estado no se mueve de
+ *    donde estaba: `aria-checked`, que es el canal del patrón `switch` del APG
+ *    y el que esta casa ya usaba. No se estrena `aria-pressed` ni nada.
+ *
  * ⚠️ **EL NOMBRE NO CAMBIA CON EL ESTADO**, y es el error clásico de estos
  *    botones: «Activar modo oscuro» → «Desactivar modo oscuro». Quien navega
  *    por voz dice el nombre para pulsarlo, y quien navega por lista de
  *    controles lo busca por su nombre: si cambia al usarlo, el control se
- *    escapa cada vez. El nombre es «Modo oscuro» siempre; el estado lo lleva
+ *    escapa cada vez. El nombre es «Tema oscuro» siempre; el estado lo lleva
  *    `aria-checked`, que para eso existe.
  *
  * ⚠️ Y EL ESTADO NO SE DICE SOLO CON COLOR [WCAG 1.4.1]: lo dicen el icono
@@ -89,7 +104,7 @@ import { Tema } from './tema';
       role="switch"
       [class]="clase()"
       [attr.aria-checked]="tema.oscuro()"
-      aria-label="Modo oscuro"
+      aria-label="Tema oscuro"
       (click)="tema.alternar()"
     >
       <app-simbolo [nombre]="tema.oscuro() ? 'dark_mode' : 'light_mode'" [lado]="24" />

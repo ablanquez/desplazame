@@ -6000,7 +6000,7 @@ const PAGINAS_P32 = [
 ];
 
 const EL_CONMUTADOR_SUELTO = `
-  const b = document.querySelector('[role="switch"][aria-label="Modo oscuro"]');
+  const b = document.querySelector('[role="switch"][aria-label="Tema oscuro"]');
   if (!b) return { hay: false };
   const r = b.getBoundingClientRect();
   const s = getComputedStyle(b);
@@ -6066,7 +6066,7 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
         if (!b.hay || !b.visible) continue;
 
         // Y que OPERE: un botón que se ve y no hace nada es un estado deshonesto.
-        await m.evaluar(`document.querySelector('[role="switch"][aria-label="Modo oscuro"]').click()`);
+        await m.evaluar(`document.querySelector('[role="switch"][aria-label="Tema oscuro"]').click()`);
         await m.dormir(400);
         const tras = await leer(m, EL_CONMUTADOR_SUELTO);
         const atributo = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);

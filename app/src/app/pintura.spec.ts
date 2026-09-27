@@ -478,7 +478,8 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
    * ⚠️ **EL NOMBRE NO CAMBIA CON EL ESTADO.** Es el error clásico de estos
    *    botones: llamarlos «Activar modo oscuro» y luego «Desactivar modo
    *    oscuro». Quien navega por voz o por lista de controles pierde el control
-   *    de vista cada vez que lo usa. El nombre es estable —«Modo oscuro»— y
+   *    de vista cada vez que lo usa. El nombre es estable —«Tema oscuro» desde
+   *    el 26/09, por el WCAG 2.5.3: empieza por «Tema», que es lo que se lee— y
    *    quien dice el estado es `aria-checked`, que para eso está.
    */
   it('⭐ el cuarto hueco es un `switch` con estado, no una pestaña', async () => {

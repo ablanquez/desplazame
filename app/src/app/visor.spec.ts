@@ -212,7 +212,7 @@ describe('Visor', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]');
+    const boton = raiz.querySelector('[role="switch"][aria-label="Tema oscuro"]');
     expect(boton).not.toBeNull();
     expect(boton!.tagName).toBe('BUTTON');
   });
@@ -234,7 +234,7 @@ describe('Visor', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]')!;
+    const boton = raiz.querySelector('[role="switch"][aria-label="Tema oscuro"]')!;
     expect(boton.classList.contains('conmutador--suelta')).toBe(true);
     // Y sigue llevando la clase de la casa: el vestido no se copia, se hereda.
     expect(boton.classList.contains('conmutador')).toBe(true);

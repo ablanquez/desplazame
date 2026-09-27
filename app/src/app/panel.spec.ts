@@ -259,7 +259,7 @@ describe('⭐ LA PÁGINA /panel', () => {
    */
   it('⭐ el conmutador de tema está EN la página, y no en la portada', async () => {
     const { raiz } = await ir('/panel');
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]');
+    const boton = raiz.querySelector('[role="switch"][aria-label="Tema oscuro"]');
     expect(boton).not.toBeNull();
     expect(boton!.tagName).toBe('BUTTON');
   });
@@ -279,7 +279,7 @@ describe('⭐ LA PÁGINA /panel', () => {
   it('⭐ y usa la variante SUELTA, que no se apaga por debajo de 768', async () => {
     const { raiz } = await ir('/panel');
 
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]')!;
+    const boton = raiz.querySelector('[role="switch"][aria-label="Tema oscuro"]')!;
     expect(boton.classList.contains('conmutador--suelta')).toBe(true);
     expect(boton.classList.contains('conmutador')).toBe(true);
   });
