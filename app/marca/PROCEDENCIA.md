@@ -30,14 +30,54 @@ que el símbolo de la cabecera y el del favicon son **el mismo dibujo**.
 **[DISEÑO §36]** favicon **SVG** con media query interna; versiones del logo por
 tema, **evitando el blanco puro en oscuro**.
 
-## Los cuatro ficheros
+## Los ficheros: cuatro fuentes y tres rasters
+
+**Las fuentes** — lo que se edita a mano:
 
 | fichero | para | notas |
 |---|---|---|
 | `simbolo.svg` | **El reducido** — el símbolo solo | `currentColor`: lo pinta quien lo use |
 | `completo.svg` | **El completo** — símbolo + logotipo | ⚠️ el logotipo va como `<text>`, no como trazados: convertirlo a curvas pide un rasterizador, y este repositorio tiene **dependencias cero**. Fuera de una máquina con Inter, la palabra se pinta con la letra del sistema. Declarado, no disimulado |
 | `favicon.svg` | **El favicon**, servido en `/favicon.svg` | La media query va **dentro**, en un `<style>` embebido |
-| `app-icon.svg` | **El app-icon**, 512 × 512 | **PRODUCIDO Y NO CABLEADO**: hoy no hay `manifest.webmanifest` y crearlo queda fuera de alcance. Va a la cola, declarado |
+| `app-icon.svg` | **El app-icon**, 512 × 512 | ⚰️ **CABLEADO EL 28/09** por dictado de Antonio. De aquí salen los tres rasters de abajo |
+
+**Los rasters** — ⚠️ **no se editan: se regeneran.** Nacen de las fuentes por el
+comando de la sección siguiente:
+
+| fichero | para | de |
+|---|---|---|
+| `apple-touch-icon.png` | 180 × 180, el icono de Safari en iOS | `app-icon.svg` |
+| `icon-192.png` | 192 × 192, el del manifest | `app-icon.svg` |
+| `icon-512.png` | 512 × 512, el del manifest | `app-icon.svg` |
+| `../public/favicon.ico` | 16 · 32 · 48 en un solo `.ico` | `favicon.svg` |
+
+⚠️ **Un PNG retocado a mano es un dibujo huérfano.** La jueza del parecido mira
+solo los **cuatro vectoriales**, porque son la fuente; si alguien retoca un
+raster, su dibujo deja de cuadrar con el SVG del que dice venir y **nadie se
+entera**. Se cambia el SVG y se vuelve a correr el comando.
+
+## Cómo se regeneran — el comando
+
+```
+node scripts/rasterizar-marca.mjs
+```
+
+Deja `app/public/favicon.ico`, `app/marca/apple-touch-icon.png`,
+`app/marca/icon-192.png` y `app/marca/icon-512.png`. **Es determinista**: dos
+corridas seguidas dan el mismo `sha256` fichero a fichero (comprobado el 28/09).
+
+⚠️ **Y no instala nada.** El rasterizador es **el Chrome del arnés** —`app/e2e/medir.mjs`,
+por CDP—, que es con lo que esta casa mide píxeles desde el primer día. Ninguna
+dependencia entra en `package.json` por producir imágenes.
+
+⚠️ **El guion vive en el repositorio a propósito** [la lección C-5 de la auditoría
+de cierre]: un instrumento que vive fuera deja a quien clona con la documentación
+y sin la herramienta. Un comando que no se puede repetir no es un comando.
+
+⚠️ **El `.ico` sale del TEMA CLARO y no puede ser de otro**: un raster no lee
+`prefers-color-scheme`. Se rasteriza con lo que el navegador ve sin emular nada
+—el guion lo **imprime** al correr, medido: `CLARO`—, así que lleva el `#2563eb`.
+Quien entienda el SVG verá el color de su tema; quien no, este.
 
 ## El calado de la gota
 
@@ -62,13 +102,34 @@ aplicación que trae su propio fondo de marca. La marca va calada en blanco sobr
 el azul, y ocupa el **60 %** del lienzo — el área segura que los lanzadores
 recortan con máscara.
 
-## Lo que había antes en la pestaña
+## El manifest, y lo que NO declara
+
+`app/public/manifest.webmanifest`, nacido el 28/09 con el app-icon: `name` y
+`short_name` «Desplázame», `theme_color` el azul de marca `#2563eb`,
+`background_color` el `--claro-background` de `styles.css` (`#ffffff`), e `icons`
+de 192 y 512 con `purpose: "any"`.
+
+⚖️ **`display: "browser"`, firmado por Antonio, y es lo importante de este
+fichero:** Desplázame **NO es una PWA** — no hay service worker ni nada fuera de
+línea—, así que declararla instalable sería prometerle a quien la instale algo
+que no hay. El manifest está aquí por el nombre, el color y los iconos que el
+sistema usa; el día que se quiera instalable, **es otra decisión**.
+
+## Lo que había antes en la pestaña — y ya no está
 
 El favicon por defecto que dejó **el andamiaje de Angular** el 2026-08-16:
 `app/public/favicon.ico`, 15.086 bytes, tres tamaños (48, 32 y 16),
 `sha256 f9102be80297c0529207607be5277b4f90bca89d65988fa1771b91c7894e815f`. Sin
-ninguna relación con este producto.
+ninguna relación con este producto. Estuvo en la pestaña **43 días**.
 
-**No se retira**: sigue siendo el respaldo para quien no sepa leer un favicon
-vectorial, y sustituirlo por uno de la marca pide un rasterizador que este
-repositorio no tiene. Queda a la cola, declarado.
+⚠️ **AQUÍ PONÍA:** *«No se retira: sigue siendo el respaldo para quien no sepa
+leer un favicon vectorial, y sustituirlo por uno de la marca pide un rasterizador
+que este repositorio no tiene. Queda a la cola, declarado.»*
+
+Y era verdad a medias: el `.ico` **sí** sigue siendo el respaldo —no se retira, se
+sustituye—, pero lo del rasterizador no lo era. **El 28/09 el `.ico` pasó a ser la
+marca**, rasterizada desde `favicon.svg` con el Chrome del arnés: 2.239 bytes, los
+mismos tres tamaños, `sha256 ea10f8e7faac7009f89a4a9b7aecae0aa04b35c7f3a868af66f9afd112394654`.
+
+**El sha viejo queda escrito arriba a propósito**, y una jueza lo vigila: si algún
+día vuelve —un revert, una plantilla copiada—, salta.

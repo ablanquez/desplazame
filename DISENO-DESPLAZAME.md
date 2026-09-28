@@ -472,9 +472,29 @@ en la pestaña, **fuera del documento**, así que no hereda el `data-theme`. Lo
 único que puede leer es `prefers-color-scheme` desde un `<style>` embebido
 [§36 · MDN], y es lo que lee. Declarado en vez de fingido.
 
-⚠️ **El `app-icon` se produce y NO se cablea**: hoy no hay
+⚠️ **AQUÍ PONÍA**: *«El `app-icon` se produce y NO se cablea: hoy no hay
 `manifest.webmanifest`. Va a la cola, con jueza que fija el estado para que
-cablearlo sea una decisión y no un descuido.
+cablearlo sea una decisión y no un descuido.»*
+
+⚰️ **Esa decisión la firmó Antonio el 28/09, y la marca está en todos los
+iconos.** El `app-icon` se cableó, nació `app/public/manifest.webmanifest`, y el
+`favicon.ico` **dejó de ser el del andamiaje de Angular** —43 días en la pestaña—
+para ser la gota. La jueza no se retiró: **cambió de sentido**, y ahora compra que
+siga cableado.
+
+⚠️ **Y el rasterizador que «este repositorio no tiene» resultó que lo tiene**: es
+el Chrome del arnés, por CDP. Todo raster nace de los SVG con
+`node scripts/rasterizar-marca.mjs` —determinista, mismo `sha256` en dos
+corridas—, y cero dependencias nuevas.
+
+⚖️ **`display: "browser"` en el manifest, firmado**: esto NO es una PWA —sin
+service worker ni nada fuera de línea— y declararla instalable sería mentir. El
+manifest está por el nombre, el color y los iconos del sistema. Instalable, si se
+quiere algún día, es otra decisión.
+
+⚠️ **El `.ico` es del tema CLARO y no puede ser de otro**: un raster no lee
+`prefers-color-scheme`. El vectorial sigue respondiendo al sistema; el `.ico` es
+el respaldo, en `#2563eb`.
 
 ---
 
