@@ -633,6 +633,8 @@
 
 **Lo que no cabe aquí vive al lado**, y es donde está lo interesante:
 
+- **[`CHANGELOG.md`](CHANGELOG.md)** — qué trae cada versión publicada, en formato Keep a
+  Changelog. Hoy una sola entrada, la del `1.0.0`.
 - **[`PLAN-DESPLAZAME.md`](PLAN-DESPLAZAME.md)** — el plan por puntos: qué está hecho, qué toca
   ahora y qué queda.
 - **[`docs/BITACORA.md`](docs/BITACORA.md)** — los fallos reales, con lo que daba verde mientras
