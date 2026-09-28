@@ -82,10 +82,29 @@
     16), sin ninguna relacion con este producto. Queda declarado y se queda en
     su sitio — ver abajo.
 
-    ⚠️ **El SVG va PRIMERO y el `.ico` detras**, y ese orden es el arreglo: el
-       navegador se queda con la ultima declaracion que entienda, asi que el
-       `.ico` es el respaldo de quien no sepa leer un favicon vectorial, y el
-       SVG manda en todo lo demas. [DOC MDN]
+    ⚠️ **AQUI PONIA que «el navegador se queda con la ultima declaracion que
+       entienda»**, y eso NO es lo que dice MDN — se comprobo el 28/09 leyendo
+       la fuente en vez de citarla de memoria. Lo que dice, literal:
+
+         «If there are multiple <link rel="icon">s, the browser uses their
+          media, type, and sizes attributes to select the most appropriate
+          icon. If several icons are equally appropriate, THE LAST ONE IS USED.
+          If the most appropriate icon is later found to be inappropriate, for
+          example because it uses an unsupported format, the browser proceeds
+          to the next-most appropriate, and so on.»
+         [MDN · HTML attribute: rel — rel=icon]
+
+       O sea: lo primero que mira son `media`, `type` y `sizes`, y **«la ultima»
+       es solo el DESEMPATE** entre candidatas igual de buenas. Con las dos
+       lineas peladas que habia aqui, todo era desempate — y de ahi salia la
+       nota vieja, que describia el sintoma y no la regla.
+
+    ⭐ **Por eso las dos llevan ahora su `sizes`**: el `.ico` declara los tres
+       tamaños que trae de verdad y el vectorial declara `any`, que es como un
+       SVG dice «yo sirvo para cualquier talla». Asi cada navegador elige por lo
+       que necesita en vez de por el orden, y el orden deja de cargar con una
+       decision que no le tocaba. Se conserva igualmente el `.ico` DELANTE: si
+       alguna vez las dos empatan, la ultima —la vectorial— sigue ganando.
 
     ⚠️ **La media query vive DENTRO del propio SVG** [§36 · DOC MDN]: un favicon
        no hereda el tema de la pagina —se pinta en la pestaña, fuera de ella—,
@@ -93,12 +112,36 @@
        Por eso responde al SISTEMA y no al conmutador: es lo unico que un
        favicon puede leer, y se declara asi en vez de fingir que sigue al tema.
 
-    ⚠️ El `.ico` NO se retira: sigue siendo el respaldo, y cambiarlo por uno de
-       la marca pide un rasterizador que este repositorio no tiene (dependencias
-       cero). Queda a la cola, declarado.
+    ⚠️ **Y AQUI PONIA que el `.ico` se quedaba a la cola** porque cambiarlo
+       «pide un rasterizador que este repositorio no tiene». Lo tiene: **el
+       Chrome del arnes**, conducido por CDP, que es con lo que esta casa mide
+       pixeles desde el primer dia. El 28/09 el `.ico` paso a ser LA MARCA,
+       rasterizada desde `app/marca/favicon.svg` a 16, 32 y 48. Ninguna
+       dependencia nueva: el comando esta escrito en `app/marca/PROCEDENCIA.md`.
+
+    ⚠️ **El `.ico` es del tema CLARO, y no puede ser de otro**: un raster no lee
+       `prefers-color-scheme`. Se rasterizo con lo que el navegador ve sin
+       emular nada —MEDIDO: `light`—, asi que lleva el azul `#2563eb`. Quien
+       entienda el SVG vera el color de su tema; quien no, este.
   -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="48x48 32x32 16x16">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" sizes="any">
+
+  <!--
+    ⭐ EL APP-ICON, CABLEADO (28/09, dictado de Antonio).
+
+    Se produjo el 18/09 y se dejo SIN CABLEAR a proposito, con una jueza que
+    fijaba ese estado «para que cablearlo sea una decision y no un descuido»
+    [DISEÑO §39.6]. Esta es la decision, y la jueza cambio de sentido con ella.
+
+    ⚠️ **`display: "browser"` en el manifest, y es una firma de Antonio**: esto
+       NO es una PWA —no hay service worker ni nada fuera de linea—, asi que
+       declararla instalable seria mentirle a quien la instale. El manifest esta
+       para el nombre, el color y los iconos del sistema; el dia que se quiera
+       instalable, es otra decision.
+  -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="manifest.webmanifest">
 
   <!--
     ⭐ EL PRELOAD DE LA LETRA CRITICA (tanda 2).
