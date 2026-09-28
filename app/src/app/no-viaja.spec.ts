@@ -88,7 +88,34 @@ describe('El dist de producción no lleva la intranet dentro', () => {
     for (const ruta of basura) rmSync(join(ruta, '..'), { recursive: true, force: true });
   });
 
-  it('⭐ EL DIST DE VERDAD está limpio, y lo dice con todas las letras', () => {
+  /**
+   * ⚠️ **EL TOPE SUBE DE 5.000 A 20.000 ms (28/09), Y LA RAZÓN NO ES LA LENTITUD.**
+   *
+   * Esta jueza salió **roja** en el peaje de ese día con «Test timed out in
+   * 5000ms», y no era el producto: **tardó 5.374 ms**. Sola, tres tiradas
+   * seguidas, 6/6 con 349-660 ms. Lo que se pasó del tope es el `spawnSync` de
+   * arriba —arrancar un Node hijo— **con 26 ficheros de prueba corriendo a la vez**.
+   *
+   * ⭐ **Lo que esta jueza juzga es que el guion FUNCIONA, no lo rápido que es.** El
+   *    tope no es una tolerancia a la lentitud: es el plazo tras el cual se da por
+   *    colgado un proceso que no va a contestar. Un tope calibrado al caso feliz
+   *    convierte la carga de la máquina en un veredicto, y el daño real no es el
+   *    rojo de hoy: es que **mañana un rojo de verdad se lea como «ya, es la
+   *    lenta»**. Ésa es la razón de subirlo.
+   *
+   * ⚠️ **Y por eso 20.000 y no lo que sea.** Son **3,7× el peor caso medido**, que
+   *    cubre una máquina bastante más cargada que la de ese día, y a la vez se
+   *    queda **muy por debajo de un orden de magnitud sobre él** (que serían
+   *    53.740 ms): si el guion se cuelga de verdad, esta jueza lo canta en 20
+   *    segundos, no en un minuto. Un tope que no muerde nunca no vigila nada.
+   *
+   * ⚠️ Sus cinco hermanas de este fichero **se quedan en el tope de la casa**, y no
+   *    es un olvido: en la misma tirada roja el fichero entero tardó 9.048 ms, así
+   *    que entre las cinco se repartieron 3.674 ms — **ninguna se acercó**. Dos de
+   *    ellas hacen MÁS trabajo que ésta (copian el dist antes de sabotearlo), y aun
+   *    así. Si alguna se pasa algún día, será su propio dato y su propia línea.
+   */
+  it('⭐ EL DIST DE VERDAD está limpio, y lo dice con todas las letras', { timeout: 20_000 }, () => {
     // Si esto se pone rojo, no se toca la jueza: se mira qué se ha colado.
     const { codigo, texto } = comprobar(DIST_REAL);
     expect(texto).toContain('sin rastro de intranet');
