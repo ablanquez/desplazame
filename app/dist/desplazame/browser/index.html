@@ -74,6 +74,47 @@
           barra es lo único, y lleva el suyo. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <!--
+    ⭐ LA VISTA PREVIA AL COMPARTIR EL ENLACE — Open Graph y Twitter Card (28/09).
+
+    ⚠️ **VAN AQUI, ESTATICAS, Y NO POR EL `Meta` DE ANGULAR.** Los rastreadores de
+       WhatsApp, Telegram, Slack, Signal o Discord piden el HTML y **NO ejecutan
+       JavaScript**: lo que Angular escriba en el `<head>` al arrancar **no existe
+       para ellos**. Verian un documento con el `app-root` vacio y ni una etiqueta.
+       Esto es lo que viaja en el dist y lo que el servidor entrega.
+
+       El `Meta` de Angular sigue mandando **en la pestaña**: `rotulo.ts` cambia el
+       `<title>` y la descripcion al navegar entre paginas, para quien SI ejecuta
+       JavaScript. Las dos cosas conviven a proposito.
+
+    ⚠️ **Y LA `description` ES UNA SOLA.** `rotulo.ts` usa `updateTag` —no `addTag`,
+       y lleva su acta desde el 24/09—, asi que REEMPLAZA la de aqui en vez de
+       añadir una segunda. Con dos, el rastreador leeria la que quisiera.
+       Su texto es **literal el de la portada**, para que no diverjan.
+
+    ⚠️ **La imagen y la URL van ABSOLUTAS**, y no es capricho del protocolo: un
+       rastreador no esta navegando, esta leyendo un documento suelto, y no tiene
+       contra que resolver una ruta relativa. [ogp.me] Sin absoluta, la tarjeta
+       sale sin imagen — el fallo que nadie ve hasta que comparte el enlace.
+
+    El orden es el del `<head>` de Linaje, que es el patron de la casa para esto.
+    Su jueza: `app/src/app/tarjeta.spec.ts`. -->
+  <meta name="description" content="Buscador multimodal de Zaragoza: andando, bus urbano, BiZi, patinete, moto compartida y coche, con datos abiertos del Ayuntamiento.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Desplázame">
+  <meta property="og:title" content="Desplázame — cómo ir de un portal a otro en Zaragoza">
+  <meta property="og:description" content="Andando, en bus o tranvía, en BiZi, patinete, coche o moto: la ruta de hoy con los datos de ahora mismo. Datos abiertos del Ayuntamiento y de los operadores, citados uno a uno.">
+  <meta property="og:url" content="https://desplazame.antonioblanquez.es/">
+  <meta property="og:image" content="https://desplazame.antonioblanquez.es/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Desplázame — cómo ir de un portal a otro en Zaragoza">
+  <meta property="og:locale" content="es_ES">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Desplázame — cómo ir de un portal a otro en Zaragoza">
+  <meta name="twitter:description" content="Andando, en bus o tranvía, en BiZi, patinete, coche o moto: la ruta de hoy con los datos de ahora mismo. Datos abiertos del Ayuntamiento y de los operadores, citados uno a uno.">
+  <meta name="twitter:image" content="https://desplazame.antonioblanquez.es/og.png">
+
+  <!--
     ⭐ EL FAVICON DE LA MARCA (18/09, el remate de la identidad).
 
     Aqui habia UNA sola linea, `<link rel="icon" type="image/x-icon"
