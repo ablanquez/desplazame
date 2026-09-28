@@ -1,6 +1,6 @@
 {
   "name": "desplazame",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Raíz de workspaces. Aquí no vive código: solo el reparto en tipos, motor e interfaz.",
   "license": "Apache-2.0",

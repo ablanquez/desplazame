@@ -4,6 +4,7 @@
 
 **Cómo ir de un portal a otro en Zaragoza: andando, en autobús o tranvía, en bici o patinete, en coche o en moto.**
 
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-v1.0.0-6D28D9)](https://github.com/ablanquez/desplazame/releases/tag/v1.0.0)
 [![Licencia](https://img.shields.io/badge/licencia-Apache%202.0-64748B)](LICENSE)
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6)](https://www.typescriptlang.org/)
