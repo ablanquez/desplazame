@@ -32,6 +32,8 @@
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error — sin @types/node, el compilador no conoce el módulo
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
+// @ts-expect-error — idem: hace falta para inmovilizar el sha del favicon viejo
+import { createHash } from 'node:crypto';
 import { SIMBOLOS, SIMBOLOS_48, SUFIJO, ficheroDe, type NombreDeSimbolo } from './simbolos';
 import { SIMBOLO_DEL_GIRO } from './buscador';
 import { SIMBOLO_DEL_HITO } from './mapa';
@@ -322,17 +324,32 @@ describe('⭐ (V) LA MARCA — el logo, su favicon y su sitio', () => {
   /**
    * ⭐ Y ESTÁ CABLEADO, que es lo que de verdad lo pone en la pestaña.
    *
-   * ⚠️ El SVG va **después** del `.ico`: el navegador se queda con la última
-   *    declaración que entiende, así que ese orden deja el `.ico` de respaldo y
-   *    el vectorial mandando. Al revés, el `.ico` ganaría siempre.
+   * ⚠️ **AQUÍ PONÍA que «el navegador se queda con la última declaración que
+   *    entiende»**, y no es lo que dice la fuente. Leída el 28/09:
+   *
+   *      «If there are multiple <link rel="icon">s, the browser uses their
+   *       media, type, and sizes attributes to select the most appropriate
+   *       icon. If several icons are equally appropriate, the last one is
+   *       used.»  [MDN · HTML attribute: rel — rel=icon]
+   *
+   *    O sea que **«la última» es el desempate**, no la regla: lo primero que
+   *    manda son `media`, `type` y `sizes`. Con las dos líneas peladas que
+   *    había, todo era desempate — por eso la nota vieja parecía cierta.
+   *
+   * ⭐ Desde el 28/09 **las dos declaran su `sizes`**, así que el navegador
+   *    elige por lo que necesita. Esta jueza compra las dos cosas: que el
+   *    tamaño esté escrito, y que el orden siga dejando al vectorial el último
+   *    para el caso de empate.
    */
-  it('⭐ el índice lo declara, y DESPUÉS del `.ico` de respaldo', () => {
+  it('⭐ el índice lo declara, con su `sizes`, y DESPUÉS del `.ico` de respaldo', () => {
     const html = leer('app/src/index.html');
     const ico = html.indexOf('type="image/x-icon"');
     const vec = html.indexOf('type="image/svg+xml"');
     expect(ico, 'no está el .ico de respaldo').toBeGreaterThan(0);
     expect(vec, 'no está el favicon SVG').toBeGreaterThan(0);
     expect(vec).toBeGreaterThan(ico);
+    expect(html, 'el .ico no dice qué tamaños trae').toContain('sizes="48x48 32x32 16x16"');
+    expect(html, 'el SVG no dice que sirve para cualquier talla').toContain('sizes="any"');
     // Y el build lo copia: sin esta entrada, `/favicon.svg` daría 404.
     expect(leer('app/angular.json')).toContain('"input": "marca"');
   });
@@ -358,11 +375,41 @@ describe('⭐ (V) LA MARCA — el logo, su favicon y su sitio', () => {
     }
   });
 
-  it('⭐ los cuatro ficheros de la marca están, y con su ficha', () => {
+  /**
+   * ⚠️ **AQUÍ SE EXIGÍAN CUATRO FICHEROS Y AHORA SON SIETE** (28/09): entraron
+   *    los tres rasters del app-icon al cablearlo. La lista sigue siendo
+   *    EXACTA a propósito —`toEqual`, no `toContain`—: lo que esta jueza
+   *    defiende es que en `app/marca/` no aparezca nada sin ficha, y da igual
+   *    que sea un dibujo nuevo o un PNG que alguien dejó ahí de paso.
+   *
+   * ⭐ Y LOS RASTERS NO SON FUENTE: **nacen de los SVG por comando**, y por eso
+   *    la jueza del parecido —la de arriba— sigue mirando solo a los cuatro
+   *    vectoriales. Quien cambie la marca cambia el SVG y vuelve a correr el
+   *    comando que `PROCEDENCIA.md` tiene escrito; si cambiara el PNG a mano,
+   *    el dibujo dejaría de cuadrar con su fuente y nadie se enteraría.
+   */
+  it('⭐ los siete ficheros de la marca están, y con su ficha', () => {
     const hay = (readdirSync(RAIZ + MARCA) as string[]).sort();
-    expect(hay).toEqual(['PROCEDENCIA.md', 'app-icon.svg', 'completo.svg', 'favicon.svg', 'simbolo.svg']);
+    expect(hay).toEqual([
+      'PROCEDENCIA.md',
+      'app-icon.svg',
+      'apple-touch-icon.png',
+      'completo.svg',
+      'favicon.svg',
+      'icon-192.png',
+      'icon-512.png',
+      'simbolo.svg',
+    ]);
     const doc = leer(MARCA + 'PROCEDENCIA.md');
-    for (const f of ['simbolo.svg', 'completo.svg', 'favicon.svg', 'app-icon.svg']) {
+    for (const f of [
+      'simbolo.svg',
+      'completo.svg',
+      'favicon.svg',
+      'app-icon.svg',
+      'apple-touch-icon.png',
+      'icon-192.png',
+      'icon-512.png',
+    ]) {
       expect(doc, `${f} sin ficha`).toContain('`' + f + '`');
     }
   });
@@ -380,13 +427,89 @@ describe('⭐ (V) LA MARCA — el logo, su favicon y su sitio', () => {
   });
 
   /**
-   * ⚠️ **EL APP-ICON SE PRODUCE Y NO SE CABLEA**, y va declarado: hoy no hay
-   *    `manifest.webmanifest` y crearlo es fuera de alcance. Esta jueza fija el
-   *    estado para que el día que se cablee sea una decisión y no un descuido.
+   * ⭐ **EL APP-ICON ESTÁ CABLEADO Y EL MANIFEST EXISTE (28/09).**
+   *
+   * ⚠️ **AQUÍ PONÍA LO CONTRARIO**, y era verdad hasta hoy: «el app-icon existe,
+   *    y NO está cableado todavía» —`not.toContain('app-icon')` y el manifest
+   *    `toBe(false)`—. Aquella jueza no vigilaba un acierto: **fijaba un estado**
+   *    para que cablearlo fuese *«una decisión y no un descuido»* [DISEÑO §39.6].
+   *    Esta es esa decisión, firmada por Antonio el 28/09, así que la jueza
+   *    cambia de sentido y **sigue haciendo el mismo trabajo**: antes impedía que
+   *    se colara sin acta, ahora impide que se caiga sin que nadie lo note.
    */
-  it('⚠️ el app-icon existe, y NO está cableado todavía', () => {
+  it('⭐ el app-icon está cableado y el manifest existe', () => {
     expect(leer(MARCA + 'app-icon.svg')).toContain('512');
-    expect(leer('app/src/index.html'), 'alguien cableó el app-icon sin acta').not.toContain('app-icon');
-    expect(existsSync(RAIZ + 'app/public/manifest.webmanifest')).toBe(false);
+    const html = leer('app/src/index.html');
+    expect(html, 'el apple-touch-icon no está declarado').toContain('rel="apple-touch-icon"');
+    expect(html, 'el manifest no está declarado').toContain('rel="manifest"');
+    expect(existsSync(RAIZ + 'app/public/manifest.webmanifest')).toBe(true);
+
+    const manifiesto = JSON.parse(leer('app/public/manifest.webmanifest')) as {
+      name: string;
+      short_name: string;
+      display: string;
+      theme_color: string;
+      background_color: string;
+      icons: Array<{ src: string; sizes: string; type: string; purpose?: string }>;
+    };
+    expect(manifiesto.name).toBe('Desplázame');
+    expect(manifiesto.short_name).toBe('Desplázame');
+    // ⚖️ `browser` por dictado de Antonio: esto NO es una PWA —no hay service
+    //    worker ni nada fuera de línea— y declararla instalable sería mentir.
+    expect(manifiesto.display, 'esto no es una PWA: el display es `browser`').toBe('browser');
+    expect(manifiesto.theme_color).toBe('#2563eb');
+    expect(manifiesto.background_color).toBe('#ffffff');
+    expect(manifiesto.icons.map((i) => i.sizes).sort()).toEqual(['192x192', '512x512']);
+  });
+
+  /**
+   * ⭐ LOS RASTERS EXISTEN Y MIDEN LO QUE DICEN, leído de su cabecera.
+   *
+   * ⚠️ **No vale con que el fichero esté**: un PNG de 32 llamado `icon-512.png`
+   *    pasaría cualquier comprobación de existencia y saldría recortado en el
+   *    lanzador de alguien. Así que se leen los cuatro bytes del `IHDR` —ancho y
+   *    alto de verdad— y las entradas del `.ico`, que es un formato con índice.
+   *
+   * ⚠️ Y **el `.ico` ya no es el que dejó el andamiaje**. Ese es el hallazgo que
+   *    esta jueza inmoviliza: el favicon por defecto de Angular tiene
+   *    `sha256 f9102be8…` y estuvo en la pestaña desde el 16/08. Si algún día
+   *    vuelve —un revert, una copia de plantilla—, esta jueza lo canta.
+   */
+  it('⭐ los rasters de la marca están, y miden lo que dicen', () => {
+    // ⚠️ Sin `@types/node` no existe el nombre `Buffer`, así que se declara la
+    //    forma mínima que esta jueza usa. Misma costura que el resto del fichero.
+    interface Bytes {
+      readUInt8(posicion: number): number;
+      readUInt16LE(posicion: number): number;
+      readUInt32BE(posicion: number): number;
+      subarray(desde: number, hasta: number): { toString(codificacion: string): string };
+    }
+    const bytes = (rel: string): Bytes => readFileSync(RAIZ + rel) as Bytes;
+
+    // Los PNG: ancho y alto viven en el `IHDR`, bytes 16-23.
+    for (const [fichero, lado] of [
+      ['app/marca/apple-touch-icon.png', 180],
+      ['app/marca/icon-192.png', 192],
+      ['app/marca/icon-512.png', 512],
+    ] as Array<[string, number]>) {
+      const b = bytes(fichero);
+      expect(b.subarray(1, 4).toString('latin1'), `${fichero} no es un PNG`).toBe('PNG');
+      expect(b.readUInt32BE(16), `${fichero} no mide ${lado} de ancho`).toBe(lado);
+      expect(b.readUInt32BE(20), `${fichero} no mide ${lado} de alto`).toBe(lado);
+    }
+
+    // El `.ico`: cabecera de 6 bytes y una entrada de 16 por imagen.
+    const ico = bytes('app/public/favicon.ico');
+    expect(ico.readUInt16LE(2), 'el .ico no se declara como icono').toBe(1);
+    const cuantas = ico.readUInt16LE(4);
+    expect(cuantas, 'el .ico no trae tres tamaños').toBe(3);
+    const lados = [...Array(cuantas).keys()].map((i) => ico.readUInt8(6 + 16 * i));
+    expect(lados.sort((a, b) => a - b)).toEqual([16, 32, 48]);
+
+    const EL_DE_ANGULAR = 'f9102be80297c0529207607be5277b4f90bca89d65988fa1771b91c7894e815f';
+    expect(
+      createHash('sha256').update(ico).digest('hex'),
+      'el favicon volvió a ser el del andamiaje de Angular',
+    ).not.toBe(EL_DE_ANGULAR);
   });
 });
