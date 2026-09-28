@@ -225,19 +225,16 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 24/09, LO EN-LOCAL ES EL LOTE DE LA FASE 7 — 40+ commits
-sin push, peaje pendiente. LA FASE 7 [auditoría de cierre, el
-remate de ZetaBus] ESTÁ EN CURSO y su documento rector es
-docs/auditoriafinal/00-MARCO-AUDITORIA-DE-CIERRE.md: §9 el
-tablero [los SEIS informes A·C·B·E·F·D ENTREGADOS el 23-24/09]
-y §10 la mesa [el 🔴 del huso CONFIRMADO en UTC por SSH y
-ARREGLADO: TZ en panel + T1; las CUATRO TANDAS T1-T4 HECHAS el
-24/09; bitácoras 70-71 nuevas, con ley: «el valor esperado se
-escribe, no se calcula»]. Lo que queda del ciclo: dictado de 5
-reportados nuevos → EL PEAJE del lote [batería entera; la
-re-tirada de pintura pendiente] → la séptima pieza → cierre
-[tag+release+CHANGELOG] → escáneres → reposo. El detalle vive
-en el marco, no aquí — este papel no duplica esa mesa.)*
+*(Al 28/09/2026: ⚰️ **EL PROYECTO ESTÁ EN v1.0.0 Y LA FASE 7
+CERRADA ENTERA** — la crónica compacta vive en el PLAN y el
+detalle en docs/auditoriafinal/ [su marco §9-§10 es el índice].
+Release publicada, tag v1.0.0, CHANGELOG firmado, producción
+sirviendo el cierre, papeles en paz con origin tras el push del
+reposo. LO VIVO que queda, todo SIN RELOJ: las dos sesiones de
+mano de Antonio [NVDA · teléfono — guiones en F-EXPERIENCIA §7]
+· la mesa de abajo · las colas declaradas · las vigilancias. El
+🔴 del huso: MUERTO en producción con evidencia de log del
+26/09.)*
 *(Histórico del 23/09 tarde: lo en-local eran CINCO commits: LA MIGRACIÓN
 DEL RGC — 14 citas al texto reformado [XML oficial], la rueda
 ELI en toda URL al BOE, el dictamen del 50 [queda], los dos

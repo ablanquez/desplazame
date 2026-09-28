@@ -5688,6 +5688,62 @@ pública de la app y se reconstruye al final como herramienta interna.
       act.php — cazado; 0 restos; creditos 6,25→6,24; inicial
       quieto en 548,68]. Peaje 10/10 [L9 verde — 13 tiradas sin
       caer; los 3 ⊘ censados], unidad 775+662, tipos, no-viaja.
+- [x] ⚰️ **LA FASE 7 ENTERA — la auditoría de cierre y el reposo,
+      calcada de ZetaBus y CERRADA con la v1.0.0 (23-28/09/2026;
+      crónica compacta: el detalle vive en docs/auditoriafinal/,
+      su marco §9-§10 es el índice).** EL MARCO instanciado
+      (78821ff, con revisión contra la fuente: seis piezas comidas
+      repuestas) → LOS SEIS INFORMES en el orden A→C→B→E→F→D
+      [23-24/09: 38 hallazgos — el 🔴 único con dos caras, A-1+C-1
+      EL HUSO: la mitad que DECIDE leía el reloj del proceso y 95
+      juezas seguían verdes sirviendo mañana; cobertura declarada,
+      NO CONSTA donde tocaba, la limpieza-del-instrumento aplicada
+      a la primera] → EL VEREDICTO por SSH de Antonio [24/09: el
+      servidor en UTC, sin TZ — 🔴 CONFIRMADO; mitigación al
+      panel] → LA MESA con dictados uno a uno [8 ⚖️ resueltos por
+      doctrina o firma] → LAS CUATRO TANDAS [24/09: T1 el huso
+      (las cuatro por reloj.ts + TZ en huso-del-proceso.ts con la
+      doc de Node citada + jueza hijo-UTC nacida 5/6 roja; 4 actas
+      de instantes naive) · T2 fuente única (la frase AL CONTRATO
+      — @desplazame/tipos pasa a emitir un valor, dicho; poda 89
+      exports con el censo rehecho por import real; la jueza 9
+      cazando la poda EN ROJO) · T3 catorce piezas (tests+interfaz
+      +experiencia: el TODO-VERDE tras el guardián, la ley de bizi
+      extendida, npm run bateria, Title/Meta, noscript+ErrorHandler,
+      /identidad con llegada y salida, el puente al código y al
+      autor, los errores en cristiano) · T4 operación y papeles
+      (PORT='' dicho, la capacidad apagada nombrada, DESPLIEGUE.md
+      — ⭐ HALLAZGO: el cron de datos es schtasks EN LA MÁQUINA DE
+      ANTONIO, no del hosting; BITÁCORA 71 con LEY NUEVA: «el
+      valor esperado de una prueba SE ESCRIBE, no se calcula»)] →
+      EL RACIMO de 5 micro-piezas [cada una destapada por el
+      checkpoint de la anterior: la jerga fuera, leer un recurso
+      en error LANZA (reventaba la detección de cambios), el
+      Buscando de la capa activa, el teclado muerto DESDE SIEMPRE
+      en las dos listas, y el cierre de clase: 3 lecturas de
+      value() en toda la app, las 3 guardadas] → LA SÉPTIMA PIEZA
+      [56 piezas re-corridas sobre el árbol; 3 discrepancias, las
+      tres de cifra] → LOS ESCÁNERES [27/09: la regla del §7
+      demostrada en casa — accesibilidad 100 con un botón que por
+      voz no se activaba (WCAG 2.5.3, peso 0), WAVE puntuando un
+      interstitial; SSL A×4 mérito del hosting; los 5 hallazgos a
+      CERO en MP7-MP8, axe final 0·0·0] → DOS PEAJES 10/10 [1.704
+      y 1.714 veredictos, 0 rojos] → DOS PUSHES [26/09 el lote —
+      ⭐ el webhook NO disparó, Redistribuir a mano, REGLA NUEVA
+      en DESPLIEGUE.md §8.5; 28/09 el cierre — esta vez SÍ saltó:
+      el fallo fue puntual, la regla queda] → EL 7.3 CERRADO por
+      SSH [.env.local no existe NI DEBE: releases hbuilds/ +
+      claves en panel; el log de producción cantando la T1] → LA
+      v1.0.0 [28/09: CHANGELOG Keep-a-Changelog firmado por
+      Antonio leyéndolo · tag anotado · release publicada ·
+      insignia · versión de raíz]. LA DEUDA DE ZETABUS, CUBIERTA
+      — horas por bloque apuntadas en cada informe [A 1h05 · C
+      50m · B 1h · E 45m · F 35m · D 50m · séptima 40m ·
+      escáneres 35m]. Los cabos quedan DECLARADOS con dictado en
+      el marco §10 [sesiones de mano NVDA/teléfono · B-7 · juezas
+      de poste-vivo y batería · el webhook · la mesa y colas del
+      ESTADO]. El proyecto queda en v1.0.0, producción sirviéndola
+      y los papeles en paz.
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la
