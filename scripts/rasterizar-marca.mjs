@@ -53,11 +53,22 @@ function svgAlTamano(fichero, lado) {
   });
 }
 
-/** Lo que se produce, y de qué SVG sale cada cosa. */
+/**
+ * Lo que se produce, y de qué SVG sale cada cosa.
+ *
+ * ⚠️ **El logo del README sale del `app-icon.svg` y NO del `completo.svg`**, y es
+ *    una decisión medida (28/09): a los 110 px de ancho que usa el escaparate,
+ *    el completo deja la palabra en unos 13 px de alto —ilegible de cerca— y
+ *    además **repite «Desplázame» justo encima del `# Desplázame`** del propio
+ *    README. El cuadrado se lee entero a ese tamaño y no duplica nada. El
+ *    `completo.svg` sigue siendo el logo completo; lo que no es, es un logo de
+ *    cabecera a 110 px.
+ */
 const ENCARGOS = [
   ['favicon.svg', 16, null],
   ['favicon.svg', 32, null],
   ['favicon.svg', 48, null],
+  ['app-icon.svg', 110, join(RAIZ, 'docs', 'img', 'logo.png')],
   ['app-icon.svg', 180, join(MARCA, 'apple-touch-icon.png')],
   ['app-icon.svg', 192, join(MARCA, 'icon-192.png')],
   ['app-icon.svg', 512, join(MARCA, 'icon-512.png')],
