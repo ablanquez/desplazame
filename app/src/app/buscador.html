@@ -823,7 +823,30 @@
              quede sin nombre, `aria-labelledby` la ata a esa cabecera — el papel
              no se pierde, se traslada. Por eso ya no lleva `aria-label`: con los
              dos, `aria-labelledby` gana y el otro seria letra muerta. -->
-        <section class="pasos" aria-labelledby="cabecera-pasos">
+
+        <!-- ⚠️ Y POR ESO MISMO DEJÓ DE SER UN `<section>` (28/09, la sesión de mano).
+             El validador del W3C avisa «Section lacks heading» **exactamente aquí**
+             —localizado midiendo, porque el aviso no trae selector: línea 141,
+             columnas 32481-32564 del DOM pintado—, y su propio consejo da la
+             salida: *«or else use a "div" element instead for any cases where no
+             heading is needed»*. El título no vuelve dentro: vive fuera a
+             propósito, envolviendo al botón que abre esto.
+
+             ⚠️ Y EL PUNTO DE REFERENCIA NO SE PIERDE, que es lo único que había
+                que cuidar: abierto a 1440 esto es `region` con nombre
+                «Indicaciones», y `role="region"` escrito a mano hace lo que el
+                elemento hacía solo. Medido antes y después: idéntico.
+
+             Es el patrón de la MP7 —`section`→`div`, «los contenedores son `div`
+             A PROPÓSITO»— con el de la MP8 —`div` + `role="region"` +
+             `aria-labelledby` en las cuatro columnas de /identidad—. No se
+             estrena nada.
+
+             ⚠️ Su hermano de al lado, `<section class="mapa" aria-label="Mapa">`,
+                el validador NO lo señala, y también está medido: Nu exime el
+                nombre puesto con `aria-label` y no el heredado por
+                `aria-labelledby`. Así que se queda como está. -->
+        <div class="pasos" role="region" aria-labelledby="cabecera-pasos">
 
           <!-- ⭐ LAS DOS REGIONES VIVAS, EN EL DOM DESDE EL ARRANQUE Y VACÍAS
                (12/09, tanda 5).
@@ -1463,7 +1486,7 @@
               </span>
             </p>
           }
-        </section>
+        </div>
 
         </div>
       </div>
