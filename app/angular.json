@@ -41,6 +41,10 @@
                 "input": "marca"
               },
               {
+                "glob": "og.png",
+                "input": "marca"
+              },
+              {
                 "glob": "2026-09-02_wfs_movilidad-MU1_ZBE.json",
                 "input": "data",
                 "output": "data"
@@ -101,6 +105,10 @@
                 },
                 {
                   "glob": "icon-512.png",
+                  "input": "marca"
+                },
+                {
+                  "glob": "og.png",
                   "input": "marca"
                 },
                 {

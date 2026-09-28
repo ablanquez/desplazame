@@ -49,6 +49,7 @@ comando de la sección siguiente:
 | `apple-touch-icon.png` | 180 × 180, el icono de Safari en iOS | `app-icon.svg` |
 | `icon-192.png` | 192 × 192, el del manifest | `app-icon.svg` |
 | `icon-512.png` | 512 × 512, el del manifest | `app-icon.svg` |
+| `og.png` | **1200 × 630, la tarjeta al compartir** el enlace. Servida en `/og.png` | `completo.svg` + el lema del README |
 | `../public/favicon.ico` | 16 · 32 · 48 en un solo `.ico` | `favicon.svg` |
 
 ⚠️ **Un PNG retocado a mano es un dibujo huérfano.** La jueza del parecido mira
@@ -78,6 +79,30 @@ y sin la herramienta. Un comando que no se puede repetir no es un comando.
 `prefers-color-scheme`. Se rasteriza con lo que el navegador ve sin emular nada
 —el guion lo **imprime** al correr, medido: `CLARO`—, así que lleva el `#2563eb`.
 Quien entienda el SVG verá el color de su tema; quien no, este.
+
+## La tarjeta al compartir el enlace
+
+`og.png` es lo que se ve cuando alguien pega el enlace en WhatsApp, Telegram, Slack
+o una red: **1200 × 630**, que es la medida del protocolo Open Graph — la relación
+1,91:1 que todas recortan sin cortar nada.
+
+La composición **no estrena nada**: el `completo.svg` centrado sobre el
+`--claro-background` (`#ffffff`) y, debajo, **el lema del README literal** en Inter
+con el `--claro-foreground` (`#1e293b`). Ni una palabra nueva.
+
+⚠️ **El tamaño del logo está MEDIDO contra la miniatura, no elegido a ojo.** La
+tarjeta se ve a unos **300 px de ancho** en el hilo de una app de mensajería, o sea
+a un cuarto. Con el logo a **700 px** en el lienzo, la palabra «Desplázame» cae en
+unos **22 px** de altura de letra ahí: se lee. A 400 px se quedaba en 13 y no.
+
+⚠️ **Inter se carga del fichero que viaja** —`app/public/fuentes/`— y no de la letra
+del sistema: si no, la tarjeta saldría con otra tipografía en cada máquina que la
+regenerase, y una fuente única que depende de quién ejecuta el comando no es única.
+
+⚠️ **Quien la pone en el `<head>` es `app/src/index.html`, estática**: los
+rastreadores de las apps de mensajería **no ejecutan JavaScript**, así que lo que
+Angular escriba al arrancar no existe para ellos. Su jueza:
+`app/src/app/tarjeta.spec.ts`.
 
 ## El calado de la gota
 

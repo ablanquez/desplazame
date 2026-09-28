@@ -27,7 +27,8 @@
  *
  * Uso:   node scripts/rasterizar-marca.mjs
  * Deja:  app/public/favicon.ico · app/marca/apple-touch-icon.png ·
- *        app/marca/icon-192.png · app/marca/icon-512.png
+ *        app/marca/icon-192.png · app/marca/icon-512.png ·
+ *        app/marca/og.png · docs/img/logo.png
  */
 import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -119,6 +120,68 @@ try {
     }
     hechos.push({ lado, png });
   }
+
+  // ── LA TARJETA AL COMPARTIR ───────────────────────────────────────────────
+  //
+  // ⭐ 1200×630 es la medida del protocolo Open Graph, y **no es decorativa**:
+  //    es la relación 1,91:1 que WhatsApp, Telegram y las redes recortan sin
+  //    cortar nada. Aquí se compone y se captura igual que los iconos — misma
+  //    fuente única, mismo instrumento, ninguna dependencia.
+  //
+  // ⚠️ **EL TAMAÑO DEL LOGO ESTÁ MEDIDO CONTRA LA MINIATURA, no elegido a ojo.**
+  //    La tarjeta se ve a unos **300 px de ancho** en el hilo de una app de
+  //    mensajería, o sea a **un cuarto**. Con el logo a 700 px de ancho aquí, la
+  //    palabra «Desplázame» cae en unos 23 px de altura de caja en esa
+  //    miniatura: se lee. A 400 px se quedaba en 13 y no se leía.
+  //
+  // ⚠️ **Inter se carga del fichero que viaja**, `app/public/fuentes/`, y no de
+  //    la letra del sistema: si no, la tarjeta saldría con otra tipografía en
+  //    cada máquina que la regenerase.
+  const LEMA =
+    'Cómo ir de un portal a otro en Zaragoza: andando, en autobús o tranvía, ' +
+    'en bici o patinete, en coche o en moto.';
+  const fuentes = join(RAIZ, 'app', 'public', 'fuentes').split('\\').join('/');
+  const completo = readFileSync(join(MARCA, 'completo.svg'), 'utf8').replace(
+    /<svg\b([^>]*)>/,
+    (_t, a) => `<svg${a.replace(/\s(width|height)="[^"]*"/g, '')} width="700" height="118.9">`,
+  );
+  const tarjeta = join(TALLER, 'og.html');
+  writeFileSync(
+    tarjeta,
+    `<!doctype html><html lang="es"><head><meta charset="utf-8"><style>
+       @font-face { font-family: Inter; font-weight: 400; src: url('file:///${fuentes}/Inter-Regular.woff2') format('woff2'); }
+       @font-face { font-family: Inter; font-weight: 600; src: url('file:///${fuentes}/Inter-SemiBold.woff2') format('woff2'); }
+       html, body { margin: 0; padding: 0; }
+       body { width: 1200px; height: 630px; display: flex; flex-direction: column;
+              align-items: center; justify-content: center; gap: 52px;
+              /* El claro de la casa: --claro-background y --claro-foreground de styles.css */
+              background: #ffffff; color: #1e293b;
+              font-family: Inter, system-ui, sans-serif; }
+       p { margin: 0; max-width: 940px; text-align: center; font-size: 38px;
+           line-height: 1.38; font-weight: 400; }
+     </style></head><body>
+       <div style="color:#2563eb">${completo}</div>
+       <p>${LEMA}</p>
+     </body></html>`,
+    'utf8',
+  );
+  await m.cdp('Emulation.setDeviceMetricsOverride', { width: 1200, height: 630, deviceScaleFactor: 1, mobile: false });
+  await m.cdp('Emulation.setDefaultBackgroundColorOverride', { color: { r: 255, g: 255, b: 255, a: 1 } });
+  await m.ir(`file:///${tarjeta.split('\\').join('/')}`, 900);
+  await m.evaluar('document.fonts.ready.then(() => 1)');
+  await m.pintado();
+  const og = await m.cdp('Page.captureScreenshot', {
+    format: 'png',
+    clip: { x: 0, y: 0, width: 1200, height: 630, scale: 1 },
+    captureBeyondViewport: false,
+  });
+  const ogPng = Buffer.from(og.data, 'base64');
+  if (ogPng.readUInt32BE(16) !== 1200 || ogPng.readUInt32BE(20) !== 630) {
+    throw new Error(`la tarjeta salió de ${ogPng.readUInt32BE(16)}×${ogPng.readUInt32BE(20)}`);
+  }
+  writeFileSync(join(MARCA, 'og.png'), ogPng);
+  console.log(`  \\app\\marca\\og.png                  ${String(ogPng.length).padStart(6)} bytes · 1200×630 · de completo.svg + el lema`);
+  rmSync(tarjeta, { force: true });
 } finally {
   m.cerrar();
 }
