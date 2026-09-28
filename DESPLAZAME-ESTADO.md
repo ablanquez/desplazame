@@ -1795,14 +1795,14 @@ LO ÚNICO ROTO, ARREGLADO] · ⭐ el 23/09 cayeron LAS
 CINCO DECISIONES por doctrina [raya any 6/12 · panel alineado
 · dos declinados con acta · jueza-censo ⊘ · P35 NO-APLICA —
 crónica en su bloque] · la mesa chica
-· los opcionales de Antonio [manifest · tope perfiles · 3 de
+· los opcionales de Antonio [manifest: HECHO 28/09 · tope perfiles · 3 de
 F: · gradN25 · modo seguro]; (b-bis) [el asa y el ENLACE DE SALTO: HECHOS el 20/09,
 crónica en su bloque del PLAN] · la cola gana: las juezas de píxel-sobre-tesela de la P26
 [rojas 1 de 3, familia de las del reloj] · la huella de
 grafo-visor roja-una-vez [NO CONSTA]; (c) EN COLA CON NOMBRE: [el tercer
 estado «Sistema»: MUERTO el 20/09 por orden de Antonio,
-crónica y leyes en su bloque] · el manifest
-del app-icon [con su jueza de estado] · el TOPE de tamaño de
+crónica y leyes en su bloque] · [el manifest
+del app-icon: HECHO el 28/09 por orden de Antonio — favicon.ico de la marca, apple-touch-icon, icons 192/512, manifest display browser, rasterizador en scripts/rasterizar-marca.mjs por CDP; la jueza de estado cambió de sentido con acta] · el TOPE de tamaño de
 los perfiles fijos [78 MB hoy, sin vigilar a largo] · los 3
 perfiles de F: fuera de la vista de la jueza [275 MB] · [los
 relojes de moto/yego/bizi: HECHOS el 21/09, esperan su hecho
