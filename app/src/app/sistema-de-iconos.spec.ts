@@ -388,7 +388,7 @@ describe('⭐ (V) LA MARCA — el logo, su favicon y su sitio', () => {
    *    comando que `PROCEDENCIA.md` tiene escrito; si cambiara el PNG a mano,
    *    el dibujo dejaría de cuadrar con su fuente y nadie se enteraría.
    */
-  it('⭐ los siete ficheros de la marca están, y con su ficha', () => {
+  it('⭐ los ocho ficheros de la marca están, y con su ficha', () => {
     const hay = (readdirSync(RAIZ + MARCA) as string[]).sort();
     expect(hay).toEqual([
       'PROCEDENCIA.md',
@@ -398,6 +398,7 @@ describe('⭐ (V) LA MARCA — el logo, su favicon y su sitio', () => {
       'favicon.svg',
       'icon-192.png',
       'icon-512.png',
+      'og.png',
       'simbolo.svg',
     ]);
     const doc = leer(MARCA + 'PROCEDENCIA.md');
@@ -409,6 +410,7 @@ describe('⭐ (V) LA MARCA — el logo, su favicon y su sitio', () => {
       'apple-touch-icon.png',
       'icon-192.png',
       'icon-512.png',
+      'og.png',
     ]) {
       expect(doc, `${f} sin ficha`).toContain('`' + f + '`');
     }
