@@ -259,6 +259,41 @@ experimental encendida como en la contraprueba del 27/09:
    sobre el elemento—, pero **el dictado era una línea y esto es otra**: se reporta, no entra
    por iniciativa.
 
+   > ⚠️ **CORRECCIÓN [2026-09-28, el mismo día] — ESTE CABO NO EXISTE. Era un error mío, y el
+   > texto de arriba se queda a la vista porque este fichero no se reescribe.**
+   >
+   > Al dictarse el arreglo de ese `<section>`, lo primero fue abrir la línea — y **tiene su
+   > título DENTRO**:
+   >
+   > ```html
+   > <section class="resumen ambar" role="status" aria-labelledby="resumen-titulo">
+   >   <h3 class="resumen__titulo" id="resumen-titulo">Avisos de este viaje:</h3>
+   > ```
+   >
+   > El `<h3>` es **incondicional** dentro del `@if (resumenDeAvisos().length > 0)`: cuando
+   > existe la caja existe su título, y **es el destino de su propio `aria-labelledby`**. O sea
+   > que no es el **caso 3** del fixture —`<section role="status" aria-labelledby>` con el
+   > nombre heredado de FUERA— sino el **caso F**, `<section>` con su encabezado dentro, que
+   > **el validador exime**.
+   >
+   > **Medido, no razonado**, con un fixture nuevo que copia la forma exacta de la plantilla:
+   >
+   > ```
+   > G · <section role="status" aria-labelledby="x"> con su <h3 id="x"> DENTRO   → exento
+   > H · la misma, con el <h3> FUERA  [lo que supuse]                           → AVISA
+   > I · <div role="status" aria-labelledby="x"> con su <h3 id="x"> dentro      → exento
+   > ```
+   >
+   > **De dónde vino el error, porque es lo aprovechable:** se leyó el `aria-labelledby`, se
+   > emparejó con el patrón del hermano que sí falló —donde apunta a un botón de fuera— y **no
+   > se abrió la línea del `<h3>`**. Un `aria-labelledby` no dice si su destino está dentro o
+   > fuera: eso hay que ir a verlo. **La ley: la forma de un nodo se lee en el nodo, no se
+   > deduce de su hermano.**
+   >
+   > `buscador.html:947` **no se toca** — dictado del 28/09 tras el PARO. Y el límite declarado
+   > arriba sigue en pie tal cual: **no se ha validado un DOM pintado con ruta**, y si algún día
+   > se quiere, es cola; montar ese instrumento a las puertas del cierre no lo pedía nadie.
+
 ---
 
 ## 4 · LO QUE SE HA USADO
