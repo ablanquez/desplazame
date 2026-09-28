@@ -57,6 +57,60 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 ---
 
+## Índice de las fichas de datos
+
+Las **40** fichas de la sección 1, de un vistazo. ⚠️ **Es un índice, no un resumen**:
+cada ficha dice cosas que aquí no caben —la licencia exacta, la atribución que exige, dónde está
+cumplida, la fecha del dato, su `sha256` y **lo que trae de roto**—. Este cuadro solo sirve para
+llegar a la que se busca.
+
+La columna **¿en el repo?** separa las dos mitades del documento: lo que entra como **semilla
+fechada** y lo que **se consulta** en tiempo de ejecución porque caduca.
+
+| # | Conjunto | Titular | ¿en el repo? |
+|---|---|---|---|
+| **§ 1.1** | OpenStreetMap | Colaboradores de OpenStreetMap | ❌ no — se consulta |
+| **§ 1.2** | Portales de Zaragoza | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.3** | Callejero de vías | Ayuntamiento de Zaragoza | ✅ sí |
+| **§ 1.4** | Grafo de continuidad peatonal y ciclable | Colaboradores de OpenStreetMap | ✅ sí, tal cual |
+| **§ 1.5** | Carriles bici y sendas ciclables | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.6** | Postes de autobús urbano | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.7** | GTFS del transporte urbano | Avanza Zaragoza S.A.U | ✅ sí, tal cual |
+| **§ 1.8** | Estaciones BiZi | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.9** | Aparcabicis | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.10** | Aparcamotos | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.11** | Estacionamiento regulado en superficie | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.12** | Zonas reguladas | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.13** | Reservas de espacio, y las PMR | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.14** | Nombres de vía de OpenStreetMap | Colaboradores de OpenStreetMap | ✅ sí, tal cual |
+| **§ 1.15** | Ejes de vía municipales | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.16** | Farmacias | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.17** | Centros de salud | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.18** | Hospitales | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.19** | Bibliotecas | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.20** | Educación | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.21** | Etiquetas del viario de OpenStreetMap | Colaboradores de OpenStreetMap | ✅ sí, tal cual |
+| **§ 1.22** | Jerarquía viaria municipal | Ayuntamiento de Zaragoza | ✅ sí, tal cual |
+| **§ 1.23** | Disponibilidad del BiZi en vivo | Ayuntamiento de Zaragoza | ❌ no — se consulta |
+| **§ 1.24** | Llegadas al poste en vivo | Avanza Zaragoza S.A.U. | ❌ no — se consulta |
+| **§ 1.25** | La ruta operativa de hoy | Avanza Zaragoza S.A.U. | ❌ no — se consulta |
+| **§ 1.26** | Líneas, paradas y tiempos de Autobús Urbano | Ayuntamiento de Zaragoza | ❌ no — se consulta |
+| **§ 1.27** | Viario rodable del coche | Colaboradores de OpenStreetMap | ✅ sí, tal cual |
+| **§ 1.28** | Restricciones de giro | Colaboradores de OpenStreetMap | ✅ sí |
+| **§ 1.29** | Semáforos | Colaboradores de OpenStreetMap | ✅ sí |
+| **§ 1.30** | Zona de Bajas Emisiones | Ayuntamiento de Zaragoza | ✅ sí |
+| **§ 1.31** | Aparcamientos públicos y su cruce con la ZBE | Ayuntamiento de Zaragoza | ✅ sí |
+| **§ 1.32** | La autorización para entrar en la ZBE | Ayuntamiento de Zaragoza | ❌ no |
+| **§ 1.33** | Aparcamotos cocinados | Ayuntamiento de Zaragoza | ✅ sí |
+| **§ 1.34** | Motos compartidas YeGo en vivo | Yego | ❌ no |
+| **§ 1.35** | El cuadro de horarios de la web | Avanza Zaragoza S.A.U. | ❌ no — se consulta |
+| **§ 1.36** | El distintivo ambiental de una matrícula | Dirección General de Tráfico | ❌ no — se consulta |
+| **§ 1.37** | Los treinta símbolos de Material | Google | ✅ sí |
+| **§ 1.38** | Inter 4.1 | The Inter Project Authors | ✅ sí |
+| **§ 1.39** | Dark Matter | CARTO. El dato de debajo sigue siendo de OpenStreetMap, bajo ODbL 1.0 | ❌ no — se consulta |
+| **§ 1.40** | El resto del dato | — | — |
+
+---
 ## 1 · Datos de terceros
 
 ### 1.1 · OpenStreetMap — cartografía, **en uso desde hoy**
