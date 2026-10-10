@@ -235,6 +235,107 @@ mano de Antonio [NVDA · teléfono — guiones en F-EXPERIENCIA §7]
 · la mesa de abajo · las colas declaradas · las vigilancias. El
 🔴 del huso: MUERTO en producción con evidencia de log del
 26/09.)*
+
+*(Al 10/10/2026: ⚰️ **MANTENIMIENTO POST-CIERRE nº3 — EL PARCHE DE
+SEGURIDAD DEL AVISO DEL 07/10, HECHO EN LOCAL; EL PUSH ESPERA AL NAP.**
+[Los dos anteriores: 8/09 fast-uri+qs · 9/09 hono+vitest, actas en el
+PLAN.] EL AVISO: 20 vulnerabilidades en 8 paquetes [proxy-addr 9.1 ·
+piscina 9.2 · @modelcontextprotocol/sdk · @angular/router · undici ×10
+· source-map-js · fast-uri · ip-address ×4]. EL DIAGNÓSTICO de solo
+lectura sobre e8ad267: SIETE son devDependencies de app [llegan por
+@angular/cli → sdk MCP → express, por @angular/build o por jsdom], no
+están en app/dist y el motor no importa nada externo; el único de
+producción es @angular/router, cuyo CVE-2026-101896 exige SSR — y
+Desplázame NO tiene SSR [angular.json sin server/ssr/prerender ·
+@angular/ssr y platform-server UNMET · main.ts bootstrapApplication].
+EXPOSICIÓN EN PRODUCCIÓN: cero, MEDIDA, con su ancla [L74: caduca si
+se añade SSR o si el advisory cambia de condición]. ⚠️ El panel de
+Hostinger SÍ instala las devDependencies [log de build del 8/09:
+«added 380 packages», EBADENGINE de @angular/cli@22.1.4] — están en
+el node_modules del servidor y NADA las carga en ejecución; con eso
+el 7.1 de DESPLIEGUE.md se cierra A MEDIAS [la receta: npm install +
+npm run build; el flag exacto sigue NO CONSTA]. EL PARCHE, por la
+escalera y con cada escalón MEDIDO en clon limpio por el estratega:
+`npm audit fix` DESCARTADO — deja el toolchain Angular MEZCLADO [cli
+22.2.2 con build 22.1.4 y router 22.1.2, 3 avisos vivos: L73 en
+vivo] · `npm update` sin nombres REVIENTA [TypeError edgesOut en
+arborist #loadPeerSet al procesar vitest — NO es la letra de unidad,
+como se creyó en el diagnóstico: reproduce en Linux] y con nombres
+deja core 22.1.2 junto a compiler 22.2.2 · `ng update` NO USADO
+[criterio PROPIO declarado: no existe migración 22.1→22.2 en
+@schematics/angular ni en @angular/core, y corre desde app/, donde
+npm no ve el workspace padre y podría parir un segundo lockfile — el
+único vive en la raíz desde ea7c424] · LO QUE SIRVIÓ: el bloque
+Angular EXPLÍCITO a 22.2.2 [5 de runtime + 3 de toolchain, `npm
+install --workspace app`] + `npm update undici source-map-js
+fast-uri`. RESULTADO: todo @angular/* en 22.2.2 · piscina 5.3.2 · el
+sdk MCP FUERA [entra @modelcontextprotocol/server 2.3.1: solo core y
+zod] y con él express, proxy-addr, express-rate-limit, ip-address y
+hono FUERA · undici 7.30.0 y no 7.29.1 [L95, dicho] · audit 0 ·
+app/package.json cambia 8 rangos ^22.1.x→^22.2.2 [esta vez SÍ; los
+otros tres package.json con sha idéntico] · lock 152 entran / 165
+salen / 38 cambian · `npm install --package-lock-only --dry-run` «up
+to date» · siete @angular/* en app/node_modules por colocación de npm
+11 [grabada en el lock; nada en ejecución depende de la ruta]. EL
+DIST RECONSTRUIDO [main-FIT62XSB.js, 27 ficheros]: NO byte-idéntico,
+y esperado — beasties 0.4.3→0.5.4 cambia el index.html a la
+estrategia `media-script` [data-beasties-media + un script al final
+del body en vez del onload inline; las @font-face salen del crítico
+con inlineFonts:false — su README] y 22.2 deja de emitir
+prerendered-routes.json; 3rdpartylicenses.txt idéntico, los 7 de
+siempre. MEDIDO contra el dist real [--url=127.0.0.1:3000]:
+identidad 136/136 [la portada baja Inter · un solo preload · ni una
+dos veces] y P21 en verde; y el OJO [Antonio + estratega por Chrome,
+carga sin caché]: Inter en las tres páginas, Inter-Regular.woff2 la
+SEGUNDA petición, cada peso una vez. Unidad 673/673 + 790/790,
+comprobar-tipos VERDE, comprobar-dist VERDE. DOS COMMITS EN LOCAL:
+b1ad596 [deps] · 1094b09 [dist]. ⚠️ EL PEAJE: 7/10 — pintura
+[corta en P23], bizi-y-resumen y proximo-bus en ROJO, las tres por
+el DATO, no por el parche [`git diff e8ad267..HEAD -- motor tipos`
+vacío]: el feed del NAP sigue siendo la publicación del 30/06/2026
+[ficha 1176, verificado por Antonio en el NAP e histórico: Avanza
+publica a rachas — junio-julio 2025 casi a diario, luego ONCE MESES
+sin nada]; feed_end_date 20261005; calendar_dates.txt NO tiene ni una
+fila del 10 al 18/10 [el Pilar] y después solo el tranvía L1 hasta
+el 31/12 [68 filas, 6 service_id, todos route 210]. El motor lee
+calendar_dates y responde la verdad [«ese día el horario publicado
+no tiene servicio»]; la etiqueta «caducado» sale del feed_end_date
+que declara el operador — correcto por la referencia GTFS. SIN
+BITÁCORA: nada dio verde con algo roto. PRODUCCIÓN: sin bus desde el
+05/10, diciéndolo [/api/salud: vence 20261005 · caducado; motor
+arrancado el 08/10 16:46Z]; el cron de las 02:30 contesta
+«sin-cambios» cada noche porque el NAP no cambia. RÉGIMEN del 22/09:
+sin batería entera no hay push → los dos commits SE ACUMULAN EN
+LOCAL hasta que el NAP publique; entonces: POST /api/renovar-feed en
+local [Antonio], reinicio del motor, las tres suites de bus, 10/10,
+commit 3 [versión 1.0.1 por la receta de bfdbf45 + CHANGELOG
+«Seguridad» con el texto que NO diga «nada cambia en lo que se ve»],
+push, Redistribuir si no salta, fase 4 [/api/salud, pid antes y
+después]. Y producción renovará sola por el cron. COLA — PROPUESTA
+DEL ESTRATEGA, PENDIENTE DE FIRMA DE ANTONIO: (a) /api/salud y el
+panel distinguen «declarado hasta» [feed_end_date] de «último día
+con servicio de BUS» [calendar_dates por modo] — el «rango de
+fechas» del NAP lo infla el tranvía · (b) servidor.ts:1132 nombra
+prerendered-routes.json, que ya no existe [ley D: un comentario que
+cita un fichero es una promesa] · (c) pintura: P23 aborta la suite
+con TypeError en vez de dar rojo por jueza y tapa P24+ · (d) ROTAR
+DESPLAZAME_REGEN_TOKEN [pasó por un chat el 10/10]: .env.local + la
+variable del panel + Guardar y reimplementar · (e) ¿publica Avanza o
+el Ayuntamiento el GTFS en otro sitio que el NAP? — si existe fuente
+con el feed del Pilar, es encargo nuevo y grande [cambia de dónde
+come el producto; afecta a ZetaBus] · (f) fuera de la batería y de
+/api/salud nada AVISA de un feed caducado; el cron nocturno calla
+con «sin-cambios» — zona sin vigilar · (g) unidad 790 frente a las
+784 del último peaje y el censo de comprobar-tipos +1/+1: anteriores
+al parche, causa NO CONSTA. LECCIONES NUEVAS: L97 — `npm audit fix`
+mueve un paquete, no una familia: el bloque de un framework se mueve
+ENTERO o no se mueve, y audit a cero sin el bloque a juego es un
+verde que miente · L98 — la batería mide lo que SIRVE: ng serve no
+aplica beasties ni el index.html de producción; lo que cambia el
+build se mide contra el dist, con --url · L99 — un feed GTFS puede
+declarar un rango largo y no tener servicio: el «vence» lo pone el
+operador y el servicio lo pone calendar_dates, POR MODO — las dos
+cosas se miden y se enseñan por separado.)*
 *(Histórico del 23/09 tarde: lo en-local eran CINCO commits: LA MIGRACIÓN
 DEL RGC — 14 citas al texto reformado [XML oficial], la rueda
 ELI en toda URL al BOE, el dictamen del 50 [queda], los dos
