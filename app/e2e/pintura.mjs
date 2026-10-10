@@ -3255,10 +3255,10 @@ for (const pantalla of PANTALLAS) {
         o === null || d === null ? '(no hay círculos)' : `origen ${o.contraste.toFixed(2)}:1 · destino ${d.contraste.toFixed(2)}:1`,
       );
     }
-    await m.evaluar(`document.querySelectorAll('.paso')[0].scrollIntoView({ block: 'start' })`);
+    await m.evaluar(`document.querySelectorAll('.paso')[0]?.scrollIntoView({ block: 'start' })`);
     await m.dormir(300);
     await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-origen.png`);
-    await m.evaluar(`[...document.querySelectorAll('.paso')].at(-1).scrollIntoView({ block: 'end' })`);
+    await m.evaluar(`[...document.querySelectorAll('.paso')].at(-1)?.scrollIntoView({ block: 'end' })`);
     await m.dormir(300);
     await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-destino.png`);
     await m.evaluar(`document.querySelector('.ficha-entidad')?.scrollIntoView({ block: 'center' })`);
@@ -3401,7 +3401,9 @@ for (const pantalla of PANTALLAS) {
           juzgar(sobra === 0, `P23 · ${dicho} · y sin scroll lateral`, `sobra ${sobra} px`);
         }
         const primero = hitos.find((h) => h.region !== null && (modo === 'bizi' || h.avisa !== null));
-        await m.evaluar(`document.querySelectorAll('.paso')[${hitos[0]?.indice ?? 0}].scrollIntoView({ block: 'start' })`);
+        // Sin ruta en bus no hay `.paso`: la P23 ya ha dado su rojo arriba, y el
+        // scroll no tumba la suite (10/10, feed sin servicio). La foto se toma igual.
+        await m.evaluar(`document.querySelectorAll('.paso')[${hitos[0]?.indice ?? 0}]?.scrollIntoView({ block: 'start' })`);
         await m.dormir(300);
         await m.guardar(`${CAPTURAS}/cinco-${pantalla.id}-${modo}-${caso}.png`);
         if (caso === 'muda') {
@@ -3427,7 +3429,7 @@ for (const pantalla of PANTALLAS) {
             `P23 · ${dicho} · ⭐ tras el botón con éxito, la advertencia MUERE: una sola voz (nº53)`,
             tras.map((h) => `«${h.region}» · ${h.avisa ? 'SIGUE advirtiendo' : 'dato'}`).join(' | '),
           );
-          await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0] ?? 0}].scrollIntoView({ block: 'start' })`);
+          await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0] ?? 0}]?.scrollIntoView({ block: 'start' })`);
           await m.dormir(300);
           await m.guardar(`${CAPTURAS}/cinco-${pantalla.id}-${modo}-tras-el-boton.png`);
         }
@@ -3767,7 +3769,7 @@ for (const pantalla of PANTALLAS) {
         // El hito, y la región con DATO tras pulsar: la voz del último intento.
         const avisan = await m.evaluar(`[...document.querySelectorAll('.paso')].map((p, i) => (p.querySelector('.vivo__estado--aviso') ? i : -1)).filter((i) => i >= 0)`);
         if (avisan.length) {
-          await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0]}].scrollIntoView({ block: 'start' })`);
+          await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0]}]?.scrollIntoView({ block: 'start' })`);
           await m.dormir(300);
           await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-hito.png`);
         }
@@ -3797,7 +3799,7 @@ for (const pantalla of PANTALLAS) {
           await m.dormir(300);
           await m.guardar(`${CAPTURAS}/claro-${pantalla.id}-arriba.png`);
           if (avisan.length) {
-            await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0]}].scrollIntoView({ block: 'start' })`);
+            await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0]}]?.scrollIntoView({ block: 'start' })`);
             await m.dormir(300);
             await m.guardar(`${CAPTURAS}/claro-${pantalla.id}-hito.png`);
           }
