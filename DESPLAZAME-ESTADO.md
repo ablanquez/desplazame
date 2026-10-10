@@ -336,6 +336,16 @@ build se mide contra el dist, con --url · L99 — un feed GTFS puede
 declarar un rango largo y no tener servicio: el «vence» lo pone el
 operador y el servicio lo pone calendar_dates, POR MODO — las dos
 cosas se miden y se enseñan por separado.)*
+
+*(Al 10/10/2026, 14:05: ⚰️ **EXCEPCIÓN AL RÉGIMEN DEL 22/09, FIRMADA
+POR ANTONIO** — el lote del parche SE EMPUJA con el peaje en 7/10:
+las tres suites de bus [pintura · bizi-y-resumen · proximo-bus]
+quedan BLOQUEADAS POR EL DATO, no por el código [el motor no cambia
+en el lote], y lo que no miden es exactamente lo que hoy ningún
+usuario puede tocar [producción sin bus desde el 05/10]. Se repiten
+EN CUANTO el NAP publique — es la primera cosa de la cola, con reloj:
+el día que /api/salud diga «vigente». Versión 1.0.1 y CHANGELOG con
+la verificación dicha tal cual. Commit 3 y push, ver abajo.)*
 *(Histórico del 23/09 tarde: lo en-local eran CINCO commits: LA MIGRACIÓN
 DEL RGC — 14 citas al texto reformado [XML oficial], la rueda
 ELI en toda URL al BOE, el dictamen del 50 [queda], los dos
