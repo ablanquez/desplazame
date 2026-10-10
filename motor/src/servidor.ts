@@ -1129,8 +1129,8 @@ export function atenderPeticion(peticion: IncomingMessage, respuesta: ServerResp
  * `angular.json` **no declara `outputPath`**, así que manda el defecto de
  * Angular. Se comprobó construyendo: *«Output location:
  * …pp\dist\desplazame»*, y dentro, `browser/` —que es la raíz que se sirve;
- * `3rdpartylicenses.txt` y `prerendered-routes.json` cuelgan **fuera** de ella y
- * no se publican—.
+ * `3rdpartylicenses.txt` cuelga fuera de ella y no se publica (hasta Angular 22.1
+ * también `prerendered-routes.json`; desde 22.2.2, 10/10/2026, ya no se emite)—.
  *
  * La ruta es relativa a ESTE módulo, como las de los datos, y por lo mismo vale
  * desde `src/` y desde `dist/`: están a la misma profundidad.
