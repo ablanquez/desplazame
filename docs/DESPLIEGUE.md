@@ -20,6 +20,9 @@
 > entero** (7.4). Y salió un hallazgo nuevo que no estaba en ninguna lista: **el webhook no
 > disparó** (§1).
 >
+> **Lo que cambió el 10/10:** 7.4 se cierra (pid antes/después), 7.1 gana la receta por el log
+> del panel, y el webhook SÍ disparó esta vez (30 s tras el push).
+>
 > 🔒 **Aquí no hay ningún secreto.** De las claves se dicen sus **nombres** y para qué sirven;
 > nunca un valor, ni un fragmento, ni su longitud.
 
@@ -254,18 +257,18 @@ habla con el NAP → `NO CONSTA`, y así lo declara el bloque E.
 
 ---
 
-## 7 · LO QUE `NO CONSTA` — y qué se cerró el 26/09
+## 7 · LO QUE `NO CONSTA` — y qué se cerró el 26/09 y el 10/10
 
 Nacieron **cinco**, ninguna respondible desde el repositorio. La sesión SSH del **26/09** cerró
 una, dejó **tres** a medias y una entera; cada punto lleva **lo medido** y **lo que sigue sin
 mirar**.
 
-| | Estado tras el 26/09 |
+| | Estado tras el 26/09 (y tras el 10/10, donde se indica) |
 |---|---|
-| 7.1 · qué ejecuta el deploy | 🟡 **PARCIAL** — el mecanismo, medido; el comando de build, no |
+| 7.1 · qué ejecuta el deploy | 🟡 **PARCIAL** — mecanismo y receta (`npm install` + `npm run build`) medidos por el log del panel del 8/09; el flag exacto del install, no |
 | 7.2 · con qué usuario y cada cuánto | 🟡 **PARCIAL** — el usuario, medido; la cadencia, no |
 | 7.3 · ¿pisa lo no versionado? | ✅ **CERRADO**, y en la dirección buena |
-| 7.4 · cómo se reinicia el motor | ⬜ **SIGUE `NO CONSTA`** |
+| 7.4 · cómo se reinicia el motor | ✅ **CERRADO** (10/10): el motor se reinicia con cada despliegue — pid 176048 → 2797646 → 3049254 en dos despliegues |
 | 7.5 · la vuelta atrás | 🟡 **PARCIAL** — la vía manual, verificada |
 
 ### 7.1 · Qué ejecuta EXACTAMENTE el auto-deploy → 🟡 PARCIAL
@@ -280,9 +283,24 @@ mirar**.
 - **Hay un `preload` del hosting** en el arranque: `NODE_OPTIONS --require
   …/hbuilds/config/preload-timestamp.js`.
 
-**Lo que sigue `NO CONSTA`: el comando exacto del build.** Si corre `npm install`, si corre el
-`tsc` del motor —que es lo que `app/README.md` afirma—, y en qué orden. El mecanismo de
-publicación ya no es una incógnita; **la receta sí**.
+**Lo medido el 10/10 — la receta, por el log de build del panel del 8/09** (lo guarda Antonio,
+fuera del repositorio). Imprime, literal:
+
+```
+npm warn EBADENGINE … package: '@angular/cli@22.1.4' … current: { node: 'v22.18.0', npm: '10.9.3' }
+added 380 packages, and audited 384 packages in 6s
+> desplazame@0.0.0 build
+> npm run build --workspace @desplazame/motor
+> @desplazame/motor@0.0.0 build
+> tsc -p tsconfig.build.json
+```
+
+O sea: **primero se instala, con las `devDependencies`** —380 paquetes, el CLI de Angular
+incluido: es él quien avisa del `EBADENGINE`— y **después `npm run build` de la raíz**, que es el
+`tsc` del motor, lo que `app/README.md` afirmaba.
+
+**Lo que sigue `NO CONSTA`: el flag exacto del install** —`npm install` o `npm ci`—, que el log
+no imprime.
 
 > **Qué mirar para cerrarlo:** en **hPanel → Sitios web → desplazame.antonioblanquez.es**, la
 > pantalla de **Despliegues** (la misma donde está el botón «Redistribuir») y, si el plan la
@@ -325,7 +343,17 @@ están en el camino del deploy.**
 no hay fichero de respaldo en el servidor que lo salve. El motor lo dirá al arrancar —desde el
 E-2 nombra la capacidad apagada—, que es exactamente para lo que se escribió esa línea.
 
-### 7.4 · Cómo se reinicia el motor tras el despliegue → ⬜ SIGUE `NO CONSTA`
+### 7.4 · Cómo se reinicia el motor tras el despliegue → ✅ CERRADO (10/10)
+
+**Medido el 10/10 — el `pid` de `GET /api/salud` antes y después, en dos despliegues:**
+
+| | `pid` | arrancado | qué lo provocó |
+|---|---|---|---|
+| antes | 176048 | 2026-10-08T16:46:54Z | — |
+| 1.º despliegue | 2797646 | 2026-10-10T12:29:52Z | el push de `3527561`: **el webhook saltó solo**, 30 s después |
+| 2.º despliegue | 3049254 | 2026-10-10T12:34:24Z | **Redistribuir**, por el cambio de una variable |
+
+**El motor se reinicia con cada despliegue**: no es un paso que haya que dar a mano.
 
 **Lo único observado el 26/09, sin afirmar mecanismo:** el `.htaccess` declara
 `PassengerRestartDir …/hbuilds/current/nodejs/tmp`, o sea que existe **un directorio con el que se
