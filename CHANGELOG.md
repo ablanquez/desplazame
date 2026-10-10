@@ -5,6 +5,35 @@ Todo lo destacable que le pasa a Desplázame se anota aquí.
 El formato es el de [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y las
 versiones, las de [SemVer](https://semver.org/lang/es/).
 
+## [1.0.1] — 2026-10-10
+
+Mantenimiento de seguridad tras el cierre. El producto hace lo mismo; lo que cambia es con qué
+se construye.
+
+### Seguridad
+
+- El escáner del hosting avisó de 20 vulnerabilidades en 8 paquetes. Siete eran dependencias de
+  desarrollo que no viajan al navegador ni carga el motor; la octava, `@angular/router`, solo es
+  explotable con renderizado en servidor, que Desplázame no usa. Se parchean todas igual: Angular
+  pasa de 22.1 a 22.2.2 en bloque, y con ello `piscina` queda en 5.3.2 y el SDK de MCP —que traía
+  `express`, `proxy-addr` e `ip-address`— sale del árbol. `undici`, `source-map-js` y `fast-uri`
+  se actualizan a su versión parcheada. `npm audit`: 0.
+
+### Cambiado
+
+- El `dist` se reconstruye con Angular 22.2.2. Su `index.html` cambia de mecanismo para cargar la
+  hoja de estilos (el de `beasties` 0.5, sin `onload` en línea) y las `@font-face` de Inter
+  viajan con la hoja en vez de ir incrustadas. Medido contra el `dist`: la portada baja Inter,
+  un solo preload, ninguna fuente dos veces. En pantalla se ve igual.
+
+### Verificación
+
+- Unidad y tipos en verde. De las diez suites de pantalla, siete en verde contra `ng serve`, y
+  contra el `dist`, `identidad` entera y la parte de `pintura` que no depende del bus. Las tres
+  que necesitan una ruta en bus no se han podido pasar: el GTFS publicado en el NAP (30/06/2026)
+  no tiene servicio de bus desde el 6 de octubre, y en producción tampoco lo hay. Se repiten en
+  cuanto el operador publique. El motor no cambia en esta versión.
+
 ## [1.0.0] — 2026-09-28
 
 **Desplázame dice cómo ir de un portal a otro en Zaragoza.** Se escribe de dónde a dónde, se
@@ -64,4 +93,5 @@ cuatro tandas de arreglo, un racimo de cinco micro-piezas, la verificación del 
   teclado y enseñan su foco, y el título vacío del acordeón se apaga en móvil.
 - Los enlaces y las citas rotas de la documentación, arreglados a línea exacta.
 
+[1.0.1]: https://github.com/ablanquez/desplazame/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ablanquez/desplazame/releases/tag/v1.0.0
