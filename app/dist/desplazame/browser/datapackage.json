@@ -188,11 +188,11 @@
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-08-17T12:34:30Z",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -226,11 +226,11 @@
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-08-18T12:04:45Z",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -264,11 +264,11 @@
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-09-19T14:20:36.256Z",
-      "comprobadoEl": "2026-09-19T14:20:36.256Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T14:20:36.256Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -302,11 +302,11 @@
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-08-18T13:21:04Z",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -340,11 +340,11 @@
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-09-19T14:20:46.183Z",
-      "comprobadoEl": "2026-09-19T14:20:46.183Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T14:20:46.183Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -700,11 +700,11 @@
       "descargadoEl": "2026-08-20T14:35:52Z",
       "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
       "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.15: «el callejero municipal se refresca (politica declarada: mensual)»",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -738,11 +738,11 @@
       "descargadoEl": "2026-08-23T15:33:54Z",
       "modified": "2026-06-08T14:06:36+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta (Mon, 08 Jun 2026 14:06:36 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 311 registros que lo traen — y va dos meses y medio por delante de la descarga, asi que no es la fecha de la respuesta",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Mon, 08 Jun 2026 14:06:36 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -776,11 +776,11 @@
       "descargadoEl": "2026-09-19T08:55:46.514Z",
       "modified": "2026-05-20T15:58:21+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta (Wed, 20 May 2026 15:58:21 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 55 registros que lo traen — el mismo cotejo que se le hizo a farmacias, y aqui tambien sale",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Fri, 28 Aug 2026 11:24:53 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -813,11 +813,11 @@
       "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-24T09:30:24Z",
       "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, pero el lastUpdated mas reciente de los 17 registros es 2024-03-15T15:02:36 — TRECE MESES antes. En farmacias y en centros de salud las dos fechas coinciden al segundo y por eso alli `modified` se declara; aqui la cabecera no describe al dato, asi que se omite en vez de copiarla",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -851,11 +851,11 @@
       "descargadoEl": "2026-08-25T15:50:17Z",
       "modified": "2026-06-23T13:46:18+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta (Tue, 23 Jun 2026 13:46:18 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 74 registros que lo traen — el mismo cotejo que en farmacias y en centros de salud, y aqui tambien sale",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Tue, 23 Jun 2026 13:46:18 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -888,11 +888,11 @@
       "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-25T15:50:22Z",
       "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST y el lastUpdated de sus dos registros es 2023-09-26T14:48:29 — DIECINUEVE MESES antes. Y es LA MISMA cabecera, al segundo, que devuelve la categoria 780 de hospitales: una fecha que dos categorias distintas comparten no describe a ninguna de las dos. Se omite en vez de copiarla",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -926,11 +926,11 @@
       "descargadoEl": "2026-08-27T06:31:39Z",
       "modified": "2026-05-26T13:33:58+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 140 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Tue, 26 May 2026 13:33:58 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -964,11 +964,11 @@
       "descargadoEl": "2026-08-27T06:31:40Z",
       "modified": "2026-01-28T09:29:05+01:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 137 registros que lo traen (2026-01-28T09:29:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Wed, 28 Jan 2026 09:29:05 CET",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1002,11 +1002,11 @@
       "descargadoEl": "2026-08-27T06:31:40Z",
       "modified": "2026-06-23T11:00:54+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 103 registros que lo traen (2026-06-23T11:00:54) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Tue, 23 Jun 2026 11:00:54 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1039,11 +1039,11 @@
       "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:41Z",
       "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1077,11 +1077,11 @@
       "descargadoEl": "2026-09-19T08:55:46.514Z",
       "modified": "2025-09-02T14:46:25+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 56 registros que lo traen (2025-09-02T14:46:25) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Fri, 18 Sep 2026 10:54:40 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1115,11 +1115,11 @@
       "descargadoEl": "2026-08-27T06:31:41Z",
       "modified": "2026-06-23T10:47:16+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 48 registros que lo traen (2026-06-23T10:47:16) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Tue, 23 Jun 2026 10:47:16 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1153,11 +1153,11 @@
       "descargadoEl": "2026-08-27T06:31:41Z",
       "modified": "2026-04-13T15:57:05+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 19 registros que lo traen (2026-04-13T15:57:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Mon, 13 Apr 2026 15:57:05 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1191,11 +1191,11 @@
       "descargadoEl": "2026-09-19T08:55:46.514Z",
       "modified": "2026-05-26T13:33:58+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 65 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Mon, 14 Sep 2026 11:05:51 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1228,11 +1228,11 @@
       "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:42Z",
       "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1266,11 +1266,11 @@
       "descargadoEl": "2026-08-27T06:31:42Z",
       "modified": "2025-09-15T12:01:05+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 8 registros que lo traen (2025-09-15T12:01:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Mon, 15 Sep 2025 12:01:05 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1304,11 +1304,11 @@
       "descargadoEl": "2026-08-27T06:31:43Z",
       "modified": "2025-09-15T12:27:31+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 7 registros que lo traen (2025-09-15T12:27:31) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": "Mon, 15 Sep 2025 12:27:31 CEST",
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1367,11 +1367,11 @@
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-09-19T14:20:50.115Z",
-      "comprobadoEl": "2026-09-19T14:20:50.115Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T14:20:50.115Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
@@ -1485,11 +1485,11 @@
       "descargadoEl": "2026-09-02T15:43:42Z",
       "modified": "2026-09-02T15:43:42Z",
       "modifiedFuente": "el propio fichero lo declara en `timeStamp` del WFS",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "comprobadoEl": "2026-10-20T09:12:57.159Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
+        "medidoEl": "2026-10-20T09:12:57.159Z"
       }
     },
     {
