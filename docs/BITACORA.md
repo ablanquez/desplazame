@@ -14,6 +14,33 @@
 
 ---
 
+## [2026-11-12] 🔴 ABIERTA — Doce rojos de contraste en la P26 sobre la tesela oscura, que nadie medía desde el 10/10 porque `pintura` se cortaba antes
+
+**Categoría:** contraste sobre tesela · peaje incompleto
+**Síntoma:** en `pintura` contra `ng serve` (12/11, 19:14–19:47, 1948,9 s), la P26 da
+doce rojos en oscuro, en los tres tamaños, todos contra el mismo píxel de tesela
+`rgb(83, 86, 102)`: el borde `#f87171` de la ZBE con coche (2,63:1), el borde `#15803d`
+a rayas del área de YeGo (1,45:1) y el aro `#d97706` del hito con bici y con coche
+(2,28:1). La vara es 3:1 [WCAG 1.4.11]. Las otras 129 rojas de la tirada son de bus
+(feed caducado). Las juezas de traza y pines de la misma P26 salen en verde.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** nada lo midió: el peaje del 10/10 se
+cortó antes. `DESPLAZAME-ESTADO.md:292-293`, literal: «EL PEAJE: 7/10 — pintura [corta
+en P23]». Hoy, sin el corte, en `app/e2e/capturas/pintura.log`:
+`✗✗  P26 · pc · coche · ⭐ el borde #f87171 del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  peor 2.63 sobre rgb(83, 86, 102)`
+`✗✗  P26 · pc · yego · ⭐ el borde #15803d a rayas del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  peor 1.45 sobre rgb(83, 86, 102)`
+`✗✗  P26 · pc · bici · el hito: su aro #d97706 contra la tesela, y su dibujo contra su disco: ≥ 3:1  ·  aro/tesela 2.28 sobre rgb(83, 86, 102)`
+**Cómo se cazó:** instrumento (la batería entera, guardada a fichero y leída entera).
+**Causa raíz:** ⏳ PENDIENTE. NO CONSTA desde cuándo: la tirada de las 18:30 llenó 78
+teselas nuevas (el arnés solo las guarda 30 días), así que la tesela de CARTO puede ser
+otra que la de septiembre.
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/e2e/pintura.mjs` (P26, `juzgarLoQuePisa`); colores en
+`app/src/styles.css`, `app/src/app/mapa.ts` y `app/src/app/mapa-de-capas.ts`. Pariente,
+no la misma: la entrada del 2026-09-19 («`esperarTeselas` da el visto bueno con 2
+teselas de 8, y la P26 mide el borde contra el fondo del contenedor»).
+
 ## [2026-09-25] ✅ CERRADA — Una juez que se llama «el puerto es 3000» dio verde con el puerto en 0: calculaba lo esperado con la misma expresión que vigilaba
 
 **Categoría:** prueba tautológica · variables de entorno
