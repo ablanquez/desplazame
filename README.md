@@ -153,7 +153,8 @@ colegio— eligiendo el tipo en vez de la calle. Cómo se resuelve cada uno, en
 - **No adivina.** Si un dato no está, dice que no está — nunca un valor por defecto que parezca
   medido.
 - **No confunde «no hay» con «no lo sé».** Son dos frases distintas en pantalla, a propósito.
-- **No pide nada.** Sin cuentas, sin registro, sin cookies propias, sin analítica.
+- **No pide nada.** Sin cuentas, sin registro, sin cookies propias. Las visitas se cuentan con
+  Umami, que no usa cookies ni guarda la IP.
 
 **Accesibilidad, y medida**
 - Ningún estado se comunica **solo con el color**: siempre hay forma o palabra.

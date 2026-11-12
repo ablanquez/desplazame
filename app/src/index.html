@@ -208,6 +208,35 @@
     precargada no coincide con la real — el mismo doble descargue.
   -->
   <link rel="preload" href="/fuentes/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!--
+    ⭐ EL RECUENTO DE VISITAS — Umami (12/11, decisión de Antonio).
+
+    La misma cuenta y la misma web de Umami que el portafolio y ZetaBus; en el panel se
+    separan por hostname. Sin cookies y con los datos en la Unión Europea.
+
+    ⚠️ SOLO SE CARGA EN desplazame.antonioblanquez.es, y por eso va como un cargador y
+       no como un `<script src>`. Con la etiqueta directa, `ng serve`, `npm run local`
+       y la batería pedirían el guion a cloud.umami.is, y la jueza de terceros de
+       `app/e2e/medir.mjs` lo contaría como petición escapada: cuenta toda petición a
+       un host que no es el del arnés. Fuera del dominio de producción, ni se pide.
+       Y así una copia del repo servida en otro sitio tampoco carga esta cuenta.
+    ⚠️ Un guion insertado así es asíncrono: no retrasa el arranque de Angular.
+    ⚠️ NO es el primer guion del `<head>`: ese es el anti-FOUC, y lo vigila
+       `tema.spec.ts`. `data-do-not-track`: con «No rastrear», Umami no envía nada.
+  -->
+  <script>
+    (function () {
+      if (location.hostname !== 'desplazame.antonioblanquez.es') return;
+      var s = document.createElement('script');
+      s.src = 'https://cloud.umami.is/script.js';
+      s.async = true;
+      s.setAttribute('data-website-id', 'dcdda923-afe1-4a21-b6b1-0135b9968f8e');
+      s.setAttribute('data-domains', 'desplazame.antonioblanquez.es');
+      s.setAttribute('data-do-not-track', 'true');
+      document.head.appendChild(s);
+    })();
+  </script>
 </head>
 <body>
   <!--

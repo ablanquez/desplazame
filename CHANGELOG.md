@@ -5,6 +5,13 @@ Todo lo destacable que le pasa a Desplázame se anota aquí.
 El formato es el de [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y las
 versiones, las de [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- Recuento de visitas con Umami, sin cookies y con los datos en la Unión Europea. Si el
+  navegador tiene activado «No rastrear», no envía nada.
+
 ## [1.0.1] — 2026-10-10
 
 Mantenimiento de seguridad tras el cierre. El producto hace lo mismo; lo que cambia es con qué
