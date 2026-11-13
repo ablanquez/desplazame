@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-11-12] 🔴 ABIERTA — Doce rojos de contraste en la P26 sobre la tesela oscura, que nadie medía desde el 10/10 porque `pintura` se cortaba antes
+## [2026-11-12] ✅ CERRADA — Doce rojos de contraste en la P26 sobre la tesela oscura, que nadie medía desde el 10/10 porque `pintura` se cortaba antes
 
 **Categoría:** contraste sobre tesela · peaje incompleto
 **Síntoma:** en `pintura` contra `ng serve` (12/11, 19:14–19:47, 1948,9 s), la P26 da
@@ -30,12 +30,17 @@ en P23]». Hoy, sin el corte, en `app/e2e/capturas/pintura.log`:
 `✗✗  P26 · pc · yego · ⭐ el borde #15803d a rayas del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  peor 1.45 sobre rgb(83, 86, 102)`
 `✗✗  P26 · pc · bici · el hito: su aro #d97706 contra la tesela, y su dibujo contra su disco: ≥ 3:1  ·  aro/tesela 2.28 sobre rgb(83, 86, 102)`
 **Cómo se cazó:** instrumento (la batería entera, guardada a fichero y leída entera).
-**Causa raíz:** ⏳ PENDIENTE. NO CONSTA desde cuándo: la tirada de las 18:30 llenó 78
-teselas nuevas (el arnés solo las guarda 30 días), así que la tesela de CARTO puede ser
-otra que la de septiembre.
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** NO CONSTA: no se investigó. NO CONSTA desde cuándo: la tirada de las 18:30
+llenó 78 teselas nuevas (el arnés solo las guarda 30 días), así que la tesela de CARTO puede
+ser otra que la de septiembre.
+**Arreglo aplicado:** ninguno. Se cierra por decisión de Antonio, sin tocar colores ni juez.
+Literal, 13/11/2026: «en su día lo dejamos así, así que ciérralo».
+**Commit:** NO CONSTA: no hay arreglo que commitear.
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+**Nota (2026-11-13):** se cierra sin arreglo. Los doce rojos siguen en la batería: en la
+tirada del 13/11 (`app/e2e/capturas/bateria.log`, 15:42–16:19) `pintura` da los mismos 141
+rojos que el 12/11, comparados uno a uno, con los doce de la P26 entre ellos. Cada peaje los
+volverá a enseñar mientras la juez y los colores sigan como están.
 **Traza:** `app/e2e/pintura.mjs` (P26, `juzgarLoQuePisa`); colores en
 `app/src/styles.css`, `app/src/app/mapa.ts` y `app/src/app/mapa-de-capas.ts`. Pariente,
 no la misma: la entrada del 2026-09-19 («`esperarTeselas` da el visto bueno con 2
