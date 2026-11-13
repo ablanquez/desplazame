@@ -12,6 +12,14 @@ versiones, las de [SemVer](https://semver.org/lang/es/).
 - Recuento de visitas con Umami, sin cookies y con los datos en la Unión Europea. Si el
   navegador tiene activado «No rastrear», no envía nada.
 
+### Seguridad
+
+- El escáner del hosting avisó de 26 vulnerabilidades en 8 paquetes, todos de desarrollo:
+  `@angular/build`, `@angular/cli`, `vite`, `vitest`, `@vitest/mocker`, `undici`, `zod` y
+  `fast-uri`. Ninguno viaja al navegador ni lo carga el motor. Se actualizan a su versión
+  parcheada: Angular sube en bloque a 22.2.6 (sus herramientas, a 22.2.7) y `vitest` a 4.1.12.
+  `npm audit`: 0.
+
 ## [1.0.1] — 2026-10-10
 
 Mantenimiento de seguridad tras el cierre. El producto hace lo mismo; lo que cambia es con qué
