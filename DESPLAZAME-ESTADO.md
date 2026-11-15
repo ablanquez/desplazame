@@ -346,6 +346,53 @@ usuario puede tocar [producción sin bus desde el 05/10]. Se repiten
 EN CUANTO el NAP publique — es la primera cosa de la cola, con reloj:
 el día que /api/salud diga «vigente». Versión 1.0.1 y CHANGELOG con
 la verificación dicha tal cual. Commit 3 y push, ver abajo.)*
+
+*(Al 13/11/2026: ⚰️ **MANTENIMIENTO POST-CIERRE nº4 — EL PARCHE DE
+SEGURIDAD DEL 13/11, EN PRODUCCIÓN EL MISMO DÍA; Y LO DEL 12/11 QUE
+ESTE ESTADO NO TENÍA.** Lo del 12/11, por sus commits: `eae8e2e`
+[datos: fechas de comprobación de las fuentes, la tarea de datos —
+los tres datapackage.json] · `4a0256f` [bitácora: ABRE la P26 en
+oscuro — doce rojos de contraste sobre la tesela `rgb(83,86,102)`
+en los tres tamaños: el borde #f87171 de la ZBE con coche (2,63:1),
+el #15803d a rayas de YeGo (1,45:1) y el aro #d97706 del hito con
+bici y coche (2,28:1); vara 3:1 WCAG 1.4.11; ⭐ nadie los medía desde
+el 10/10 porque `pintura` cortaba en P23 — el cabo (c) cerrado el
+10/10 en `16b49a0` es lo que los destapó] · `0fe6657` [RECUENTO DE
+VISITAS CON UMAMI, decisión de Antonio: la misma cuenta y web que el
+portafolio y ZetaBus; solo en desplazame.antonioblanquez.es, sin
+cookies, datos en la UE, `data-do-not-track`; CHANGELOG «Añadido»
+bajo [Sin publicar]; peaje 7/10 con el bus bloqueado por el dato,
+como el 10/10]. EL AVISO del 13/11: 26 vulnerabilidades en 8
+paquetes, TODOS de desarrollo [@angular/build · @angular/cli · vite ·
+vitest · @vitest/mocker · undici · zod · fast-uri]: ninguno viaja al
+navegador ni lo carga el motor. EL PARCHE (`99b92a0`): Angular en
+bloque a 22.2.6 [runtime] / 22.2.7 [herramientas], vitest 4.1.12,
+vite, undici, zod y fast-uri a su versión parcheada; `npm audit` 0;
+`app/package.json` 18 líneas; el dist reconstruido [main-LQUQ4U55.js].
+EMPUJADO Y DESPLEGADO: Hostinger, Seguridad → Vulnerabilidades, «No
+se han encontrado vulnerabilidades» [escaneo 13/11 16:41];
+producción sirve main-LQUQ4U55.js. ⚠️ Hostinger instala con npm
+10.9.9, no con el 10.9.3 del log del 8/09. LA LÍNEA BASE DE LA
+BATERÍA [13/11, 15:42–16:19, ~37 min, salida 1, guardada en
+`app/e2e/capturas/bateria.log` y leída entera — la regla del 12/11:
+las salidas largas a fichero]: `pintura` 141 rojos, LOS MISMOS uno a
+uno que el 12/11 [129 del bus + los 12 de la P26] y sin corte ·
+`bizi-y-resumen` y `proximo-bus` en rojo por falta de MOTOR_LOG en
+esa tirada y por el feed de bus caducado · el resto en verde, 0
+peticiones escapadas a terceros [Umami incluido: la jueza de terceros
+no lo ve en local, como está escrito en index.html] · unidad 673 +
+790, comprobar-tipos limpio. LA P26, CERRADA SIN ARREGLO (`ee25bf7`)
+por decisión de Antonio, literal del 13/11: «en su día lo dejamos
+así, así que ciérralo»; causa raíz y «desde cuándo» NO CONSTA [la
+tirada del 12/11 renovó 78 teselas: la tesela de CARTO puede no ser
+la de septiembre]. CONSECUENCIA ESCRITA: los doce rojos de la P26
+SALDRÁN EN CADA PEAJE mientras colores y juez sigan como están — la
+cifra esperada de `pintura` con el feed caducado es 141, no 129.
+VERSIÓN: sigue 1.0.1; Umami y el parche están en el CHANGELOG bajo
+[Sin publicar] — la 1.0.2 (o 1.1.0 por Umami, que es visible) queda
+para cuando Antonio lo marque. SIN CAMBIO en lo del NAP: el feed
+sigue siendo la publicación del 30/06; las tres suites de bus siguen
+esperando a que publique.)*
 *(Histórico del 23/09 tarde: lo en-local eran CINCO commits: LA MIGRACIÓN
 DEL RGC — 14 citas al texto reformado [XML oficial], la rueda
 ELI en toda URL al BOE, el dictamen del 50 [queda], los dos
